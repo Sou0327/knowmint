@@ -1,0 +1,427 @@
+openapi: 3.1.0
+info:
+  title: Knowledge Market API
+  version: 1.0.0
+  description: |
+    Agent-first API for search, purchase, publish, and dataset delivery.
+servers:
+  - url: https://your-domain.com
+security:
+  - BearerAuth: []
+tags:
+  - name: Knowledge
+  - name: Purchase
+  - name: Dataset
+  - name: Keys
+  - name: Transactions
+  - name: Me
+paths:
+  /api/v1/knowledge:
+    get:
+      tags: [Knowledge]
+      summary: Search/list published knowledge items
+      parameters:
+        - in: query
+          name: query
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Paginated knowledge list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccessResponse"
+    post:
+      tags: [Knowledge]
+      summary: Create draft knowledge item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateKnowledgeRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/knowledge/{id}:
+    get:
+      tags: [Knowledge]
+      summary: Get knowledge item details
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      responses:
+        "200":
+          description: Knowledge item details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/knowledge/{id}/content:
+    get:
+      tags: [Knowledge]
+      summary: Get full content for purchased item or seller
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum: [raw]
+      responses:
+        "200":
+          description: Content payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+            text/plain:
+              schema:
+                type: string
+  /api/v1/knowledge/{id}/purchase:
+    post:
+      tags: [Purchase]
+      summary: Record purchase and verify Solana on-chain payment
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseRequest"
+      responses:
+        "200":
+          description: Purchase recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Verification failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/knowledge/{id}/publish:
+    post:
+      tags: [Knowledge]
+      summary: Publish draft knowledge item
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      responses:
+        "200":
+          description: Published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/knowledge/{id}/dataset/upload-url:
+    post:
+      tags: [Dataset]
+      summary: Create signed upload URL for dataset file
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatasetUploadUrlRequest"
+      responses:
+        "200":
+          description: Signed upload data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/knowledge/{id}/dataset/finalize:
+    post:
+      tags: [Dataset]
+      summary: Finalize uploaded dataset and attach downloadable URL
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatasetFinalizeRequest"
+      responses:
+        "200":
+          description: Finalized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/keys:
+    get:
+      tags: [Keys]
+      summary: List API keys
+      description: |
+        Accepts either:
+        - `Authorization: Bearer km_...` with `admin` permission
+        - Session cookie (dashboard)
+      security:
+        - BearerAuth: []
+        - SessionCookie: []
+      responses:
+        "200":
+          description: API key list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    post:
+      tags: [Keys]
+      summary: Create API key
+      security:
+        - BearerAuth: []
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApiKeyRequest"
+      responses:
+        "200":
+          description: API key created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    delete:
+      tags: [Keys]
+      summary: Delete API key
+      security:
+        - BearerAuth: []
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteApiKeyRequest"
+      responses:
+        "200":
+          description: API key deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/transactions/{id}:
+    get:
+      tags: [Transactions]
+      summary: Get transaction status
+      parameters:
+        - $ref: "#/components/parameters/TransactionId"
+      responses:
+        "200":
+          description: Transaction details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/me/purchases:
+    get:
+      tags: [Me]
+      summary: Get authenticated user's purchases
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Paginated purchases
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccessResponse"
+  /api/v1/me/listings:
+    get:
+      tags: [Me]
+      summary: Get authenticated user's listings
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Paginated listings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccessResponse"
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: APIKey
+      description: Use `Authorization: Bearer km_...`.
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+      description: Browser session cookie for dashboard routes.
+  parameters:
+    KnowledgeId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+    TransactionId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    SuccessResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          description: Endpoint-specific response payload
+    PaginatedSuccessResponse:
+      type: object
+      required: [success, data, pagination]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            type: object
+        pagination:
+          type: object
+          required: [total, page, per_page, total_pages]
+          properties:
+            total: { type: integer }
+            page: { type: integer }
+            per_page: { type: integer }
+            total_pages: { type: integer }
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - unauthorized
+                - forbidden
+                - not_found
+                - rate_limited
+                - bad_request
+                - conflict
+                - internal_error
+            message:
+              type: string
+    CreateKnowledgeRequest:
+      type: object
+      required: [title, description, content_type]
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string, minLength: 1 }
+        content_type:
+          type: string
+          enum: [prompt, tool_def, dataset, api, general]
+        price_sol: { type: number, nullable: true }
+        price_usdc: { type: number, nullable: true }
+        preview_content: { type: string }
+        full_content: { type: string }
+        category_id: { type: string, format: uuid, nullable: true }
+        tags:
+          type: array
+          items: { type: string }
+    PurchaseRequest:
+      type: object
+      required: [tx_hash]
+      properties:
+        tx_hash:
+          type: string
+        token:
+          type: string
+          enum: [SOL, USDC]
+          default: SOL
+        chain:
+          type: string
+          enum: [solana]
+          default: solana
+        amount:
+          type: number
+          description: Ignored by server; DB price is authoritative.
+    DatasetUploadUrlRequest:
+      type: object
+      required: [filename, content_type, size_bytes]
+      properties:
+        filename: { type: string, minLength: 1 }
+        content_type:
+          type: string
+          enum:
+            - text/csv
+            - application/csv
+            - application/json
+            - application/x-ndjson
+            - application/octet-stream
+        size_bytes: { type: integer, minimum: 1, maximum: 104857600 }
+        checksum_sha256:
+          type: string
+          pattern: "^[a-fA-F0-9]{64}$"
+    DatasetFinalizeRequest:
+      type: object
+      required: [storage_path]
+      properties:
+        storage_path:
+          type: string
+          description: Must match `<user_id>/<knowledge_id>/...`
+        checksum_sha256:
+          type: string
+          pattern: "^[a-fA-F0-9]{64}$"
+    CreateApiKeyRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1 }
+        permissions:
+          type: array
+          items:
+            type: string
+          example: [read, write]
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    DeleteApiKeyRequest:
+      type: object
+      required: [key_id]
+      properties:
+        key_id:
+          type: string
+          format: uuid

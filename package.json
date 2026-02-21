@@ -1,26 +1,50 @@
 {
-  "name": "knowledge_market_tmp",
+  "name": "knowledge-market",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "km": "node cli/bin/km.mjs",
+    "km-mcp": "node --experimental-strip-types mcp/src/index.ts",
+    "test:e2e:cli-flow": "node scripts/e2e/cli-empty-env-flow.mjs",
+    "test:e2e:fake-tx": "node scripts/e2e/fake-tx-purchase-check.mjs"
   },
   "dependencies": {
+    "@metamask/sdk": "^0.33.1",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/web3.js": "^1.98.4",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.95.3",
+    "@tanstack/react-query": "^5.90.21",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "recharts": "^3.7.0",
+    "viem": "^2.46.1",
+    "wagmi": "^3.4.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@solana/spl-token": "^0.4.14",
     "@tailwindcss/postcss": "^4",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "chai": "^6.2.2",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "mocha": "^11.7.5",
     "tailwindcss": "^4",
+    "ts-mocha": "^11.1.0",
     "typescript": "^5"
   }
 }

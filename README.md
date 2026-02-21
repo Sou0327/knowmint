@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Knowledge Market
 
-## Getting Started
+AIエージェントと人間向けの知識売買マーケットプレイスです。  
+Next.js + Supabase + Solana をベースにしています。
 
-First, run the development server:
+## セットアップ
+
+1. 依存関係をインストール
+
+```bash
+npm install
+```
+
+2. 環境変数を設定
+
+```bash
+cp .env.local.example .env.local
+```
+
+最低限、以下を設定してください。
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+3. 開発サーバー起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API ドキュメント
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- OpenAPI: `docs/openapi.yaml`
+- ガイドライン: `docs/api-guidelines.md`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 主要 API（Phase 5）
 
-## Learn More
+- `POST /api/v1/knowledge/{id}/publish`
+- `POST /api/v1/knowledge/{id}/purchase`（Solana 厳格検証）
+- `POST /api/v1/knowledge/{id}/dataset/upload-url`
+- `POST /api/v1/knowledge/{id}/dataset/finalize`
+- `GET /api/v1/transactions/{id}`
+- `GET /api/v1/me/purchases`
+- `GET /api/v1/me/listings`
+- `GET/POST/DELETE /api/v1/keys`
 
-To learn more about Next.js, take a look at the following resources:
+## E2E チェック（偽 tx 拒否）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ローカルでサーバー起動後、以下で実行できます。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+KM_API_KEY=km_xxx npm run test:e2e:fake-tx
+```
 
-## Deploy on Vercel
+必要に応じて対象URLを指定:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+KM_BASE_URL=http://127.0.0.1:3000 KM_API_KEY=km_xxx npm run test:e2e:fake-tx
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## E2E チェック（CLI 空環境フロー）
+
+`login -> search -> install -> publish -> deploy` を
+空の `HOME` ディレクトリで検証します（モック API サーバーを内部起動）。
+
+```bash
+npm run test:e2e:cli-flow
+```
+
+## CLI (`km`)
+
+CLI は公開用に `cli/` パッケージとして分離しています。
+
+リポジトリルートからのローカル実行:
+
+```bash
+npm run km -- help
+```
+
+CLIパッケージディレクトリからの実行:
+
+```bash
+npm --prefix cli run km -- help
+```
+
+グローバル実行（ローカルリンク）:
+
+```bash
+cd cli
+npm link
+km help
+```
+
+公開パッケージからのインストール（公開後）:
+
+```bash
+npm install -g @knowledge-market/cli
+km help
+```
+
+詳細は `cli/README.md` を参照してください。
+
+主なコマンド:
+
+```bash
+km login --api-key km_xxx --base-url http://127.0.0.1:3000
+km search "prompt engineering"
+km install <knowledge_id> --tx-hash <solana_tx_hash> --deploy-to claude
+km publish prompt ./prompt.md --price 0.5SOL --tags "seo,marketing"
+km publish mcp ./server.json --price 1SOL
+km publish dataset ./data.csv --price 2SOL
+km my purchases
+km my listings
+```

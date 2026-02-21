@@ -1,0 +1,74 @@
+'use client';
+
+import { forwardRef, useId, type InputHTMLAttributes } from 'react';
+
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+  hint?: string;
+}
+
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, error, hint, className = '', id, ...props }, ref) => {
+    const generatedId = useId();
+    const inputId = id || generatedId;
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
+          >
+            {label}
+          </label>
+        )}
+        <input
+          ref={ref}
+          id={inputId}
+          className={`
+            w-full px-3 py-2 text-base rounded-lg border
+            bg-white dark:bg-zinc-900
+            text-zinc-900 dark:text-zinc-100
+            placeholder:text-zinc-400 dark:placeholder:text-zinc-500
+            focus:outline-none focus:ring-2 focus:ring-offset-0
+            disabled:opacity-50 disabled:cursor-not-allowed
+            transition-colors
+            ${
+              error
+                ? 'border-red-600 focus:ring-red-500 focus:border-red-600'
+                : 'border-zinc-300 dark:border-zinc-600 focus:ring-blue-500 focus:border-blue-500'
+            }
+            ${className}
+          `}
+          aria-invalid={!!error}
+          aria-describedby={
+            error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
+          }
+          {...props}
+        />
+        {hint && !error && (
+          <p
+            id={`${inputId}-hint`}
+            className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400"
+          >
+            {hint}
+          </p>
+        )}
+        {error && (
+          <p
+            id={`${inputId}-error`}
+            className="mt-1.5 text-sm text-red-600 dark:text-red-500"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
+
+Input.displayName = 'Input';
+
+export default Input;

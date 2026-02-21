@@ -1,0 +1,30 @@
+{
+  "name": "@knowledge-market/cli",
+  "version": "0.1.0",
+  "description": "Knowledge Market CLI",
+  "type": "module",
+  "bin": {
+    "km": "./bin/km.mjs"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "km": "node ./bin/km.mjs",
+    "help": "node ./bin/km.mjs help"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "keywords": [
+    "knowledge-market",
+    "cli",
+    "agent",
+    "marketplace"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

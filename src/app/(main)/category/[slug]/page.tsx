@@ -1,0 +1,94 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import KnowledgeCard from "@/components/features/KnowledgeCard";
+import { getKnowledgeByCategory } from "@/lib/knowledge/queries";
+import type { ListingType } from "@/types/database.types";
+
+export const dynamic = "force-dynamic";
+
+interface Props {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function CategoryPage({ params, searchParams }: Props) {
+  const { slug } = await params;
+  const { page: pageStr } = await searchParams;
+  const page = parseInt(pageStr || "1", 10);
+
+  const result = await getKnowledgeByCategory(slug, page);
+
+  if (!result.category) {
+    notFound();
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <Link
+          href="/"
+          className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+        >
+          ← トップ
+        </Link>
+        <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          {result.category.name}
+        </h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          {result.total} 件のアイテム
+        </p>
+      </div>
+
+      {result.items.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {result.items.map((item: Record<string, unknown>) => (
+            <KnowledgeCard
+              key={item.id as string}
+              id={item.id as string}
+              listing_type={item.listing_type as ListingType}
+              title={item.title as string}
+              description={item.description as string}
+              content_type={item.content_type as "prompt" | "tool_def" | "dataset" | "api" | "general"}
+              price_sol={item.price_sol as number | null}
+              price_usdc={item.price_usdc as number | null}
+              seller={item.seller as { display_name: string | null }}
+              category={item.category as { name: string } | null}
+              tags={item.tags as string[]}
+              average_rating={item.average_rating as number | null}
+              purchase_count={item.purchase_count as number}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="py-12 text-center text-zinc-500 dark:text-zinc-400">
+          このカテゴリにはまだアイテムがありません
+        </p>
+      )}
+
+      {/* Pagination */}
+      {result.total_pages > 1 && (
+        <div className="mt-8 flex justify-center gap-2">
+          {page > 1 && (
+            <Link
+              href={`/category/${slug}?page=${page - 1}`}
+              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+            >
+              前へ
+            </Link>
+          )}
+          <span className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400">
+            {page} / {result.total_pages}
+          </span>
+          {page < result.total_pages && (
+            <Link
+              href={`/category/${slug}?page=${page + 1}`}
+              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+            >
+              次へ
+            </Link>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

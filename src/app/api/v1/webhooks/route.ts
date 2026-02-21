@@ -1,32 +1,15 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
+import { encryptSecret } from "@/lib/webhooks/crypto";
+import { checkPublicUrl } from "@/lib/webhooks/ssrf";
+import { logAuditEvent } from "@/lib/audit/log";
 
 const VALID_EVENTS = [
   "purchase.completed",
   "review.created",
-  "knowledge.published",
+  "listing.published",
 ];
-
-/**
- * B3: SSRF prevention — reject private/internal URLs
- */
-function isPublicUrl(urlStr: string): boolean {
-  try {
-    const u = new URL(urlStr);
-    if (u.protocol !== "https:") return false;
-    if (u.username || u.password) return false;
-    const host = u.hostname;
-    if (host === "localhost" || host.startsWith("127.") || host === "[::1]")
-      return false;
-    if (host.startsWith("10.") || host.startsWith("192.168.")) return false;
-    if (/^172\.(1[6-9]|2\d|3[01])\./.test(host)) return false;
-    if (host.startsWith("169.254.")) return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 /**
  * GET /api/v1/webhooks
@@ -71,8 +54,25 @@ export const POST = withApiAuth(async (request, user) => {
     );
   }
 
-  // B3: Validate URL is public HTTPS
-  if (!isPublicUrl(url)) {
+  if (url.length > 2048) {
+    return apiError(API_ERRORS.BAD_REQUEST, "Field 'url' must be 2048 characters or fewer");
+  }
+
+  // B3: Pre-filter — reject clearly invalid URLs early.
+  // NOTE: This registration-time check is NOT the primary SSRF protection.
+  // The actual protection is IP pinning in dispatchWebhook (dispatch.ts),
+  // which re-validates the URL and pins the resolved IP at delivery time.
+  // Do NOT remove the checkPublicUrl call in dispatch.ts.
+  const ssrfCheck = await checkPublicUrl(url);
+  if (!ssrfCheck.safe) {
+    if (ssrfCheck.reason === "dns_notfound") {
+      // ユーザー起因のDNS解決失敗（NXDOMAIN/typo）→ 400
+      return apiError(API_ERRORS.BAD_REQUEST, "Failed to resolve URL hostname; please check the URL");
+    }
+    if (ssrfCheck.reason === "dns_error") {
+      // 一時的なDNS障害 → 500（再試行してください）
+      return apiError(API_ERRORS.INTERNAL_ERROR, "Failed to resolve URL hostname; please try again");
+    }
     return apiError(
       API_ERRORS.BAD_REQUEST,
       "Field 'url' must be a public HTTPS URL (no private/internal addresses)"
@@ -84,6 +84,14 @@ export const POST = withApiAuth(async (request, user) => {
       API_ERRORS.BAD_REQUEST,
       `Field 'events' must be a non-empty array. Valid events: ${VALID_EVENTS.join(", ")}`
     );
+  }
+
+  if (events.length > 10) {
+    return apiError(API_ERRORS.BAD_REQUEST, "Maximum 10 events per subscription");
+  }
+
+  if (events.some((e) => typeof e !== "string")) {
+    return apiError(API_ERRORS.BAD_REQUEST, "Field 'events' must be an array of strings");
   }
 
   const invalidEvents = events.filter((e) => !VALID_EVENTS.includes(e));
@@ -103,6 +111,22 @@ export const POST = withApiAuth(async (request, user) => {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
 
+  // SHA-256 hash for verification; AES-GCM encrypted copy for HMAC signing.
+  const encoder = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(secret) as BufferSource);
+  const secretHash = Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  // Encrypt the secret for HMAC signing during webhook dispatch.
+  // Falls back to null if WEBHOOK_SIGNING_KEY is not configured.
+  let secretEncrypted: string | null = null;
+  try {
+    secretEncrypted = encryptSecret(secret);
+  } catch (err) {
+    console.warn("WEBHOOK_SIGNING_KEY not configured; webhook signing disabled:", err);
+  }
+
   const admin = getAdminClient();
 
   const { data, error } = await admin
@@ -111,7 +135,8 @@ export const POST = withApiAuth(async (request, user) => {
       user_id: user.userId,
       url,
       events,
-      secret,
+      secret_hash: secretHash,
+      secret_encrypted: secretEncrypted,
       active: true,
     })
     .select("id, url, events, active, created_at")
@@ -121,6 +146,25 @@ export const POST = withApiAuth(async (request, user) => {
     console.error("Failed to create webhook:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
+
+  // URL のクエリパラメータ・認証情報を除去してから記録する
+  let sanitizedUrl = url;
+  try {
+    const parsed = new URL(url);
+    parsed.search = "";
+    parsed.hash = "";
+    parsed.username = "";
+    parsed.password = "";
+    sanitizedUrl = parsed.toString();
+  } catch { /* invalid URL はそのまま保存 */ }
+
+  logAuditEvent({
+    userId: user.userId,
+    action: "webhook.created",
+    resourceType: "webhook",
+    resourceId: data.id,
+    metadata: { url: sanitizedUrl, events },
+  });
 
   return apiSuccess({ ...data, secret }, 201);
 }, { requiredPermissions: ["write"] });
@@ -149,16 +193,29 @@ export const DELETE = withApiAuth(async (request, user) => {
 
   const admin = getAdminClient();
 
-  const { error } = await admin
+  const { data: deleted, error } = await admin
     .from("webhook_subscriptions")
     .delete()
     .eq("id", webhookId)
-    .eq("user_id", user.userId);
+    .eq("user_id", user.userId)
+    .select("id");
 
   if (error) {
     console.error("Failed to delete webhook:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
+
+  if (!deleted || deleted.length === 0) {
+    return apiError(API_ERRORS.NOT_FOUND, "Webhook not found");
+  }
+
+  logAuditEvent({
+    userId: user.userId,
+    action: "webhook.deleted",
+    resourceType: "webhook",
+    resourceId: webhookId,
+    metadata: {},
+  });
 
   return apiSuccess({ deleted: true });
 }, { requiredPermissions: ["write"] });

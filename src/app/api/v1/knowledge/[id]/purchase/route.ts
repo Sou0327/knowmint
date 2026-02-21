@@ -3,6 +3,8 @@ import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { notifyPurchase } from "@/lib/notifications/create";
+import { fireWebhookEvent } from "@/lib/webhooks/events";
+import { logAuditEvent } from "@/lib/audit/log";
 import type { Chain, Token } from "@/types/database.types";
 import {
   isValidSolanaTxHash,
@@ -123,7 +125,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   // Idempotency by tx_hash
   const { data: existingByHash, error: existingByHashError } = await admin
     .from("transactions")
-    .select("id, buyer_id, knowledge_item_id, status")
+    .select()
     .eq("tx_hash", tx_hash.trim())
     .maybeSingle();
 
@@ -137,13 +139,8 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
       existingByHash.buyer_id === user.userId &&
       existingByHash.knowledge_item_id === id
     ) {
-      const { data: existingTransaction } = await admin
-        .from("transactions")
-        .select()
-        .eq("id", existingByHash.id)
-        .single();
-
-      return apiSuccess(existingTransaction || existingByHash);
+      // select() で全フィールド取得済みなので再クエリ不要（N+1 解消）
+      return apiSuccess(existingByHash);
     }
 
     return apiError(API_ERRORS.CONFLICT, "Transaction hash is already used");
@@ -264,19 +261,23 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .select("id, title")
     .eq("id", id)
     .single()
-    .then(({ data: itemData }) => {
-      if (itemData) {
-        notifyPurchase(
-          item.seller_id,
-          "購入者",
-          { id: itemData.id, title: itemData.title },
-          expectedAmount,
-          token
-        ).catch((err: unknown) =>
-          console.error("Failed to send purchase notification:", err)
-        );
-      }
-    });
+    .then(
+      ({ data: itemData }) => {
+        if (itemData) {
+          notifyPurchase(
+            item.seller_id,
+            "購入者",
+            { id: itemData.id, title: itemData.title },
+            expectedAmount,
+            token
+          ).catch((err: unknown) =>
+            console.error("Failed to send purchase notification:", err)
+          );
+        }
+      },
+      (err: unknown) =>
+        console.error("Failed to fetch item for notification:", err)
+    );
 
   // Fetch updated transaction
   const { data: confirmedTx } = await admin
@@ -284,6 +285,22 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .select()
     .eq("id", transaction.id)
     .single();
+
+  // Fire webhook event (fire-and-forget)
+  fireWebhookEvent(user.userId, "purchase.completed", {
+    knowledge_id: id,
+    transaction_id: transaction.id,
+    amount: expectedAmount,
+    token,
+  }).catch((err: unknown) => console.error("Webhook purchase.completed:", err));
+
+  logAuditEvent({
+    userId: user.userId,
+    action: "purchase.completed",
+    resourceType: "knowledge_item",
+    resourceId: id,
+    metadata: { txHash: tx_hash.trim() },
+  });
 
   return apiSuccess(confirmedTx || transaction);
 }, { requiredPermissions: ["write"] });

@@ -1,6 +1,8 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
+import { fireWebhookEvent } from "@/lib/webhooks/events";
+import { logAuditEvent } from "@/lib/audit/log";
 
 /**
  * POST /api/v1/knowledge/[id]/publish
@@ -78,6 +80,20 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
     console.error("Failed to publish knowledge item:", updateError);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
+
+  // Fire webhook event (fire-and-forget)
+  fireWebhookEvent(user.userId, "listing.published", {
+    knowledge_id: id,
+    title: updated.title,
+  }).catch((err: unknown) => console.error("Webhook listing.published:", err));
+
+  logAuditEvent({
+    userId: user.userId,
+    action: "listing.published",
+    resourceType: "knowledge_item",
+    resourceId: id,
+    metadata: {},
+  });
 
   return apiSuccess(updated);
 }, { requiredPermissions: ["write"] });

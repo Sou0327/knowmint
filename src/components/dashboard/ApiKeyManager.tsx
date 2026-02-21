@@ -7,14 +7,9 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import type { ApiKey } from "@/types/database.types";
+import { PERMISSION_OPTIONS } from "@/lib/api/permissions";
 
 type ApiKeyListItem = Omit<ApiKey, "key_hash" | "user_id">;
-
-const PERMISSION_OPTIONS = [
-  { value: "read", label: "読み取り", description: "ナレッジ検索・取得" },
-  { value: "write", label: "書き込み", description: "ナレッジ作成・更新" },
-  { value: "admin", label: "管理者", description: "全権限" },
-];
 
 interface ApiResponse<T> {
   success: boolean;

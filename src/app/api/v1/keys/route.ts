@@ -2,6 +2,12 @@ import { authenticateApiKey, generateApiKey } from "@/lib/api/auth";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { createClient as createSessionClient } from "@/lib/supabase/server";
+import { ALLOWED_PERMISSIONS } from "@/lib/api/permissions";
+import { logAuditEvent } from "@/lib/audit/log";
+import { validateExpiresAt } from "@/lib/api/validation";
+import { checkPreAuthRateLimit } from "@/lib/api/rate-limit";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface ResolvedAuth {
   userId: string;
@@ -38,6 +44,9 @@ async function resolveKeysAuth(request: Request): Promise<ResolvedAuth | Respons
  * List all API keys for the authenticated user (excluding key_hash).
  */
 export const GET = async (request: Request) => {
+  const preAuth = await checkPreAuthRateLimit(request);
+  if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
+
   const auth = await resolveKeysAuth(request);
   if (auth instanceof Response) return auth;
 
@@ -63,6 +72,9 @@ export const GET = async (request: Request) => {
  * Body: { name: string, permissions?: string[], expires_at?: string }
  */
 export const POST = async (request: Request) => {
+  const preAuth = await checkPreAuthRateLimit(request);
+  if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
+
   const auth = await resolveKeysAuth(request);
   if (auth instanceof Response) return auth;
 
@@ -82,6 +94,10 @@ export const POST = async (request: Request) => {
     );
   }
 
+  if (name.trim().length > 255) {
+    return apiError(API_ERRORS.BAD_REQUEST, "Field 'name' must be 255 characters or fewer");
+  }
+
   if (
     !Array.isArray(permissions) ||
     permissions.some((p) => typeof p !== "string")
@@ -92,15 +108,27 @@ export const POST = async (request: Request) => {
     );
   }
 
-  if (expires_at !== undefined && expires_at !== null) {
-    const expiresDate = new Date(expires_at);
-    if (isNaN(expiresDate.getTime())) {
-      return apiError(
-        API_ERRORS.BAD_REQUEST,
-        "Field 'expires_at' must be a valid ISO date"
-      );
-    }
+  const invalid = permissions.filter(
+    (p) => !(ALLOWED_PERMISSIONS as readonly string[]).includes(p)
+  );
+  if (invalid.length > 0) {
+    return apiError(
+      API_ERRORS.BAD_REQUEST,
+      `Invalid permissions: ${invalid.join(", ")}. Allowed: ${ALLOWED_PERMISSIONS.join(", ")}`
+    );
   }
+
+  const expiresResult = validateExpiresAt(expires_at);
+  if (!expiresResult.valid) {
+    return apiError(API_ERRORS.BAD_REQUEST, expiresResult.reason);
+  }
+
+  // 日付のみ形式（YYYY-MM-DD）は TIMESTAMPTZ に 00:00:00 で保存されるため
+  // 当日終端に正規化してから保存する（検証ロジックの compareDate と整合させる）
+  const normalizedExpiresAt =
+    expires_at && !expires_at.includes("T")
+      ? `${expires_at}T23:59:59.999Z`
+      : expires_at || null;
 
   const { raw, hash } = await generateApiKey();
   const admin = getAdminClient();
@@ -112,7 +140,7 @@ export const POST = async (request: Request) => {
       key_hash: hash,
       name: name.trim(),
       permissions,
-      expires_at: expires_at || null,
+      expires_at: normalizedExpiresAt,
     })
     .select("id, name, permissions, created_at, expires_at")
     .single();
@@ -121,6 +149,14 @@ export const POST = async (request: Request) => {
     console.error("Failed to create API key:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
+
+  logAuditEvent({
+    userId: auth.userId,
+    action: "key.created",
+    resourceType: "api_key",
+    resourceId: newKey.id,
+    metadata: { name: newKey.name, permissions: newKey.permissions },
+  });
 
   return apiSuccess({
     id: newKey.id,
@@ -138,6 +174,9 @@ export const POST = async (request: Request) => {
  * Body or URL params: { key_id: string }
  */
 export const DELETE = async (request: Request) => {
+  const preAuth = await checkPreAuthRateLimit(request);
+  if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
+
   const auth = await resolveKeysAuth(request);
   if (auth instanceof Response) return auth;
 
@@ -155,6 +194,10 @@ export const DELETE = async (request: Request) => {
     return apiError(API_ERRORS.BAD_REQUEST, "Field 'key_id' is required");
   }
 
+  if (!UUID_RE.test(keyId)) {
+    return apiError(API_ERRORS.BAD_REQUEST, "Field 'key_id' must be a valid UUID");
+  }
+
   if (auth.currentKeyId && keyId === auth.currentKeyId) {
     return apiError(
       API_ERRORS.BAD_REQUEST,
@@ -164,16 +207,29 @@ export const DELETE = async (request: Request) => {
 
   const admin = getAdminClient();
 
-  const { error } = await admin
+  const { data: deleted, error } = await admin
     .from("api_keys")
     .delete()
     .eq("id", keyId)
-    .eq("user_id", auth.userId);
+    .eq("user_id", auth.userId)
+    .select("id");
 
   if (error) {
     console.error("Failed to delete API key:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
+
+  if (!deleted || deleted.length === 0) {
+    return apiError(API_ERRORS.NOT_FOUND, "API key not found");
+  }
+
+  logAuditEvent({
+    userId: auth.userId,
+    action: "key.deleted",
+    resourceType: "api_key",
+    resourceId: keyId,
+    metadata: {},
+  });
 
   return apiSuccess({ deleted: true });
 };

@@ -1,6 +1,7 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
+import { fireWebhookEvent } from "@/lib/webhooks/events";
 
 /**
  * POST /api/v1/knowledge/[id]/feedback
@@ -39,7 +40,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .eq("buyer_id", user.userId)
     .eq("knowledge_item_id", id)
     .eq("status", "confirmed")
-    .single();
+    .maybeSingle();
 
   if (txError || !tx) {
     return apiError(API_ERRORS.FORBIDDEN, "購入履歴が見つかりません");
@@ -50,7 +51,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .from("knowledge_feedbacks")
     .select("id")
     .eq("transaction_id", tx.id)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     return apiError(API_ERRORS.CONFLICT, "既にフィードバックを送信済みです");
@@ -75,6 +76,12 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     console.error("Failed to insert feedback:", insertError);
     return apiError(API_ERRORS.INTERNAL_ERROR, "フィードバックの保存に失敗しました");
   }
+
+  // Fire webhook event (fire-and-forget)
+  fireWebhookEvent(user.userId, "review.created", {
+    knowledge_id: id,
+    useful: body.useful,
+  }).catch((err: unknown) => console.error("Webhook review.created:", err));
 
   return apiSuccess({ message: "フィードバックを送信しました" }, 201);
 }, { requiredPermissions: ["write"] });

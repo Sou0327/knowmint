@@ -5,7 +5,8 @@ info:
   description: |
     Agent-first API for search, purchase, publish, and dataset delivery.
 servers:
-  - url: https://your-domain.com
+  # 本番URL - 環境によって変更してください
+  - url: https://knowledge-market.vercel.app
 security:
   - BearerAuth: []
 tags:
@@ -15,6 +16,9 @@ tags:
   - name: Keys
   - name: Transactions
   - name: Me
+  - name: Favorites
+  - name: Categories
+  - name: Webhooks
 paths:
   /api/v1/knowledge:
     get:
@@ -87,6 +91,118 @@ paths:
             text/plain:
               schema:
                 type: string
+  /api/v1/knowledge/{id}/preview:
+    get:
+      tags: [Knowledge]
+      summary: Get preview data for a published knowledge item
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      responses:
+        "200":
+          description: Preview data (id, title, description, content_type, prices, preview_content)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Knowledge item not found or not published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/knowledge/{id}/feedback:
+    post:
+      tags: [Knowledge]
+      summary: Submit usefulness feedback for a purchased item
+      description: |
+        Requires a confirmed purchase. One feedback per transaction (UNIQUE constraint).
+        Triggers automatic update of knowledge_items.usefulness_score.
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackRequest"
+      responses:
+        "201":
+          description: Feedback submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: No confirmed purchase found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Feedback already submitted for this transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/knowledge/{id}/versions:
+    get:
+      tags: [Knowledge]
+      summary: Get version history for a knowledge item
+      description: |
+        Accessible by the seller or buyers with a confirmed transaction.
+        full_content is excluded from responses.
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Paginated version history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccessResponse"
+        "404":
+          description: Knowledge item not found or no access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/knowledge/batch:
+    post:
+      tags: [Knowledge]
+      summary: Fetch multiple knowledge items by IDs
+      description: |
+        Returns published items matching the provided IDs. Maximum 50 IDs per request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchRequest"
+      responses:
+        "200":
+          description: Array of matching published knowledge items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid or empty IDs array, or exceeds maximum batch size
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/knowledge/{id}/purchase:
     post:
       tags: [Purchase]
@@ -268,13 +384,168 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PaginatedSuccessResponse"
+  /api/v1/favorites:
+    get:
+      tags: [Favorites]
+      summary: List user's favorite knowledge items
+      responses:
+        "200":
+          description: Array of favorited items with knowledge item details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    post:
+      tags: [Favorites]
+      summary: Add a knowledge item to favorites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteRequest"
+      responses:
+        "201":
+          description: Favorite added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Knowledge item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Already favorited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Favorites]
+      summary: Remove a knowledge item from favorites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteRequest"
+      responses:
+        "200":
+          description: Favorite removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/categories:
+    get:
+      tags: [Categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: Array of categories (id, name, slug, icon)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List webhook subscriptions
+      responses:
+        "200":
+          description: Array of webhook subscriptions (id, url, events, active, created_at, updated_at)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    post:
+      tags: [Webhooks]
+      summary: Register a new webhook subscription
+      description: |
+        Creates a webhook subscription with a signing secret.
+        The plaintext secret is returned once in the response and cannot be retrieved again.
+        Valid events: purchase.completed, review.created, listing.published
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWebhookRequest"
+      responses:
+        "201":
+          description: Webhook created (includes plaintext secret)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid URL or events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Webhooks]
+      summary: Remove a webhook subscription
+      description: |
+        Accepts webhook_id in the request body or as a query parameter.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteWebhookRequest"
+      parameters:
+        - in: query
+          name: webhook_id
+          schema: { type: string, format: uuid }
+          description: Alternative to providing webhook_id in the request body
+      responses:
+        "200":
+          description: Webhook deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/webhooks/{id}/regenerate:
+    post:
+      tags: [Webhooks]
+      summary: Regenerate webhook signing secret
+      description: |
+        Generates a new signing secret for the specified webhook subscription.
+        The new plaintext secret is returned once and cannot be retrieved again.
+        Requires ownership of the webhook subscription.
+      parameters:
+        - $ref: "#/components/parameters/WebhookId"
+      responses:
+        "200":
+          description: New secret generated (includes plaintext_secret)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: Not the owner of this webhook subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Webhook subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: APIKey
-      description: Use `Authorization: Bearer km_...`.
+      description: "Use `Authorization: Bearer km_...`."
     SessionCookie:
       type: apiKey
       in: cookie
@@ -287,6 +558,11 @@ components:
       required: true
       schema: { type: string, format: uuid }
     TransactionId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+    WebhookId:
       in: path
       name: id
       required: true
@@ -377,6 +653,57 @@ components:
         amount:
           type: number
           description: Ignored by server; DB price is authoritative.
+    FeedbackRequest:
+      type: object
+      required: [useful]
+      properties:
+        useful:
+          type: boolean
+          description: Whether the purchased knowledge was useful
+        usage_context:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Optional context about how the knowledge was used
+    BatchRequest:
+      type: object
+      required: [ids]
+      properties:
+        ids:
+          type: array
+          items: { type: string, format: uuid }
+          minItems: 1
+          maxItems: 50
+          description: Array of knowledge item IDs to fetch
+    FavoriteRequest:
+      type: object
+      required: [knowledge_item_id]
+      properties:
+        knowledge_item_id:
+          type: string
+          format: uuid
+    CreateWebhookRequest:
+      type: object
+      required: [url, events]
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Public HTTPS URL to receive webhook events
+        events:
+          type: array
+          items:
+            type: string
+            enum: [purchase.completed, review.created, listing.published]
+          minItems: 1
+          description: Event types to subscribe to
+    DeleteWebhookRequest:
+      type: object
+      required: [webhook_id]
+      properties:
+        webhook_id:
+          type: string
+          format: uuid
     DatasetUploadUrlRequest:
       type: object
       required: [filename, content_type, size_bytes]

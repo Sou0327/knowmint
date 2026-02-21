@@ -291,6 +291,13 @@ export const POST = withApiAuth(async (request, user) => {
     }
   }
 
+  if (body.full_content !== undefined && typeof body.full_content !== "string") {
+    return apiError(API_ERRORS.BAD_REQUEST, "full_content must be a string");
+  }
+  if (typeof body.full_content === "string" && body.full_content.length > 500_000) {
+    return apiError(API_ERRORS.BAD_REQUEST, "full_content must be ≤ 500,000 characters");
+  }
+
   const previewContent =
     listingType === "request"
       ? buildRequestPreviewContent(normalizedRequestContent!)

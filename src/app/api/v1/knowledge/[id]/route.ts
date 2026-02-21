@@ -136,6 +136,9 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
   if (body.full_content !== undefined && typeof body.full_content !== "string") {
     return apiError(API_ERRORS.BAD_REQUEST, "full_content must be a string");
   }
+  if (typeof body.full_content === "string" && body.full_content.length > 500_000) {
+    return apiError(API_ERRORS.BAD_REQUEST, "full_content must be ≤ 500,000 characters");
+  }
   if (body.price_sol !== undefined && body.price_sol !== null && (typeof body.price_sol !== "number" || !Number.isFinite(body.price_sol) || body.price_sol < 0)) {
     return apiError(API_ERRORS.BAD_REQUEST, "price_sol must be a non-negative number");
   }

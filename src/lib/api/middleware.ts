@@ -18,7 +18,7 @@ interface WithApiAuthOptions {
 export function withApiAuth(handler: ApiHandler, options?: WithApiAuthOptions) {
   return async (request: Request, context?: RouteContext): Promise<Response> => {
     // Pre-auth rate limit (IP-based)
-    const preAuth = checkPreAuthRateLimit(request);
+    const preAuth = await checkPreAuthRateLimit(request);
     if (!preAuth.allowed) {
       return withRateLimitHeaders(
         apiError(API_ERRORS.RATE_LIMITED),
@@ -44,7 +44,7 @@ export function withApiAuth(handler: ApiHandler, options?: WithApiAuthOptions) {
     }
 
     // Post-auth rate limit (key-based)
-    const rateLimit = checkRateLimit(user.keyId);
+    const rateLimit = await checkRateLimit(user.keyId);
     if (!rateLimit.allowed) {
       return withRateLimitHeaders(
         apiError(API_ERRORS.RATE_LIMITED),

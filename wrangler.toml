@@ -1,4 +1,4 @@
-name = "knowledge-market"
+name = "knowledgemarket"
 main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat_v2"]

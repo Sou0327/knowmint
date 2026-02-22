@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // @vercel/og (resvg.wasm + yoga.wasm) は未使用のため除外してバンドルサイズを削減
+  // Cloudflare Workers free 上限 3 MiB (gzip) に収めるため
+  serverExternalPackages: ["@vercel/og"],
+
   async headers() {
     return [
       {

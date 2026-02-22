@@ -136,8 +136,9 @@ export async function getKnowledgeById(id: string) {
 
   if (error) return null;
 
-  // Increment view count via SECURITY DEFINER RPC
-  supabase.rpc("increment_view_count", { item_id: id }).then(() => {}, () => {});
+  // Increment view count via SECURITY DEFINER RPC (Admin クライアント使用: service_role 権限が必要)
+  const { getAdminClient: getAdmin } = await import("@/lib/supabase/admin");
+  getAdmin().rpc("increment_view_count", { item_id: id }).then(() => {}, () => {});
 
   return data;
 }

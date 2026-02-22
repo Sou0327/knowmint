@@ -45,10 +45,22 @@ export async function recordPurchase(
 
   const admin = getAdminClient();
 
-  // 冪等性: 同一 tx_hash の購入記録を確認。buyer_id も検証して他者のハッシュ再利用を防ぐ
+  // 冪等性: confirmed 済み購入を先に確認 (不要なオンチェーン検証を回避)
+  const { data: confirmedTx } = await admin
+    .from("transactions")
+    .select("id")
+    .eq("buyer_id", user.id)
+    .eq("knowledge_item_id", knowledgeId)
+    .eq("status", "confirmed")
+    .limit(1)
+    .maybeSingle();
+
+  if (confirmedTx) return { success: true };
+
+  // 同一 tx_hash の既存レコードを確認 (pending/failed 含む)
   const { data: existing, error: existingError } = await admin
     .from("transactions")
-    .select("id, buyer_id, knowledge_item_id")
+    .select("id, buyer_id, knowledge_item_id, status")
     .eq("tx_hash", txHash)
     .maybeSingle();
 
@@ -58,11 +70,15 @@ export async function recordPurchase(
   }
 
   if (existing) {
-    // 同一 buyer + 同一アイテム → 冪等成功
-    if (existing.buyer_id === user.id && existing.knowledge_item_id === knowledgeId) {
+    // 同一 buyer + 同一アイテム + confirmed → 冪等成功
+    if (
+      existing.buyer_id === user.id &&
+      existing.knowledge_item_id === knowledgeId &&
+      existing.status === "confirmed"
+    ) {
       return { success: true };
     }
-    // 別 buyer または別アイテムへの tx_hash 再利用は拒否
+    // pending (処理中) または別 buyer/アイテムへの再利用は拒否
     return { success: false, error: "Transaction hash already used" };
   }
 
@@ -173,13 +189,14 @@ export async function recordPurchase(
     if (insertError?.code === "23505") {
       const { data: recheck } = await admin
         .from("transactions")
-        .select("id, buyer_id, knowledge_item_id")
+        .select("id, buyer_id, knowledge_item_id, status")
         .eq("tx_hash", txHash)
         .maybeSingle();
       if (
         recheck &&
         recheck.buyer_id === user.id &&
-        recheck.knowledge_item_id === knowledgeId
+        recheck.knowledge_item_id === knowledgeId &&
+        recheck.status === "confirmed"
       ) {
         return { success: true };
       }

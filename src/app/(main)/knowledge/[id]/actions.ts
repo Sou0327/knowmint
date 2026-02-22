@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getAdminClient } from "@/lib/supabase/admin";
 import { requireAuth } from "@/lib/auth/session";
 import { confirmTransaction, verifyTransactionDetails } from "@/lib/solana/confirm";
 
@@ -133,8 +134,12 @@ export async function recordPurchase(params: {
     .single();
 
   if (txRecord) {
-    await supabase.rpc("confirm_transaction", { tx_id: txRecord.id });
-    await supabase.rpc("increment_purchase_count", { item_id: knowledgeItemId });
+    const admin = getAdminClient();
+    const { error: confirmErr } = await admin.rpc("confirm_transaction", { tx_id: txRecord.id });
+    if (confirmErr) {
+      return { error: "Transaction confirmation failed" };
+    }
+    admin.rpc("increment_purchase_count", { item_id: knowledgeItemId }).then(() => {}, () => {});
   }
 
   return { error: null, confirmed: true };
@@ -191,8 +196,8 @@ export async function submitReview(params: {
     return { error: error.message };
   }
 
-  // 平均レーティング更新
-  await supabase.rpc("update_average_rating", { item_id: knowledgeItemId });
+  // 平均レーティング更新 (Admin クライアント使用: service_role 権限が必要)
+  await getAdminClient().rpc("update_average_rating", { item_id: knowledgeItemId });
 
   return { error: null };
 }

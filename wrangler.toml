@@ -1,0 +1,9 @@
+name = "knowledge-market"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat_v2"]
+pages_build_output_dir = ".open-next/assets"
+
+# 環境変数は Cloudflare Dashboard の Pages → Settings → Environment variables に設定
+# NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
+# NEXT_PUBLIC_SOLANA_RPC_URL, NEXT_PUBLIC_SOLANA_NETWORK, WEBHOOK_SIGNING_KEY,
+# UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, ALLOWED_ORIGIN 等

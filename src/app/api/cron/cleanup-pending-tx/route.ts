@@ -5,12 +5,12 @@ import { timingSafeEqual } from "crypto";
 
 /**
  * GET /api/cron/cleanup-pending-tx
- * Vercel Cron job: pending 状態のまま30分以上経過したトランザクションを failed に更新する。
+ * 手動トリガー用エンドポイント。
+ * スケジュール実行は Supabase pg_cron が担う (vercel.json 不要)。
+ * pending 状態のまま30分以上経過したトランザクションを failed に更新する。
  *
  * 認可: Authorization: Bearer ${CRON_SECRET}
  * CRON_SECRET 未設定時: 開発環境 (NODE_ENV !== "production") のみスキップ、本番は 401。
- *
- * Vercel Cron スケジュール: vercel.json に設定 (毎30分)
  */
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;

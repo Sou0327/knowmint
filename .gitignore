@@ -65,3 +65,7 @@ devnet-seller-keypair.json
 mcp/node_modules/
 sdk/node_modules/
 cli/node_modules/
+
+# Cloudflare / OpenNext build output
+.open-next/
+.wrangler/

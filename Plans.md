@@ -9,7 +9,7 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード実装分), 23, 27 すべて `cc:DONE`
+Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード実装分), 23, 27, 28 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。
 
 ---
@@ -23,8 +23,18 @@ Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード
 
 ## Phase 16: 運用信頼性強化 [P1] — 外部操作のみ残
 
-- [ ] Upstash Redis: Vercel に `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` を設定
-- [ ] Vercel に `CRON_SECRET` を設定 (cleanup-pending-tx cron 用)
+> コード実装はすべて完了済み。Vercel へのデプロイと環境変数設定のみ残る。
+
+### 実装済み (コード確認済み)
+
+- [x] `src/app/api/cron/cleanup-pending-tx/route.ts` — pending TX を 30分後に failed へ更新 (タイミングセーフ認証付き) cc:DONE
+- [x] `vercel.json` — cron スケジュール設定済み (`*/30 * * * *`) cc:DONE
+- [x] Upstash Redis レート制限 (インメモリフォールバック付き) cc:DONE
+
+### 残り: Vercel 環境変数設定 (外部操作)
+
+- [ ] Vercel に `CRON_SECRET` を設定 → `/api/cron/cleanup-pending-tx` 認証に必須 (本番では未設定だと 401)
+- [ ] Vercel に `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` を設定 → 現在インメモリフォールバック動作中
 - [ ] Sentry DSN 設定 → Phase 17 スコープ
 
 ---
@@ -130,26 +140,6 @@ Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード
 - [ ] `npx @knowledge-market/mcp-server` 設定例をトップページに掲載
 
 **成果物**: `scripts/demo/autonomous-purchase-demo.mjs`, デモ GIF, README 更新, SNS 投稿
-
----
-
-## Phase 28: .env.local.example 環境変数補完 [P0 — ベータ公開ブロッカー]
-
-> `.env.local.example` に未記載の環境変数を補完する。設定漏れはベータ公開時の障害になるため優先対応。
-
-### 28.1 必須変数の追記
-
-- [x] `WEBHOOK_SIGNING_KEY` — Webhook HMAC署名検証キー (必須) cc:DONE
-- [x] `CRON_SECRET` — pending TX cleanup cron 認証トークン (本番必須) ← Phase 16 の Vercel 設定と連動 cc:DONE
-- [x] `X402_NETWORK` — x402 CAIP-2 チェーン識別子 (x402 使用時必須、例: `eip155:8453`) cc:DONE
-
-### 28.2 任意変数の追記 (コメント付き)
-
-- [x] `NEXT_PUBLIC_KM_PROGRAM_ID` — Anchor スマートコントラクト Program ID (任意、devnet/mainnet で異なる) cc:DONE
-- [x] `NEXT_PUBLIC_FEE_VAULT_ADDRESS` — Fee Vault ウォレットアドレス (任意) cc:DONE
-- [x] `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` — Redis (任意、未設定時インメモリフォールバック) ← Phase 16 の Upstash 設定と連動 cc:DONE
-
-**成果物**: `.env.local.example` 更新 + 各変数にコメント説明追加
 
 ---
 

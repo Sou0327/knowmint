@@ -13,7 +13,12 @@
     "test:integration": "TS_NODE_PROJECT=tsconfig.test.json TS_CONFIG_PATHS=true ts-mocha 'tests/integration/**/*.test.ts' --timeout 10000",
     "test:e2e:cli-flow": "node scripts/e2e/cli-empty-env-flow.mjs",
     "test:e2e:fake-tx": "node scripts/e2e/fake-tx-purchase-check.mjs",
-    "test:e2e:x402-flow": "node scripts/e2e/x402-flow-check.mjs"
+    "test:e2e:x402-flow": "node scripts/e2e/x402-flow-check.mjs",
+    "test:staging": "TS_NODE_PROJECT=tsconfig.test.json TS_CONFIG_PATHS=true ts-mocha 'tests/staging/**/*.test.ts' --timeout 30000",
+    "test:e2e:devnet": "node scripts/e2e/devnet-purchase-flow.mjs",
+    "build:cf": "opennextjs-cloudflare build && cp .open-next/worker.js .open-next/assets/_worker.js",
+    "deploy:cf": "wrangler pages deploy .open-next/assets",
+    "preview:cf": "wrangler pages dev .open-next/assets"
   },
   "dependencies": {
     "@solana/wallet-adapter-base": "^0.9.27",
@@ -49,6 +54,8 @@
     "mocha": "^11.7.5",
     "tailwindcss": "^4",
     "ts-mocha": "^11.1.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@opennextjs/cloudflare": "latest",
+    "wrangler": "^4"
   }
 }

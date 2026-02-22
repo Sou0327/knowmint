@@ -139,15 +139,15 @@ Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード
 
 ### 28.1 必須変数の追記
 
-- [ ] `WEBHOOK_SIGNING_KEY` — Webhook HMAC署名検証キー (必須)
-- [ ] `CRON_SECRET` — pending TX cleanup cron 認証トークン (本番必須) ← Phase 16 の Vercel 設定と連動
-- [ ] `X402_NETWORK` — x402 CAIP-2 チェーン識別子 (x402 使用時必須、例: `eip155:8453`)
+- [x] `WEBHOOK_SIGNING_KEY` — Webhook HMAC署名検証キー (必須) cc:DONE
+- [x] `CRON_SECRET` — pending TX cleanup cron 認証トークン (本番必須) ← Phase 16 の Vercel 設定と連動 cc:DONE
+- [x] `X402_NETWORK` — x402 CAIP-2 チェーン識別子 (x402 使用時必須、例: `eip155:8453`) cc:DONE
 
 ### 28.2 任意変数の追記 (コメント付き)
 
-- [ ] `NEXT_PUBLIC_KM_PROGRAM_ID` — Anchor スマートコントラクト Program ID (任意、devnet/mainnet で異なる)
-- [ ] `NEXT_PUBLIC_FEE_VAULT_ADDRESS` — Fee Vault ウォレットアドレス (任意)
-- [ ] `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` — Redis (任意、未設定時インメモリフォールバック) ← Phase 16 の Upstash 設定と連動
+- [x] `NEXT_PUBLIC_KM_PROGRAM_ID` — Anchor スマートコントラクト Program ID (任意、devnet/mainnet で異なる) cc:DONE
+- [x] `NEXT_PUBLIC_FEE_VAULT_ADDRESS` — Fee Vault ウォレットアドレス (任意) cc:DONE
+- [x] `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` — Redis (任意、未設定時インメモリフォールバック) ← Phase 16 の Upstash 設定と連動 cc:DONE
 
 **成果物**: `.env.local.example` 更新 + 各変数にコメント説明追加
 

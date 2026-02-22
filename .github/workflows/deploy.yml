@@ -1,0 +1,138 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+jobs:
+  # ──────────────────────────────────────────
+  # 本番デプロイ (main へのプッシュ時)
+  # ──────────────────────────────────────────
+  deploy-production:
+    name: Deploy (production)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build:cf
+        env:
+          # NEXT_PUBLIC_* はビルド時にバンドルされるため GHA シークレットから渡す
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SOLANA_RPC_URL: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC_URL }}
+          NEXT_PUBLIC_SOLANA_NETWORK: ${{ vars.NEXT_PUBLIC_SOLANA_NETWORK || 'mainnet-beta' }}
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+  # ──────────────────────────────────────────
+  # PR プレビューデプロイ (PR オープン/更新時)
+  # ──────────────────────────────────────────
+  deploy-preview:
+    name: Deploy (PR preview)
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build:cf
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SOLANA_RPC_URL: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC_URL }}
+          NEXT_PUBLIC_SOLANA_NETWORK: ${{ vars.NEXT_PUBLIC_SOLANA_NETWORK || 'mainnet-beta' }}
+
+      - name: Deploy preview Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # PR 番号ごとに別 Worker へデプロイ
+          command: deploy --name knowledge-market-pr-${{ github.event.number }}
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const workerName = `knowledge-market-pr-${{ github.event.number }}`;
+            const subdomain  = '${{ secrets.CF_WORKERS_SUBDOMAIN }}';
+            const url = subdomain
+              ? `https://${workerName}.${subdomain}.workers.dev`
+              : `Cloudflare Dashboard → Workers → \`${workerName}\` で確認`;
+
+            // 既存コメントがあれば更新、なければ新規作成
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('プレビューデプロイ完了')
+            );
+            const body = [
+              '## 🚀 プレビューデプロイ完了',
+              '',
+              `**URL**: ${url}`,
+              `**Worker**: \`${workerName}\``,
+              '',
+              '> PR クローズ時に自動削除されます',
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  # ──────────────────────────────────────────
+  # PR クローズ時にプレビュー Worker を削除
+  # ──────────────────────────────────────────
+  cleanup-preview:
+    name: Cleanup PR preview
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete preview Worker
+        run: |
+          response=$(curl -s -X DELETE \
+            "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/workers/scripts/knowledge-market-pr-${{ github.event.number }}" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}")
+          echo "$response"
+          echo "$response" | jq -e '.success' > /dev/null || exit 1

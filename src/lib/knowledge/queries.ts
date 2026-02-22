@@ -127,7 +127,7 @@ export async function getKnowledgeById(id: string) {
     .from("knowledge_items")
     .select(
       `id, seller_id, listing_type, title, description, content_type, price_sol, price_usdc, preview_content, category_id, tags, status, view_count, purchase_count, average_rating, created_at, updated_at,
-       seller:profiles!seller_id(id, display_name, avatar_url, trust_score, bio, user_type),
+       seller:profiles!seller_id(id, display_name, avatar_url, trust_score, bio, user_type, wallet_address),
        category:categories(id, name, slug),
        reviews(id, rating, comment, created_at, reviewer:profiles!reviewer_id(id, display_name, avatar_url))`
     )

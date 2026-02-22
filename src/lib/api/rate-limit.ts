@@ -48,7 +48,7 @@ if (typeof globalThis !== "undefined") {
       if (bucket.lastRefill < cutoff) buckets.delete(key);
     }
   };
-  const g = globalThis as unknown as {
+  const g = globalThis as typeof globalThis & {
     __rateLimitCleanup?: ReturnType<typeof setInterval>;
   };
   if (!g.__rateLimitCleanup) {

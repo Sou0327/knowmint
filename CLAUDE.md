@@ -100,3 +100,4 @@ NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta
 - **API route では Admin クライアント + 手動認可**: RLS に頼らず明示的にチェック
 - **API キーは SHA-256 ハッシュで保存**: 平文保存禁止
 - **fire-and-forget は reject handler 必須**: `.then(() => {}, () => {})`
+- **ライブラリ仕様は Context7 で確認**: バージョン依存の API・設定・型定義が不明な場合、`mcp__context7__resolve-library-id` → `mcp__context7__query-docs` で最新ドキュメントを参照してから実装する

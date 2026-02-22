@@ -4,7 +4,7 @@ import path from "node:path";
 
 const CONFIG_DIR = path.join(os.homedir(), ".km");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
-const DEFAULT_BASE_URL = "http://127.0.0.1:3000";
+const DEFAULT_BASE_URL = "https://knowledge-market.app";
 
 /** フェッチタイムアウト (ms) */
 const FETCH_TIMEOUT_MS = 30_000;
@@ -70,17 +70,23 @@ export async function loadConfig(): Promise<KmConfig> {
   let fileConfig: Record<string, unknown> = {};
   try {
     const raw = await fs.readFile(CONFIG_PATH, "utf8");
-    const parsed = JSON.parse(raw) as unknown;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      fatal(`~/.km/config.json is not valid JSON. Please fix or delete it and run \`km login\` again.`);
+    }
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       fileConfig = parsed as Record<string, unknown>;
     }
-  } catch {
-    fileConfig = {};
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+    // ENOENT: config file not yet created — fall through to env-only mode
   }
 
   const rawKey = process.env["KM_API_KEY"] ?? fileConfig["apiKey"] ?? null;
   if (!rawKey) {
-    fatal("No API key configured. Set KM_API_KEY env var, or run `km login`.");
+    fatal("No API key configured. Set KM_API_KEY env var, or run `km login` to save credentials.");
   }
 
   const apiKey = validateApiKey(rawKey);
@@ -157,6 +163,54 @@ async function parseResponse<T>(response: Response): Promise<T> {
     throw new KmApiError("Unexpected API response shape");
   }
   return result.data;
+}
+
+/** x402 HTTP 402 Payment Required レスポンスの型 */
+export interface PaymentRequiredResponse {
+  payment_required: true;
+  x402Version?: number;
+  accepts?: unknown[];
+  error?: string;
+}
+
+/**
+ * X-PAYMENT ヘッダーを付けてリクエストし、HTTP 402 を特別処理する。
+ * 402 の場合は PaymentRequiredResponse を返す (throw しない)。
+ */
+export async function apiRequestWithPayment<T>(
+  config: KmConfig,
+  apiPath: string,
+  extraHeaders?: Record<string, string>
+): Promise<T | PaymentRequiredResponse> {
+  const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
+  const headers: Record<string, string> = { ...buildHeaders(config), ...extraHeaders };
+  const { signal, cleanup } = withTimeout();
+
+  try {
+    const response = await fetch(url, { method: "GET", headers, signal });
+
+    if (response.status === 402) {
+      const text = await response.text();
+      let json: unknown = null;
+      try { json = text ? JSON.parse(text) : null; } catch { json = null; }
+      const body = (json ?? {}) as Record<string, unknown>;
+      return {
+        payment_required: true,
+        x402Version: typeof body["x402Version"] === "number" ? body["x402Version"] : undefined,
+        accepts: Array.isArray(body["accepts"]) ? body["accepts"] : [],
+        error: typeof body["error"] === "string" ? body["error"] : undefined,
+      } satisfies PaymentRequiredResponse;
+    }
+
+    return await parseResponse<T>(response);
+  } catch (e) {
+    if ((e as { name?: string }).name === "AbortError") {
+      throw new KmApiError(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s`, null);
+    }
+    throw e;
+  } finally {
+    cleanup();
+  }
 }
 
 export async function apiRequest<T>(

@@ -130,7 +130,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .maybeSingle();
 
   if (existingByHashError) {
-    console.error("Failed to check existing transaction hash:", existingByHashError);
+    console.error("[purchase] check tx hash failed:", { userId: user.userId, itemId: id, error: existingByHashError });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -149,22 +149,32 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   // Resolve buyer/seller wallets and verify on-chain details before DB write
   const { data: walletProfiles, error: walletError } = await admin
     .from("profiles")
-    .select("id, wallet_address")
+    .select("id, wallet_address, display_name")
     .in("id", [item.seller_id, user.userId]);
 
   if (walletError || !walletProfiles || walletProfiles.length < 2) {
-    console.error("Failed to fetch wallet profiles:", walletError);
+    console.error("[purchase] fetch wallet profiles failed:", { userId: user.userId, itemId: id, error: walletError });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
-  const sellerWallet = walletProfiles.find((p) => p.id === item.seller_id)?.wallet_address;
-  const buyerWallet = walletProfiles.find((p) => p.id === user.userId)?.wallet_address;
+  const rawSellerWallet = walletProfiles.find((p) => p.id === item.seller_id)?.wallet_address;
+  const rawBuyerWallet = walletProfiles.find((p) => p.id === user.userId)?.wallet_address;
 
-  if (!sellerWallet || !buyerWallet) {
+  if (!rawSellerWallet || !rawBuyerWallet) {
     return apiError(
       API_ERRORS.BAD_REQUEST,
       "Buyer and seller wallet addresses must be configured before purchase verification"
     );
+  }
+
+  // canonical PublicKey 形式に変換（不正フォーマットは例外 → 500 返却）
+  let sellerWallet: string;
+  let buyerWallet: string;
+  try {
+    sellerWallet = new PublicKey(rawSellerWallet).toBase58();
+    buyerWallet = new PublicKey(rawBuyerWallet).toBase58();
+  } catch {
+    return apiError(API_ERRORS.INTERNAL_ERROR, "Invalid wallet address format");
   }
 
   // フロントと同じ条件: programId と feeVault の両方が有効な PublicKey 形式の場合のみ split 検証
@@ -187,7 +197,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   });
 
   if (!verification.valid) {
-    console.error("Transaction verification failed:", verification.error);
+    console.error("[purchase] tx verification failed:", { userId: user.userId, itemId: id, error: verification.error });
     return apiError(
       API_ERRORS.BAD_REQUEST,
       "トランザクション検証に失敗しました"
@@ -228,7 +238,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
         "Transaction already exists or duplicate purchase"
       );
     }
-    console.error("Failed to create transaction:", txError);
+    console.error("[purchase] create transaction failed:", { userId: user.userId, itemId: id, error: txError });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -239,7 +249,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
 
   if (confirmError) {
     // B2: Do not leak internal error details
-    console.error("Transaction verification failed:", confirmError);
+    console.error("[purchase] confirm_transaction rpc failed:", { userId: user.userId, itemId: id, error: confirmError });
     return apiError(
       API_ERRORS.BAD_REQUEST,
       "Transaction verification failed"
@@ -252,32 +262,32 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .then(
       () => {},
       (err: unknown) =>
-        console.error("Failed to increment purchase count:", err)
+        console.error("[purchase] increment purchase count failed:", { itemId: id, error: err })
     );
 
   // Notify seller about the purchase (fire-and-forget)
-  admin
-    .from("knowledge_items")
-    .select("id, title")
-    .eq("id", id)
-    .single()
-    .then(
-      ({ data: itemData }) => {
-        if (itemData) {
-          notifyPurchase(
-            item.seller_id,
-            "購入者",
-            { id: itemData.id, title: itemData.title },
-            expectedAmount,
-            token
-          ).catch((err: unknown) =>
-            console.error("Failed to send purchase notification:", err)
-          );
-        }
-      },
-      (err: unknown) =>
-        console.error("Failed to fetch item for notification:", err)
-    );
+  // Promise.resolve() で PromiseLike → Promise に変換し .catch() を使用可能にする
+  void Promise.resolve(
+    admin
+      .from("knowledge_items")
+      .select("id, title")
+      .eq("id", id)
+      .single()
+  ).then(({ data: itemData }) => {
+    if (itemData) {
+      notifyPurchase(
+        item.seller_id,
+        walletProfiles.find((p) => p.id === user.userId)?.display_name || "購入者",
+        { id: itemData.id, title: itemData.title },
+        expectedAmount,
+        token
+      ).catch((err: unknown) =>
+        console.error("[purchase] send notification failed:", { userId: item.seller_id, itemId: id, error: err })
+      );
+    }
+  }).catch((err: unknown) =>
+    console.error("[purchase] fetch item for notification failed:", { userId: user.userId, itemId: id, error: err })
+  );
 
   // Fetch updated transaction
   const { data: confirmedTx } = await admin
@@ -292,7 +302,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     transaction_id: transaction.id,
     amount: expectedAmount,
     token,
-  }).catch((err: unknown) => console.error("Webhook purchase.completed:", err));
+  }).catch((err: unknown) => console.error("[purchase] webhook dispatch failed:", { userId: user.userId, itemId: id, error: err }));
 
   logAuditEvent({
     userId: user.userId,

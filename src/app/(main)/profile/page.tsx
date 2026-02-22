@@ -16,7 +16,6 @@ export default function ProfilePage() {
   const { profile, updateProfile, loading: authLoading } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
-  const [walletAddress, setWalletAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -28,7 +27,6 @@ export default function ProfilePage() {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayName(profile.display_name || "");
       setBio(profile.bio || "");
-      setWalletAddress(profile.wallet_address || "");
     }
   }, [profile]);
 
@@ -40,7 +38,6 @@ export default function ProfilePage() {
     const { error } = await updateProfile({
       display_name: displayName,
       bio,
-      wallet_address: walletAddress || null,
     });
 
     if (error) {
@@ -110,13 +107,21 @@ export default function ProfilePage() {
             hint="マークダウンが使えます"
           />
 
-          <Input
-            label="ウォレットアドレス (Solana)"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            hint="売上の受取先アドレス"
-            className="font-mono"
-          />
+          {/* ウォレットアドレスは SIWS 経由のみ更新可 (読み取り専用表示) */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              ウォレットアドレス (Solana)
+            </label>
+            {profile?.wallet_address ? (
+              <p className="font-mono text-sm text-zinc-600 dark:text-zinc-400">
+                {profile.wallet_address}
+              </p>
+            ) : (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                未設定 — ウォレット接続ボタンから設定できます
+              </p>
+            )}
+          </div>
 
           <Button type="submit" variant="primary" loading={saving} className="mt-2 w-full sm:w-auto">
             保存

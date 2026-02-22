@@ -4,192 +4,188 @@
 > 決済: Solana (ノンカストディアル P2P → スマートコントラクト自動分配)
 > アクセス: Web UI / CLI (`km`) / REST API + MCP
 
-## 戦略方針
-
 **コアバリュー**: 人間が出品 → AIエージェント(OpenClaw等)が自律発見・購入
-**収益モデル**: スマートコントラクトによるプロトコル手数料の自動分配
 **最優先ゴール**: OpenClawエージェントによる初の自律購入デモ
 
-## 優先度マトリクス
+## 完了済みフェーズ
 
-| 優先度 | 機能 |
-|--------|------|
-| **P0 (最優先)** | MCP Server — エージェントが発見・購入できるインターフェース |
-| **P1 (収益基盤)** | ~~Solana Program デプロイ~~, ~~ナレッジメタデータ強化~~ → 完了 |
-| **P2 (整理)** | ~~EVM半端実装の凍結, i18n凍結, コードベーススリム化~~ → 完了 |
-| **P3 (拡張)** | 信頼スコア, バージョニング, エージェントSDK |
-| **将来** | Request Listing 強化, マルチチェーン本格対応, 運用基盤 |
+Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード実装分), 23, 27 すべて `cc:DONE`
+詳細は `plans/archive-*.md` 参照。
 
 ---
 
-## 完了済みフェーズ (アーカイブ)
+## Phase 15 残タスク + Phase 12: mainnet 移行 [P0]
 
-- **Phase 1-4** `cc:DONE`: 基盤/出品/Solana決済/エージェントAPI → `plans/archive-phase1-4.md`
-- **Phase 5-6** `cc:DONE`: CLI/MCP/スマートコントラクト決済 devnet デプロイ → `plans/archive-phase5-6.md`
-- **Phase 7** `cc:DONE`: ナレッジメタデータ強化 (Codexレビュー3ラウンド) → `plans/archive-phase6-10.md`
-- **Phase 8** `cc:DONE`: コードベース整理 — EVM/i18n凍結 (Codexレビュー3ラウンド) → `plans/archive-phase6-10.md`
-- **Phase 9** `cc:DONE`: 信頼スコア/バージョニング/SDK (Codexレビュー13ラウンド) → `plans/archive-phase6-10.md`
-- **Phase 10** `cc:DONE`: セキュリティ修正 HIGH/MEDIUM (Codexレビュー4ラウンド LGTM) → `plans/archive-phase6-10.md`
+> Phase 15 残り: 要外部操作 (Supabase staging 作成・RLS 統合テスト・devnet 実送金 E2E・Webhook 疎通)
+> Phase 12 (15 完了後): `.env.local.example` mainnet 更新 / Helius RPC / `anchor deploy --cluster mainnet-beta` / Vercel 環境変数
 
 ---
 
-## Phase 11: Webhook イベント配信 + SSRF修正 [P0] `[feature:security]`
+## Phase 16: 運用信頼性強化 [P1] — 外部操作のみ残
 
-> 最優先ゴール「OpenClawによる自律購入デモ」に必要な購入完了通知基盤。
-> Webhook 管理 API (Phase 10) は完了済み。配信ロジックの実装を行う。
-
-### 11.1 isPublicUrl SSRF 修正 `[feature:security]`
-
-- [ ] `src/app/api/v1/webhooks/route.ts` — DNS 解決後のIPを CIDR ベースで検証
-  - A/AAAA レコード取得 → loopback/private/link-local/ULA/metadata range を拒否
-  - IPv6 ULA (`fc00::/7`) / link-local (`fe80::/10`) の禁止
-  - Node.js `dns.promises.lookup` を使用 (Edge Runtime 非対応のため route handler で処理)
-- [ ] テスト: 内部IPへの登録試行が 400 になることを E2E で確認
-
-### 11.2 Webhook イベント配信サービス `[feature:security]`
-
-- [ ] `src/lib/webhooks/dispatch.ts` (新規) — イベント HTTP 送信ロジック
-  - HMAC-SHA256 署名生成 (`X-KM-Signature: sha256=<hex>`)
-  - 署名には `secret_hash` が使えないため `regenerate` フローが必要 → **設計方針**: 初回配信時にシークレット再発行を促すエラーを返す (`re-register` 案)
-  - タイムアウト 10秒、User-Agent ヘッダー付与
-- [ ] `src/lib/webhooks/retry.ts` (新規) — 指数バックオフ再試行 (最大3回)
-- [ ] 購入完了イベント発火: `src/app/api/v1/knowledge/[id]/purchase/route.ts` に組み込み
-- [ ] レビュー作成イベント発火: `feedback` API に組み込み
-- [ ] 出品公開イベント発火: `publish` API に組み込み
-
-### 11.3 Webhook シークレット再発行 API
-
-- [ ] `POST /api/v1/webhooks/[id]/regenerate` (新規) — 新シークレット生成 + `secret_hash` 更新
-  - `withApiAuth` + `write` permission
-  - 生成時のみ平文を返却 (再表示不可)
-- [ ] マイグレーション: `webhook_subscriptions.secret_hash NOT NULL` 強制 (移行完了後)
-
-**対象ファイル**: `src/lib/webhooks/`, `src/app/api/v1/webhooks/`, `src/app/api/v1/knowledge/[id]/purchase/route.ts`
+- [ ] Upstash Redis: Vercel に `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` を設定
+- [ ] Vercel に `CRON_SECRET` を設定 (cleanup-pending-tx cron 用)
+- [ ] Sentry DSN 設定 → Phase 17 スコープ
 
 ---
 
-## Phase 12: mainnet 移行準備 [P0]
+## Phase 17-19 (P2 — Phase 15/16 完了後)
 
-> devnet 実証済み。mainnet への移行に必要な設定・検証を行う。
-
-### 12.1 環境変数・設定整備
-
-- [ ] `.env.local.example` を mainnet 変数で更新
-  - `NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta`
-  - `NEXT_PUBLIC_KM_PROGRAM_ID` (mainnet デプロイ後に更新)
-  - `NEXT_PUBLIC_FEE_VAULT_ADDRESS` (mainnet 用)
-- [ ] `NEXT_PUBLIC_SOLANA_RPC_URL` を有料 RPC エンドポイント (Helius/QuickNode) に変更
-
-### 12.2 Solana Program mainnet デプロイ
-
-- [ ] `anchor deploy --provider.cluster mainnet-beta` 実行
-- [ ] Program ID を `.env.local` と `CLAUDE.md` に反映
-- [ ] mainnet Fee Vault アドレス生成・記録
-- [ ] devnet テストと同等の smoke test を mainnet で実施
-
-### 12.3 フロントエンド mainnet 対応確認
-
-- [ ] ウォレット接続が mainnet-beta で正常動作することを確認
-- [ ] トランザクション確認フローが mainnet RPC で動作することを確認
-- [ ] Vercel 環境変数を mainnet 用に更新
-
-**対象ファイル**: `.env.local.example`, `programs/`, Vercel ダッシュボード
+詳細: [`plans/phase17-19.md`](plans/phase17-19.md) (Webhook DLQ, メール, モデレーション)
 
 ---
 
-## Phase 13: テスト基盤強化 [P1] `[feature:tdd]`
+## Phase 24: Coinbase AgentKit Action Provider [P1]
 
-> E2E スクリプト 2本のみ → 主要ロジックのユニット/統合テストを整備する。
+> AgentKit エージェントが Knowledge Market を「ウォレット付きツール」として使えるプラグイン。
+> `ActionProvider` クラス + `@CreateAction` デコレーター パターン。
 
-### 13.1 API ユニットテスト
+### 24.1 パッケージ骨格
 
-- [ ] `src/lib/api/` のユニットテスト
-  - `auth.ts`: generateApiKey / authenticateApiKey のハッシュ一致テスト
-  - `permissions.ts`: ALLOWED_PERMISSIONS のホワイトリスト検証テスト
-  - `keys/route.ts`: expires_at バリデーション (ISO 8601 / 過去日 / 存在しない日付)
-- [ ] `src/lib/knowledge/` のユニットテスト
-  - `metadata.ts`: sanitizeMetadata の許可リスト検証
-  - `requestContent.ts`: normalizeRequestContent のエッジケース
+- [ ] `packages/agentkit-plugin/package.json` — `@knowledge-market/agentkit-plugin`, peerDep: `@coinbase/agentkit`
+- [ ] `tsconfig.json`: `"experimentalDecorators": true, "emitDecoratorMetadata": true` 必須
 
-### 13.2 API 統合テスト
+### 24.2 KnowledgeMarketActionProvider 実装
 
-- [ ] `POST /api/v1/keys` — 不正 permissions で 400、正常で 201
-- [ ] `POST /api/v1/knowledge` — full_content 超過で 400
-- [ ] `POST /api/v1/webhooks` — 内部 URL で 400 (Phase 11 と連動)
-- [ ] 購入フロー: tx_hash 偽造で拒否されることを確認 (既存 fake-tx テストを拡張)
+- [ ] `ActionProvider` を継承した `KnowledgeMarketActionProvider` クラス
+- [ ] `@CreateAction` デコレーターで 5 ツール実装: `km_search`, `km_get_detail`, `km_purchase`, `km_get_content`, `km_publish`
+- [ ] `supportsNetwork(_: Network): boolean { return true; }` (chain-agnostic)
+- [ ] API 呼び出しは fetch + `X-API-Key` ヘッダー (mcp/src/api.ts と同ロジック)
+- [ ] `export const knowledgeMarketActionProvider = (baseUrl, apiKey) => new KnowledgeMarketActionProvider(...)` ファクトリ関数
 
-### 13.3 テスト実行環境整備
+### 24.3 README + publish
 
-- [ ] `package.json` に `test:unit` / `test:integration` スクリプト追加
-- [ ] CI 用に `npm run test:unit` が通るように設定
+- [ ] 使用例 README (AgentKit.from + actionProviders 設定)
+- [ ] `npm publish --access public`
 
-**対象ファイル**: `src/**/*.test.ts`, `package.json`
+**成果物**: `packages/agentkit-plugin/` — npm `@knowledge-market/agentkit-plugin`
 
 ---
 
-## Phase 14: 運用基盤 [P2] `cc:DONE`
+## Phase 25: Eliza (ElizaOS) プラグイン [P1]
 
-> レート制限の永続化・監査ログ・OpenAPI 同期。本番スケールに向けた整備。
+> ai16z Eliza フレームワーク向けプラグイン。Plugin Registry 登録で公式エコシステム入り。
+> `Plugin` インターフェース (`{ name, description, actions }`) + `@elizaos/core` 型使用。
 
-### 14.1 レート制限 Redis 移行
+### 25.1 パッケージ骨格
 
-- [x] `src/lib/api/rate-limit.ts` をプロセス内 Map → Redis (Upstash) に移行
-  - `@upstash/ratelimit` を使用
-  - 環境変数: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-  - フォールバック: Redis 接続失敗時はプロセス内 Map に降格 (可用性優先)
-  - Map サイズ上限 `MAX_BUCKETS = 10_000` でメモリリーク防止
-- [x] `.env.local.example` に Upstash 変数を追加
+- [ ] `elizaos create plugin-knowledge-market --type plugin` で雛形生成 (推奨)
+  または手動で `packages/eliza-plugin/` 作成
+- [ ] `package.json`: `@knowledge-market/eliza-plugin`, peerDep: `@elizaos/core ^0.1.7`, devDep: `tsup` (build), `bun test` (test)
+- [ ] ビルドツールは **tsup** を使用 (`tsup.config.ts`: `entry: ["src/index.ts"], format: ["esm"], dts: true`)
 
-### 14.2 監査ログ
+### 25.2 プラグイン実装 (Actions + Providers)
 
-- [x] `supabase/migrations/20260222000018_phase14_audit_logs.sql` — `audit_logs` テーブル作成
-  - `user_id`, `action`, `resource_type`, `resource_id`, `metadata JSONB`, `created_at`
-  - RLS: `FOR ALL USING (false) WITH CHECK (false)` + `action` CHECK 制約
-- [x] `src/lib/audit/log.ts` (新規) — fire-and-forget でログ書き込み (`.throwOnError()` 付き)
-- [x] API route の重要操作に組み込み: キー発行・削除, 購入, 出品公開, Webhook 登録・削除
+**Actions** (何を「する」か):
+- [ ] `SEARCH_KNOWLEDGE_MARKET`: `similes: ["FIND_KNOWLEDGE","LOOK_UP_KM","SEARCH_KM"]`
+  - `validate`: メッセージに検索意図のキーワードが含まれるか
+  - `handler`: `/api/v1/knowledge?query=...` を fetch → callback でテキスト返却
+- [ ] `PURCHASE_KNOWLEDGE`: `similes: ["BUY_KNOWLEDGE","ACQUIRE_KNOWLEDGE"]`
+  - `validate`: 購入意図 + knowledge_id が特定できるか
+  - `handler`: devnet 送金 → `/purchase` API → 成功メッセージ
+- [ ] `GET_KNOWLEDGE_CONTENT`: `similes: ["READ_KNOWLEDGE","FETCH_CONTENT"]`
 
-### 14.3 OpenAPI spec 同期
+**Providers** (コンテキスト情報を供給):
+- [ ] `knowledgeMarketProvider`: 毎ターン「最新の人気ナレッジ上位5件」をコンテキストに注入
+  - `get()`: `/api/v1/knowledge?sort_by=popular&per_page=5` の結果をテキスト整形して返す
 
-- [x] `docs/openapi.yaml` に未記載エンドポイントを追加:
-  - `/api/v1/knowledge/batch`
-  - `/api/v1/knowledge/{id}/preview`
-  - `/api/v1/knowledge/{id}/feedback`
-  - `/api/v1/knowledge/{id}/versions`
-  - `/api/v1/favorites`
-  - `/api/v1/categories`
-  - `/api/v1/webhooks`
-  - `/api/v1/webhooks/{id}/regenerate` (Phase 11)
-- [x] `servers[].url` を `https://knowledge-market.vercel.app` に更新
+**Plugin オブジェクト**:
+- [ ] `export const knowledgeMarketPlugin: Plugin = { name, description, actions, providers, init }`
+- [ ] `export default knowledgeMarketPlugin`
 
-### セキュリティ強化 (harness-review 指摘対応)
+### 25.3 README + Registry 登録
 
-- [x] `keys/route.ts` — IP プリオーソレート制限 (`checkPreAuthRateLimit`) を GET/POST/DELETE 全ハンドラに追加
-- [x] `keys/route.ts` — UUID バリデーション、name 255文字上限、DELETE ゼロ件時 NOT_FOUND
-- [x] `rate-limit.ts` — IP 取得を `x-real-ip` 優先 (Vercel Proxy 対応)
-- [x] `ssrf.ts` — `dns_notfound` (NXDOMAIN) / `dns_error` (一時障害) を分離; `checkPublicUrl` 構造化レスポンス
-- [x] `webhooks/route.ts` — `checkPublicUrl` 採用で DNS エラー分類 (400/500)、audit log URL サニタイズ
-- [x] `audit_logs` RLS — `FOR ALL USING (false) WITH CHECK (false)` で INSERT/UPDATE/DELETE を全拒否
+- [ ] character.json への追加方法を README に記述 (`plugins: ["@knowledge-market/eliza-plugin"]`)
+- [ ] `npm run build && npm publish --access public`
+- [ ] ElizaOS Plugin Registry (elizaos-plugins GitHub org) に登録申請 PR
 
-**対象ファイル**: `src/lib/api/rate-limit.ts`, `supabase/migrations/`, `src/lib/audit/`, `docs/openapi.yaml`
+**成果物**: `packages/eliza-plugin/` — npm `@knowledge-market/eliza-plugin` + Registry 登録
+
+---
+
+## Phase 26: 自律購入デモ動画 [P1 — 訴求コンテンツ]
+
+> 「AIエージェントが知識を自律購入した」実証動画。これが最強のマーケティング素材。
+
+### 26.1 デモシナリオ設計
+
+- [ ] デモ用ナレッジアイテムを出品 (例: `"Solana DeFi arbitrage — 6-month real P&L data"`, 0.01 SOL, type: dataset)
+- [ ] `scripts/demo/autonomous-purchase-demo.mjs` 作成
+  - km_search → km_get_detail → devnet 送金 → km_purchase → km_get_content の 5 ステップ自動実行
+
+### 26.2 Claude Code + MCP でデモ実行
+
+- [ ] ローカル起動 + MCP 設定 → Claude に「Find and purchase the best Solana DeFi knowledge」
+- [ ] Claude が自律的に search → detail → purchase → content を実行するフローをキャプチャ
+
+### 26.3 録画・公開
+
+- [ ] `asciinema rec` でターミナル録画 → GIF 変換 (`agg`)
+- [ ] README.md トップに GIF 埋め込み
+- [ ] Twitter/X + Warpcast (Farcaster) に投稿
+
+### 26.4 LP 更新
+
+- [ ] Web UI トップページに「How it works for AI Agents」セクション (デモ GIF + 3 ステップ)
+- [ ] `npx @knowledge-market/mcp-server` 設定例をトップページに掲載
+
+**成果物**: `scripts/demo/autonomous-purchase-demo.mjs`, デモ GIF, README 更新, SNS 投稿
+
+---
+
+## Phase 28: .env.local.example 環境変数補完 [P0 — ベータ公開ブロッカー]
+
+> `.env.local.example` に未記載の環境変数を補完する。設定漏れはベータ公開時の障害になるため優先対応。
+
+### 28.1 必須変数の追記
+
+- [ ] `WEBHOOK_SIGNING_KEY` — Webhook HMAC署名検証キー (必須)
+- [ ] `CRON_SECRET` — pending TX cleanup cron 認証トークン (本番必須) ← Phase 16 の Vercel 設定と連動
+- [ ] `X402_NETWORK` — x402 CAIP-2 チェーン識別子 (x402 使用時必須、例: `eip155:8453`)
+
+### 28.2 任意変数の追記 (コメント付き)
+
+- [ ] `NEXT_PUBLIC_KM_PROGRAM_ID` — Anchor スマートコントラクト Program ID (任意、devnet/mainnet で異なる)
+- [ ] `NEXT_PUBLIC_FEE_VAULT_ADDRESS` — Fee Vault ウォレットアドレス (任意)
+- [ ] `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` — Redis (任意、未設定時インメモリフォールバック) ← Phase 16 の Upstash 設定と連動
+
+**成果物**: `.env.local.example` 更新 + 各変数にコメント説明追加
+
+---
+
+## 設計メモ・要確認事項
+
+> 軽微または将来対応可。タスク化は不要だが記録しておく。
+
+### ④ dataset カラム Migration 確認
+
+`knowledge_item_contents` または `knowledge_items` テーブルに `storage_path`, `checksum_sha256` カラムが存在するか確認が必要。
+初期スキーマ (`supabase/migrations/` の最初期ファイル) に含まれているかもしれない。
+**対応**: Phase 15 残タスク (staging 統合テスト) 実施時に合わせて確認。問題があれば Migration 追加。
+
+### ⑤ EVM 購入は意図的未対応 (設計上の制限)
+
+`purchase/route.ts` — `chain !== "solana"` は `BAD_REQUEST` を返す。
+コメントに `"this phase"` と記載あり。**Solana 優先の設計判断**。
+EVM 対応は将来フェーズ (Phase 12 拡張またはマルチチェーン Phase) にて対応予定。
+
+### ⑥ ChainSelector の EVM "Coming Soon" 表示
+
+UI レベルで EVM を無効化。⑤ の API 制限と整合している。
+EVM が有効化されるまでこの状態を維持 — **変更不要**。
 
 ---
 
 ## 将来フェーズ (未スケジュール)
 
-- マルチチェーン: Base (ETH L2) スマコン決済, Coinbase Agentic Wallets
-- Request Listing 復活・強化 (エージェントが依頼を出す仕組み)
-- 運用基盤: レート制限共有ストア, 監査ログ, 構造化ログ
-- セマンティック検索: pgvector 移行
-
----
+- Request Listing 復活・強化, pgvector セマンティック検索, LangChain/AutoGen/CrewAI プラグイン対応
 
 ## 技術スタック
 
 | レイヤー | 技術 |
-|---------|------|
+| --- | --- |
 | Frontend | Next.js 16 (App Router), TypeScript, Tailwind CSS v4 |
 | Backend/DB | Supabase (PostgreSQL, Auth, Storage, RLS) |
 | 決済 | Anchor 0.32.1 (Solana Program) 95/5 自動分配 — devnet デプロイ済み |
 | MCP | `@modelcontextprotocol/sdk` (TypeScript) |
-| バリデーション | Zod |
 | デプロイ | Vercel |

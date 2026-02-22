@@ -1,6 +1,10 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const globalForAdmin = globalThis as unknown as {
+declare global {
+  // eslint-disable-next-line no-var
+  var __supabaseAdminClient: SupabaseClient | undefined;
+}
+const globalForAdmin = globalThis as typeof globalThis & {
   __supabaseAdminClient?: SupabaseClient;
 };
 

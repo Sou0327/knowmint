@@ -133,6 +133,18 @@ export interface Review {
   updated_at: string;
 }
 
+export interface WebhookSubscription {
+  id: string;
+  user_id: string;
+  url: string;
+  events: string[];
+  secret_hash: string;
+  secret_encrypted: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Supabase Database 型定義
 export interface Database {
   public: {
@@ -149,6 +161,7 @@ export interface Database {
       favorites: { Row: Favorite };
       follows: { Row: Follow };
       notifications: { Row: Notification };
+      webhook_subscriptions: { Row: WebhookSubscription };
     };
   };
 }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiRequest, apiRequestPaginated, createAndPublishKnowledge, KmApiError, } from "./api.js";
+import { apiRequest, apiRequestPaginated, apiRequestWithPayment, createAndPublishKnowledge, KmApiError, } from "./api.js";
 /** 知識 ID の形式バリデーション (UUID / CUID / 数字 ID に対応) */
 const knowledgeIdSchema = z
     .string()
@@ -146,11 +146,18 @@ export function registerTools(server, config) {
         }
     });
     // ── km_get_content ────────────────────────────────────────────────────────
-    server.tool("km_get_content", "Retrieve the full content of a purchased knowledge item. Returns full_content (text) or file_url (dataset).", {
-        knowledge_id: knowledgeIdSchema.describe("Knowledge item ID (must be purchased)"),
-    }, async ({ knowledge_id }) => {
+    server.tool("km_get_content", "Retrieve the full content of a knowledge item. If payment_required: true is returned, send on-chain payment and retry with payment_proof (base64-encoded X-PAYMENT).", {
+        knowledge_id: knowledgeIdSchema.describe("Knowledge item ID"),
+        payment_proof: z
+            .string()
+            .optional()
+            .describe("base64-encoded X-PAYMENT proof. Format: base64({scheme,network,payload:{txHash,asset?}}). Obtain after sending on-chain payment and retry."),
+    }, async ({ knowledge_id, payment_proof }) => {
         try {
-            const data = await apiRequest(config, `/api/v1/knowledge/${encodeURIComponent(knowledge_id)}/content`);
+            const extraHeaders = payment_proof
+                ? { "X-PAYMENT": payment_proof }
+                : undefined;
+            const data = await apiRequestWithPayment(config, `/api/v1/knowledge/${encodeURIComponent(knowledge_id)}/content`, extraHeaders);
             return ok(data);
         }
         catch (e) {

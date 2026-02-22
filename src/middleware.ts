@@ -4,9 +4,25 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_ROUTES = ["/list", "/library", "/dashboard", "/profile"];
 
 export async function middleware(request: NextRequest) {
-  // API v1 routes use their own API key auth — skip session handling
+  // API v1 routes use their own API key auth — add CORS headers and skip session handling
   if (request.nextUrl.pathname.startsWith("/api/v1")) {
-    return NextResponse.next();
+    // Preflight
+    if (request.method === "OPTIONS") {
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN ?? "*",
+          "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
+    }
+    const response = NextResponse.next();
+    response.headers.set("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN ?? "*");
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
+    return response;
   }
 
   let response = NextResponse.next({

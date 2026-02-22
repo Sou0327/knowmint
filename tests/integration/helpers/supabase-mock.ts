@@ -68,6 +68,7 @@ function createChain(): Record<string, unknown> {
     "neq",
     "gte",
     "lte",
+    "in",
     "order",
     "limit",
     "range",
@@ -282,7 +283,9 @@ function buildWithApiAuthMock() {
             { remaining: 100, resetMs: 0 },
             context
           );
-        } catch {
+        } catch (err) {
+          // モックインフラエラーは再 throw して原因を可視化する
+          if (err instanceof MockInfrastructureError) throw err;
           return mockApiError(API_ERRORS_MOCK.INTERNAL_ERROR);
         }
       },
@@ -362,6 +365,347 @@ export function teardownWebhooksMocks(): void {
     "@/lib/supabase/admin",
     "@/lib/audit/log",
     "@/app/api/v1/webhooks/route",
+  ];
+  for (const p of paths) clearModule(p);
+}
+
+// ── モックインフラ専用エラークラス ────────────────────────────────────────
+
+/**
+ * モックインフラ起因のエラー。
+ * `withApiAuth` の catch ブロックで握りつぶされず、テスト失敗として表面化する。
+ */
+class MockInfrastructureError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MockInfrastructureError";
+  }
+}
+
+// ── per-table キューモック ─────────────────────────────────────────────────
+
+/** 単一メソッド呼び出しの期待値 */
+type ExpectedCall = {
+  method: string;
+  args: unknown[];
+};
+
+/**
+ * キューエントリ。
+ * `expectedCalls` を指定すると、クエリ解決時に指定メソッド+引数が
+ * 実際に呼ばれたことを検証する（認可クリティカルなフィルタの欠落を検出）。
+ */
+type QueueEntry = {
+  data: unknown;
+  error?: { code?: string; message?: string } | null;
+  /**
+   * 省略可能: 呼ばれるべきメソッドと引数の期待値リスト。
+   * 指定した呼び出しが実際のチェーンに含まれない場合、MockInfrastructureError を throw する。
+   *
+   * @example
+   * // transactions に対して .eq("tx_hash", VALID_TX_HASH) が必ず呼ばれることを保証する
+   * { data: existingTx, expectedCalls: [{ method: "eq", args: ["tx_hash", VALID_TX_HASH] }] }
+   */
+  expectedCalls?: ExpectedCall[];
+};
+
+function createQueuedChain(entry: QueueEntry): Record<string, unknown> {
+  const chain: Record<string, unknown> = {};
+  const recordedCalls: ExpectedCall[] = [];
+
+  /** expectedCalls との照合。不一致があれば MockInfrastructureError を throw */
+  function validateCalls(): void {
+    if (!entry.expectedCalls) return;
+    for (const expected of entry.expectedCalls) {
+      const found = recordedCalls.some(
+        (rec) =>
+          rec.method === expected.method &&
+          JSON.stringify(rec.args) === JSON.stringify(expected.args)
+      );
+      if (!found) {
+        const actual = recordedCalls
+          .map((c) => `.${c.method}(${c.args.map((a) => JSON.stringify(a)).join(", ")})`)
+          .join(", ");
+        throw new MockInfrastructureError(
+          `[MockAdminClient] Expected .${expected.method}(${expected.args
+            .map((a) => JSON.stringify(a))
+            .join(", ")}) was not called.\n` +
+            `Actual calls: [${actual || "(none)"}]`
+        );
+      }
+    }
+  }
+
+  const noopMethods = [
+    "select",
+    "insert",
+    "update",
+    "delete",
+    "eq",
+    "neq",
+    "gte",
+    "lte",
+    "in",
+    "order",
+    "limit",
+    "range",
+    "textSearch",
+    "contains",
+  ];
+
+  for (const m of noopMethods) {
+    chain[m] = (...args: unknown[]) => {
+      recordedCalls.push({ method: m, args });
+      return chain;
+    };
+  }
+
+  chain["single"] = () => {
+    try {
+      validateCalls();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return Promise.resolve({ data: entry.data, error: entry.error ?? null });
+  };
+
+  chain["maybeSingle"] = () => {
+    try {
+      validateCalls();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return Promise.resolve({ data: entry.data, error: entry.error ?? null });
+  };
+
+  chain["then"] = (
+    resolve: (v: unknown) => void,
+    reject?: (e: unknown) => void
+  ) => {
+    try {
+      validateCalls();
+    } catch (err) {
+      return Promise.reject(err).then(resolve, reject);
+    }
+    return Promise.resolve({
+      data: entry.data,
+      error: entry.error ?? null,
+      count: 0,
+    }).then(resolve, reject);
+  };
+
+  return chain;
+}
+
+/**
+ * per-table キューで個別の応答を返すモック Admin クライアント。
+ * `from("tableName")` 呼び出し時点でキューの先頭を pop する。
+ * Promise.all で同テーブルを並列取得する場合も正しい順序で返る。
+ *
+ * `QueueEntry.expectedCalls` を設定することで、認可クリティカルな
+ * フィルタ条件（eq("tx_hash", hash) 等）が実際に呼ばれたかを検証できる。
+ *
+ * キューが明示的に設定されたテーブルでエントリが枯渇・未登録の場合は
+ * MockInfrastructureError を throw してテスト設定ミスを即座に検出する。
+ */
+export function createTableQueuedMockAdminClient(
+  tableQueues: Record<string, QueueEntry[]>
+): { from: (tableName: string) => Record<string, unknown> } {
+  return {
+    from: (tableName: string) => {
+      const queue = tableQueues[tableName];
+      if (queue !== undefined) {
+        // キューが明示設定されているテーブル: 枯渇したら即失敗
+        const entry = queue.shift();
+        if (entry === undefined) {
+          throw new MockInfrastructureError(
+            `[MockAdminClient] Queue exhausted for table "${tableName}". ` +
+              `Add more entries to setContentTableQueues().`
+          );
+        }
+        return createQueuedChain(entry);
+      }
+      // 未登録テーブルへのアクセスも即失敗: 想定外 DB クエリを見逃さない
+      throw new MockInfrastructureError(
+        `[MockAdminClient] Unexpected access to unregistered table "${tableName}". ` +
+          `Add it to setContentTableQueues() if this call is expected.`
+      );
+    },
+  };
+}
+
+// ── content route モック状態 ───────────────────────────────────────────────
+
+/** `verifySolanaPurchaseTransaction` の戻り値を制御する */
+export const mockVerifyTx = {
+  result: { valid: true } as { valid: boolean; error?: string },
+};
+
+/** `isValidSolanaTxHash` の戻り値を制御する */
+export const mockSolana = {
+  isValidHash: true,
+};
+
+let _contentTableQueues: Record<string, QueueEntry[]> = {};
+
+/** テスト毎に DB キューを設定する */
+export function setContentTableQueues(
+  queues: Record<string, QueueEntry[]>
+): void {
+  _contentTableQueues = queues;
+}
+
+// ── content ルート用セットアップ ─────────────────────────────────────────
+
+export function setupContentMocks(): void {
+  resetMockAuth();
+
+  injectModule(resolveAlias("@/lib/api/response"), responseMockExports);
+  injectModule(resolveAlias("@/lib/api/middleware"), buildWithApiAuthMock());
+
+  injectModule(resolveAlias("@/lib/supabase/admin"), {
+    getAdminClient: () =>
+      createTableQueuedMockAdminClient(_contentTableQueues),
+  });
+
+  injectModule(resolveAlias("@/lib/audit/log"), { logAuditEvent: () => {} });
+
+  // NextResponse.json を native Response で代替（Next.js ランタイム不要）
+  injectModule(resolveAlias("next/server"), {
+    NextResponse: {
+      json: (
+        body: unknown,
+        init?: { status?: number; headers?: Record<string, string> }
+      ) =>
+        new Response(JSON.stringify(body), {
+          status: init?.status ?? 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...(init?.headers ?? {}),
+          },
+        }),
+    },
+  });
+
+  injectModule(resolveAlias("@/lib/solana/verify-transaction"), {
+    verifySolanaPurchaseTransaction: async () => mockVerifyTx.result,
+    isValidSolanaTxHash: () => mockSolana.isValidHash,
+  });
+
+  injectModule(resolveAlias("@/lib/storage/datasets"), {
+    createDatasetSignedDownloadUrl: async () => null,
+  });
+
+  // @/lib/x402 は実モジュールをそのまま使用（ユーティリティのみ、副作用なし）
+}
+
+export function teardownContentMocks(): void {
+  const paths = [
+    "@/lib/api/response",
+    "@/lib/api/middleware",
+    "@/lib/supabase/admin",
+    "@/lib/audit/log",
+    "next/server",
+    "@/lib/solana/verify-transaction",
+    "@/lib/storage/datasets",
+    "@/app/api/v1/knowledge/[id]/content/route",
+  ];
+  for (const p of paths) clearModule(p);
+}
+
+// ── purchase ルート用モック状態 ────────────────────────────────────────────
+
+/** `rpc("confirm_transaction")` の返却エラーを制御する */
+export const mockPurchaseRpc = {
+  confirmTransaction: {
+    error: null as null | { code?: string; message?: string },
+  },
+};
+
+let _purchaseTableQueues: Record<string, QueueEntry[]> = {};
+
+/** テスト毎に DB キューを設定する */
+export function setPurchaseTableQueues(
+  queues: Record<string, QueueEntry[]>
+): void {
+  _purchaseTableQueues = queues;
+}
+
+/** rpc() 対応の Admin クライアント（purchase ルート用） */
+function createPurchaseMockAdminClient() {
+  const base = createTableQueuedMockAdminClient(_purchaseTableQueues);
+  return {
+    from: base.from,
+    rpc: (name: string, args?: Record<string, unknown>) => {
+      if (name === "confirm_transaction") {
+        // tx_id が文字列として渡されていることを検証（認可クリティカル）
+        if (!args || typeof args["tx_id"] !== "string" || args["tx_id"] === "") {
+          throw new MockInfrastructureError(
+            `[MockAdminClient] rpc("confirm_transaction") called with invalid tx_id. ` +
+              `Expected non-empty string, got: ${JSON.stringify(args?.["tx_id"])} ` +
+              `(args: ${JSON.stringify(args)})`
+          );
+        }
+        return Promise.resolve({
+          error: mockPurchaseRpc.confirmTransaction.error,
+        });
+      }
+      if (name === "increment_purchase_count") {
+        // fire-and-forget: item_id が文字列として渡されていることを確認
+        if (!args || typeof args["item_id"] !== "string" || args["item_id"] === "") {
+          throw new MockInfrastructureError(
+            `[MockAdminClient] rpc("increment_purchase_count") called with invalid item_id. ` +
+              `Expected non-empty string, got: ${JSON.stringify(args?.["item_id"])}`
+          );
+        }
+        return Promise.resolve({ error: null });
+      }
+      throw new MockInfrastructureError(
+        `[MockAdminClient] Unexpected rpc call: "${name}". ` +
+          `Add it to createPurchaseMockAdminClient() if this call is expected.`
+      );
+    },
+  };
+}
+
+// ── purchase ルート用セットアップ ─────────────────────────────────────────
+
+export function setupPurchaseMocks(): void {
+  resetMockAuth();
+  mockAuth.user = {
+    userId: "buyer-user-id",
+    keyId: "test-key-id",
+    permissions: ["read", "write"],
+  };
+
+  injectModule(resolveAlias("@/lib/api/response"), responseMockExports);
+  injectModule(resolveAlias("@/lib/api/middleware"), buildWithApiAuthMock());
+  injectModule(resolveAlias("@/lib/supabase/admin"), {
+    getAdminClient: () => createPurchaseMockAdminClient(),
+  });
+  injectModule(resolveAlias("@/lib/audit/log"), { logAuditEvent: () => {} });
+  injectModule(resolveAlias("@/lib/solana/verify-transaction"), {
+    verifySolanaPurchaseTransaction: async () => mockVerifyTx.result,
+    isValidSolanaTxHash: () => mockSolana.isValidHash,
+  });
+  injectModule(resolveAlias("@/lib/notifications/create"), {
+    notifyPurchase: async () => {},
+  });
+  injectModule(resolveAlias("@/lib/webhooks/events"), {
+    fireWebhookEvent: async () => {},
+  });
+}
+
+export function teardownPurchaseMocks(): void {
+  const paths = [
+    "@/lib/api/response",
+    "@/lib/api/middleware",
+    "@/lib/supabase/admin",
+    "@/lib/audit/log",
+    "@/lib/solana/verify-transaction",
+    "@/lib/notifications/create",
+    "@/lib/webhooks/events",
+    "@/app/api/v1/knowledge/[id]/purchase/route",
   ];
   for (const p of paths) clearModule(p);
 }

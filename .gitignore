@@ -33,6 +33,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.local.example
+!.env.test.example
 
 # vercel
 .vercel
@@ -43,6 +44,13 @@ next-env.d.ts
 
 # Phase 6: Smart Contract keypairs
 fee-vault-keypair.json
+
+# Phase 15: Devnet test keypairs
+devnet-buyer-keypair.json
+devnet-seller-keypair.json
+
+# Phase 15: Staging seed output (contains plain-text API keys — never commit)
+.staging-keys.tmp
 
 # Rust build artifacts
 /target/

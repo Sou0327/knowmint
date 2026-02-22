@@ -94,16 +94,28 @@ export async function getPersonalRecommendations(userId: string, limit = 6) {
   const categoryIds = new Set<string>();
   const allTags = new Set<string>();
 
-  for (const p of purchases) {
-    const item = p.knowledge_item as unknown;
-    if (item && typeof item === 'object' && 'category_id' in item) {
-      const categoryId = (item as { category_id?: string }).category_id;
-      if (categoryId) categoryIds.add(categoryId);
+  interface KnowledgeItemRef {
+    category_id?: string | null;
+    tags?: string[];
+  }
+  function isKnowledgeItemRef(val: unknown): val is KnowledgeItemRef {
+    if (typeof val !== "object" || val === null) return false;
+    const v = val as Record<string, unknown>;
+    // category_id は null 許容 (カテゴリ未設定は null)
+    if ("category_id" in v && v.category_id !== undefined && v.category_id !== null && typeof v.category_id !== "string") return false;
+    // tags の各要素が string であることを検証
+    if ("tags" in v && v.tags !== undefined) {
+      if (!Array.isArray(v.tags) || (v.tags as unknown[]).some((t) => typeof t !== "string")) return false;
     }
-    if (item && typeof item === 'object' && 'tags' in item) {
-      const tags = (item as { tags?: string[] }).tags;
-      if (tags && Array.isArray(tags)) {
-        tags.forEach((t) => allTags.add(t));
+    return true;
+  }
+
+  for (const p of purchases) {
+    const itemRef = p.knowledge_item as unknown;
+    if (isKnowledgeItemRef(itemRef)) {
+      if (itemRef.category_id) categoryIds.add(itemRef.category_id);
+      if (Array.isArray(itemRef.tags)) {
+        itemRef.tags.forEach((t) => allTags.add(t));
       }
     }
   }

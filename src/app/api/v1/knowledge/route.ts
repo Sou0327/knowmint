@@ -44,28 +44,28 @@ export const GET = withApiAuth(async (request) => {
   const query = searchParams.get("query") ?? undefined;
   const category = searchParams.get("category") ?? undefined;
   const contentTypeRaw = searchParams.get("content_type") ?? undefined;
-  const content_type = contentTypeRaw as ContentType | undefined;
+  const contentType = contentTypeRaw as ContentType | undefined;
   const listingTypeRaw = searchParams.get("listing_type") ?? undefined;
-  const listing_type = listingTypeRaw as ListingType | undefined;
-  const min_price_raw = searchParams.get("min_price") ? parseFloat(searchParams.get("min_price")!) : undefined;
-  const max_price_raw = searchParams.get("max_price") ? parseFloat(searchParams.get("max_price")!) : undefined;
-  if ((min_price_raw !== undefined && !Number.isFinite(min_price_raw)) ||
-      (max_price_raw !== undefined && !Number.isFinite(max_price_raw))) {
+  const listingType = listingTypeRaw as ListingType | undefined;
+  const minPriceRaw = searchParams.get("min_price") ? parseFloat(searchParams.get("min_price")!) : undefined;
+  const maxPriceRaw = searchParams.get("max_price") ? parseFloat(searchParams.get("max_price")!) : undefined;
+  if ((minPriceRaw !== undefined && !Number.isFinite(minPriceRaw)) ||
+      (maxPriceRaw !== undefined && !Number.isFinite(maxPriceRaw))) {
     return apiError(API_ERRORS.BAD_REQUEST, "Invalid price parameter");
   }
-  const min_price = min_price_raw;
-  const max_price = max_price_raw;
-  const sort_by = (searchParams.get("sort_by") ??
+  const minPrice = minPriceRaw;
+  const maxPrice = maxPriceRaw;
+  const sortBy = (searchParams.get("sort_by") ??
     "newest") as KnowledgeSearchParams["sort_by"];
   const page = Math.min(1000, Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1));
-  const per_page = Math.min(
+  const perPage = Math.min(
     100,
     Math.max(1, parseInt(searchParams.get("per_page") ?? "20", 10) || 20)
   );
-  const metadata_domain = searchParams.get("metadata_domain") ?? undefined;
-  const metadata_experience_type = searchParams.get("metadata_experience_type") ?? undefined;
-  const metadata_applicable_to = searchParams.get("metadata_applicable_to") ?? undefined;
-  const metadata_source_type = searchParams.get("metadata_source_type") ?? undefined;
+  const metadataDomain = searchParams.get("metadata_domain") ?? undefined;
+  const metadataExperienceType = searchParams.get("metadata_experience_type") ?? undefined;
+  const metadataApplicableTo = searchParams.get("metadata_applicable_to") ?? undefined;
+  const metadataSourceType = searchParams.get("metadata_source_type") ?? undefined;
 
   if (contentTypeRaw && !VALID_CONTENT_TYPES.includes(contentTypeRaw as ContentType)) {
     return apiError(API_ERRORS.BAD_REQUEST, "Invalid content_type");
@@ -100,39 +100,39 @@ export const GET = withApiAuth(async (request) => {
   if (category) {
     queryBuilder = queryBuilder.eq("categories.slug", category);
   }
-  if (content_type) {
-    queryBuilder = queryBuilder.eq("content_type", content_type);
+  if (contentType) {
+    queryBuilder = queryBuilder.eq("content_type", contentType);
   }
-  if (listing_type) {
-    queryBuilder = queryBuilder.eq("listing_type", listing_type);
+  if (listingType) {
+    queryBuilder = queryBuilder.eq("listing_type", listingType);
   }
-  if (min_price !== undefined) {
-    queryBuilder = queryBuilder.gte("price_sol", min_price);
+  if (minPrice !== undefined) {
+    queryBuilder = queryBuilder.gte("price_sol", minPrice);
   }
-  if (max_price !== undefined) {
-    queryBuilder = queryBuilder.lte("price_sol", max_price);
+  if (maxPrice !== undefined) {
+    queryBuilder = queryBuilder.lte("price_sol", maxPrice);
   }
-  if (metadata_domain) {
-    queryBuilder = queryBuilder.eq("metadata->>domain", metadata_domain);
+  if (metadataDomain) {
+    queryBuilder = queryBuilder.eq("metadata->>domain", metadataDomain);
   }
-  if (metadata_experience_type) {
-    queryBuilder = queryBuilder.eq("metadata->>experience_type", metadata_experience_type);
+  if (metadataExperienceType) {
+    queryBuilder = queryBuilder.eq("metadata->>experience_type", metadataExperienceType);
   }
-  if (metadata_source_type) {
-    queryBuilder = queryBuilder.eq("metadata->>source_type", metadata_source_type);
+  if (metadataSourceType) {
+    queryBuilder = queryBuilder.eq("metadata->>source_type", metadataSourceType);
   }
-  if (metadata_applicable_to) {
+  if (metadataApplicableTo) {
     // GIN (jsonb_path_ops) インデックスを活用するため metadata 全体の @> で検索
-    queryBuilder = queryBuilder.contains("metadata", { applicable_to: [metadata_applicable_to] });
+    queryBuilder = queryBuilder.contains("metadata", { applicable_to: [metadataApplicableTo] });
   }
 
   // trust_score は profiles テーブルにあるため PostgREST で直接 ORDER BY できない。
   // trust_score ソート時は DB 側でページングせず、上限件数分を取得して
   // アプリ側でソート+ページングを行うことで、ページ間の順序整合性を保つ。
-  const isTrustScoreSort = sort_by === "trust_score";
+  const isTrustScoreSort = sortBy === "trust_score";
   const TRUST_SCORE_FETCH_LIMIT = 200;
 
-  switch (sort_by) {
+  switch (sortBy) {
     case "newest":
       queryBuilder = queryBuilder.order("created_at", { ascending: false });
       break;
@@ -170,15 +170,15 @@ export const GET = withApiAuth(async (request) => {
     // trust_score ソート: ページングせず上限件数まで取得
     queryBuilder = queryBuilder.limit(TRUST_SCORE_FETCH_LIMIT);
   } else {
-    const from = (page - 1) * per_page;
-    const to = from + per_page - 1;
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
     queryBuilder = queryBuilder.range(from, to);
   }
 
   const { data, count, error } = await queryBuilder;
 
   if (error) {
-    console.error("Failed to fetch knowledge items:", error);
+    console.error("[knowledge] fetch items failed:", { error });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -192,12 +192,12 @@ export const GET = withApiAuth(async (request) => {
       return scoreB - scoreA;
     });
     // アプリ側でページング
-    const from = (page - 1) * per_page;
-    resultData = resultData.slice(from, from + per_page);
-    return apiPaginated(resultData, Math.min(count ?? 0, TRUST_SCORE_FETCH_LIMIT), page, per_page);
+    const from = (page - 1) * perPage;
+    resultData = resultData.slice(from, from + perPage);
+    return apiPaginated(resultData, Math.min(count ?? 0, TRUST_SCORE_FETCH_LIMIT), page, perPage);
   }
 
-  return apiPaginated(resultData, count ?? 0, page, per_page);
+  return apiPaginated(resultData, count ?? 0, page, perPage);
 }, { requiredPermissions: ["read"] });
 
 /**
@@ -335,7 +335,7 @@ export const POST = withApiAuth(async (request, user) => {
     .single();
 
   if (insertError || !knowledgeItem) {
-    console.error("Failed to insert knowledge item:", insertError);
+    console.error("[knowledge] insert item failed:", { userId: user.userId, error: insertError });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -349,7 +349,7 @@ export const POST = withApiAuth(async (request, user) => {
       });
 
     if (contentError) {
-      console.error("Failed to insert content:", contentError);
+      console.error("[knowledge] insert content failed:", { userId: user.userId, itemId: knowledgeItem.id, error: contentError });
       await supabase
         .from("knowledge_items")
         .delete()

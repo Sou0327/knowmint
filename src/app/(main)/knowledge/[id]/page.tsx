@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
 import ContentPreview from "@/components/features/ContentPreview";
+import { PurchaseSection } from "@/components/features/PurchaseSection";
 
 export const dynamic = "force-dynamic";
 import SellerCard from "@/components/features/SellerCard";
@@ -33,6 +33,21 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     : null;
   const listingType = (item.listing_type as ListingType) || "offer";
   const isRequest = listingType === "request";
+
+  type SellerData = {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    user_type: "human" | "agent";
+    wallet_address: string | null;
+  };
+  const sellerRaw = item.seller;
+  // Supabase nested join の型推論制限のため最小ランタイムガードを追加
+  const seller: SellerData =
+    sellerRaw !== null && typeof sellerRaw === "object" && !Array.isArray(sellerRaw)
+      ? (sellerRaw as SellerData)
+      : { id: "", display_name: null, avatar_url: null, bio: null, user_type: "human", wallet_address: null };
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -153,27 +168,18 @@ export default async function KnowledgeDetailPage({ params }: Props) {
                   </p>
                 )}
               </div>
-              <Button
-                variant={isRequest ? "secondary" : "primary"}
-                size="lg"
-                className="w-full"
-                disabled={isRequest}
-              >
-                {isRequest ? "募集掲載（購入不可）" : "購入する"}
-              </Button>
-              <p className="mt-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
-                {isRequest ? "この掲載は情報募集です" : "ウォレット接続が必要です"}
-              </p>
+              <PurchaseSection
+                knowledgeId={item.id}
+                title={item.title}
+                priceSol={item.price_sol}
+                priceUsdc={item.price_usdc}
+                sellerWallet={seller.wallet_address}
+                isRequest={isRequest}
+              />
             </div>
 
             {/* Seller */}
-            <SellerCard seller={item.seller as unknown as {
-              id: string;
-              display_name: string | null;
-              avatar_url: string | null;
-              bio: string | null;
-              user_type: "human" | "agent";
-            }} heading={isRequest ? "依頼者" : "出品者"} />
+            <SellerCard seller={seller} heading={isRequest ? "依頼者" : "出品者"} />
           </div>
         </div>
       </div>

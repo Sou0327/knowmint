@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 const CONFIG_DIR = path.join(os.homedir(), ".km");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
-const DEFAULT_BASE_URL = "http://127.0.0.1:3000";
+const DEFAULT_BASE_URL = "https://knowledge-market.app";
 /** フェッチタイムアウト (ms) */
 const FETCH_TIMEOUT_MS = 30_000;
 function fatal(msg) {
@@ -53,17 +53,25 @@ export async function loadConfig() {
     let fileConfig = {};
     try {
         const raw = await fs.readFile(CONFIG_PATH, "utf8");
-        const parsed = JSON.parse(raw);
+        let parsed;
+        try {
+            parsed = JSON.parse(raw);
+        }
+        catch {
+            fatal(`~/.km/config.json is not valid JSON. Please fix or delete it and run \`km login\` again.`);
+        }
         if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
             fileConfig = parsed;
         }
     }
-    catch {
-        fileConfig = {};
+    catch (e) {
+        if (e.code !== "ENOENT")
+            throw e;
+        // ENOENT: config file not yet created — fall through to env-only mode
     }
     const rawKey = process.env["KM_API_KEY"] ?? fileConfig["apiKey"] ?? null;
     if (!rawKey) {
-        fatal("No API key configured. Set KM_API_KEY env var, or run `km login`.");
+        fatal("No API key configured. Set KM_API_KEY env var, or run `km login` to save credentials.");
     }
     const apiKey = validateApiKey(rawKey);
     const rawUrl = process.env["KM_BASE_URL"] ?? fileConfig["baseUrl"] ?? DEFAULT_BASE_URL;
@@ -126,6 +134,45 @@ async function parseResponse(response) {
         throw new KmApiError("Unexpected API response shape");
     }
     return result.data;
+}
+/**
+ * X-PAYMENT ヘッダーを付けてリクエストし、HTTP 402 を特別処理する。
+ * 402 の場合は PaymentRequiredResponse を返す (throw しない)。
+ */
+export async function apiRequestWithPayment(config, apiPath, extraHeaders) {
+    const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
+    const headers = { ...buildHeaders(config), ...extraHeaders };
+    const { signal, cleanup } = withTimeout();
+    try {
+        const response = await fetch(url, { method: "GET", headers, signal });
+        if (response.status === 402) {
+            const text = await response.text();
+            let json = null;
+            try {
+                json = text ? JSON.parse(text) : null;
+            }
+            catch {
+                json = null;
+            }
+            const body = (json ?? {});
+            return {
+                payment_required: true,
+                x402Version: typeof body["x402Version"] === "number" ? body["x402Version"] : undefined,
+                accepts: Array.isArray(body["accepts"]) ? body["accepts"] : [],
+                error: typeof body["error"] === "string" ? body["error"] : undefined,
+            };
+        }
+        return await parseResponse(response);
+    }
+    catch (e) {
+        if (e.name === "AbortError") {
+            throw new KmApiError(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s`, null);
+        }
+        throw e;
+    }
+    finally {
+        cleanup();
+    }
 }
 export async function apiRequest(config, apiPath, method = "GET", body) {
     const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;

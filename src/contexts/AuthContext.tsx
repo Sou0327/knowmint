@@ -26,8 +26,9 @@ interface AuthContextType {
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (
-    data: Partial<Pick<Profile, "display_name" | "avatar_url" | "bio" | "wallet_address">>
+    data: Partial<Pick<Profile, "display_name" | "avatar_url" | "bio">>
   ) => Promise<{ error: string | null }>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -134,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (
-    data: Partial<Pick<Profile, "display_name" | "avatar_url" | "bio" | "wallet_address">>
+    data: Partial<Pick<Profile, "display_name" | "avatar_url" | "bio">>
   ) => {
     if (!user) return { error: "Not authenticated" };
     const { error } = await supabase
@@ -145,6 +146,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetchProfile(user.id);
     }
     return { error: error?.message ?? null };
+  };
+
+  const refreshProfile = async () => {
+    if (user) await fetchProfile(user.id);
   };
 
   return (
@@ -158,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signOut,
         updateProfile,
+        refreshProfile,
       }}
     >
       {children}

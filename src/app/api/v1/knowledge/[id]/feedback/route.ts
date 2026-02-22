@@ -2,6 +2,7 @@ import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { fireWebhookEvent } from "@/lib/webhooks/events";
+import { logAuditEvent } from "@/lib/audit/log";
 
 /**
  * POST /api/v1/knowledge/[id]/feedback
@@ -34,12 +35,14 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   const supabase = getAdminClient();
 
   // 購入確認: buyer_id = user.id かつ knowledge_item_id = id の confirmed トランザクション
+  // seller_id != user.userId で出品者が自分のアイテムにフィードバックできないよう排除
   const { data: tx, error: txError } = await supabase
     .from("transactions")
     .select("id")
     .eq("buyer_id", user.userId)
     .eq("knowledge_item_id", id)
     .eq("status", "confirmed")
+    .neq("seller_id", user.userId)
     .maybeSingle();
 
   if (txError || !tx) {
@@ -73,15 +76,23 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     if (insertError.code === "23505") {
       return apiError(API_ERRORS.CONFLICT, "既にフィードバックを送信済みです");
     }
-    console.error("Failed to insert feedback:", insertError);
+    console.error("[feedback] insert failed:", { userId: user.userId, itemId: id, error: insertError });
     return apiError(API_ERRORS.INTERNAL_ERROR, "フィードバックの保存に失敗しました");
   }
+
+  logAuditEvent({
+    userId: user.userId,
+    action: "feedback.created",
+    resourceType: "knowledge_item",
+    resourceId: id,
+    metadata: { useful: body.useful },
+  });
 
   // Fire webhook event (fire-and-forget)
   fireWebhookEvent(user.userId, "review.created", {
     knowledge_id: id,
     useful: body.useful,
-  }).catch((err: unknown) => console.error("Webhook review.created:", err));
+  }).catch((err: unknown) => console.error("[feedback] webhook dispatch failed:", { userId: user.userId, itemId: id, error: err }));
 
   return apiSuccess({ message: "フィードバックを送信しました" }, 201);
 }, { requiredPermissions: ["write"] });

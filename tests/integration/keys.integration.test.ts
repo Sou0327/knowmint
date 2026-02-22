@@ -153,4 +153,17 @@ describe("POST /api/v1/keys — 認証", () => {
       mockAuth.user = originalUser;
     }
   });
+
+  it("admin 権限なし (permissions: ['read']) → 403", async () => {
+    const originalUser = mockAuth.user;
+    mockAuth.user = { userId: "test-user-id", keyId: "test-key-id", permissions: ["read"] };
+    try {
+      const res = await POST(makeRequest({ name: "test" }));
+      assert.equal(res.status, 403);
+      const json = (await res.json()) as { success: boolean; error: { code: string } };
+      assert.equal(json.error.code, "forbidden");
+    } finally {
+      mockAuth.user = originalUser;
+    }
+  });
 });

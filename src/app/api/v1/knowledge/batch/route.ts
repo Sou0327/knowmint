@@ -3,6 +3,7 @@ import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 
 const MAX_BATCH_SIZE = 50;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * POST /api/v1/knowledge/batch
@@ -31,6 +32,10 @@ export const POST = withApiAuth(async (request) => {
       API_ERRORS.BAD_REQUEST,
       `Maximum ${MAX_BATCH_SIZE} IDs per batch request`
     );
+  }
+
+  if (ids.some((id) => typeof id !== "string" || !UUID_RE.test(id))) {
+    return apiError(API_ERRORS.BAD_REQUEST, "All IDs must be valid UUIDs");
   }
 
   const admin = getAdminClient();

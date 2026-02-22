@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   apiRequest,
   apiRequestPaginated,
+  apiRequestWithPayment,
   createAndPublishKnowledge,
   KmApiError,
 } from "./api.ts";
@@ -200,15 +201,25 @@ export function registerTools(server: McpServer, config: KmConfig): void {
   // ── km_get_content ────────────────────────────────────────────────────────
   server.tool(
     "km_get_content",
-    "Retrieve the full content of a purchased knowledge item. Returns full_content (text) or file_url (dataset).",
+    "Retrieve the full content of a knowledge item. If payment_required: true is returned, send on-chain payment and retry with payment_proof (base64-encoded X-PAYMENT).",
     {
-      knowledge_id: knowledgeIdSchema.describe("Knowledge item ID (must be purchased)"),
+      knowledge_id: knowledgeIdSchema.describe("Knowledge item ID"),
+      payment_proof: z
+        .string()
+        .optional()
+        .describe(
+          "base64-encoded X-PAYMENT proof. Format: base64({scheme,network,payload:{txHash,asset?}}). Obtain after sending on-chain payment and retry."
+        ),
     },
-    async ({ knowledge_id }) => {
+    async ({ knowledge_id, payment_proof }) => {
       try {
-        const data = await apiRequest<unknown>(
+        const extraHeaders = payment_proof
+          ? { "X-PAYMENT": payment_proof }
+          : undefined;
+        const data = await apiRequestWithPayment<unknown>(
           config,
-          `/api/v1/knowledge/${encodeURIComponent(knowledge_id)}/content`
+          `/api/v1/knowledge/${encodeURIComponent(knowledge_id)}/content`,
+          extraHeaders
         );
         return ok(data);
       } catch (e) {

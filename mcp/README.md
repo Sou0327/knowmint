@@ -1,34 +1,14 @@
 # Knowledge Market MCP Server
 
-stdio transport の MCP Server。Claude Code / OpenCode などのエージェントが
-Knowledge Market を「ツール」として利用できる。
+**Give your AI agent access to human tacit knowledge — the kind that isn't in any training data.**
 
-## 提供ツール
+Connect Claude Code, Cursor, or OpenCode to [Knowledge Market](https://knowledge-market.app) and let your agent autonomously discover, evaluate, and purchase real-world expertise: battle-tested prompts, live datasets, tool definitions, and hard-won domain know-how.
 
-| ツール | 説明 |
-|--------|------|
-| `km_search` | ナレッジ検索 |
-| `km_get_detail` | ナレッジ詳細 + プレビュー取得 |
-| `km_purchase` | 購入記録 (tx_hash 送信後) |
-| `km_get_content` | 購入済みコンテンツ取得 |
-| `km_publish` | ナレッジ出品 (下書き作成 → 公開) |
+> **Why agents buy knowledge**: Higher success rates. Fewer retries. Access to current, verified information that no LLM was trained on.
 
-## セットアップ
+---
 
-### 前提条件
-
-- Node.js 22.6.0 以上 (`--experimental-strip-types` 対応)
-- Knowledge Market の API キー (`km login` で取得、または Web UI から発行)
-
-### 認証
-
-優先順位:
-1. 環境変数 `KM_API_KEY`
-2. `~/.km/config.json` (`km login` で保存)
-
-`km login` 済みの場合、env 指定は不要。
-
-## MCP 設定例
+## Quickstart (npx — no install needed)
 
 ### Claude Code (`~/.claude/mcp.json`)
 
@@ -36,37 +16,107 @@ Knowledge Market を「ツール」として利用できる。
 {
   "mcpServers": {
     "knowledge-market": {
-      "command": "node",
-      "args": [
-        "--experimental-strip-types",
-        "/path/to/knowledge_market/mcp/src/index.ts"
-      ],
+      "command": "npx",
+      "args": ["--yes", "--package", "@knowledgemarket/mcp-server@0.1.2", "mcp-server"],
       "env": {
-        "KM_API_KEY": "km_xxxxxxxxxxxx",
-        "KM_BASE_URL": "https://your-domain.com"
+        "KM_API_KEY": "km_xxx",
+        "KM_BASE_URL": "https://knowledge-market.app"
       }
     }
   }
 }
 ```
 
-`km login` 済みの場合 (env 省略可):
+### Cursor (`~/.cursor/mcp.json`)
 
 ```json
 {
   "mcpServers": {
     "knowledge-market": {
-      "command": "node",
-      "args": [
-        "--experimental-strip-types",
-        "/path/to/knowledge_market/mcp/src/index.ts"
-      ]
+      "command": "npx",
+      "args": ["--yes", "--package", "@knowledgemarket/mcp-server@0.1.2", "mcp-server"],
+      "env": {
+        "KM_API_KEY": "km_xxx",
+        "KM_BASE_URL": "https://knowledge-market.app"
+      }
     }
   }
 }
 ```
 
-### ビルド済みバイナリを使う場合
+### OpenCode (`.opencode/config.json`)
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "knowledge-market": {
+        "command": "npx",
+        "args": ["--yes", "--package", "@knowledgemarket/mcp-server@0.1.2", "mcp-server"],
+        "env": { "KM_API_KEY": "km_xxx", "KM_BASE_URL": "https://knowledge-market.app" }
+      }
+    }
+  }
+}
+```
+
+> **`KM_BASE_URL`** defaults to `https://knowledge-market.app` when omitted.
+> Get your API key at [knowledge-market.app/settings/api](https://knowledge-market.app/settings/api) or run `km login`.
+
+---
+
+## Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `km_search` | Search knowledge listings by keyword, type, or price |
+| `km_get_detail` | Get full metadata + preview for a listing |
+| `km_purchase` | Record a purchase after sending payment (tx_hash) |
+| `km_get_content` | Retrieve purchased full content |
+| `km_publish` | Publish a new knowledge listing |
+
+---
+
+## Authentication
+
+Priority order:
+1. `KM_API_KEY` environment variable
+2. `~/.km/config.json` (saved by `km login`)
+
+If you've already run `km login`, you can omit the `env` block entirely.
+
+---
+
+## Autonomous Purchase Flow (x402 — no external wallet MCP needed)
+
+Agents with their own wallet (e.g. CDP Wallet) can complete purchases end-to-end without any additional MCP server:
+
+```
+1. km_get_content(id)
+   → { payment_required: true, accepts: [{ payTo, maxAmountRequired, asset, network, ... }] }
+
+2. Agent sends SOL/USDC from its own wallet
+   → obtain tx_hash / signature
+
+3. Build payment_proof:
+   base64url(JSON.stringify({
+     scheme: "exact",
+     network: "<value from accepts[].network>",   // match the network returned above
+     payload: { txHash: "<signature>", asset: "native" }
+   }))
+
+4. km_get_content(id, payment_proof: "<base64url>")
+   → { full_content: "...", file_url: null }
+```
+
+> **Note**: Use the `network` value returned in `accepts[]` — do not hardcode it.
+> Devnet example: `"solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"`
+
+Manual purchase via Phantom MCP also works: send tx → `km_purchase(id, tx_hash)` → `km_get_content(id)`.
+
+---
+
+## Local Development Setup
 
 ```bash
 cd mcp && npm install && npm run build
@@ -84,65 +134,36 @@ cd mcp && npm install && npm run build
 }
 ```
 
-### OpenCode (`.opencode/config.json`)
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "knowledge-market": {
-        "command": "node",
-        "args": [
-          "--experimental-strip-types",
-          "/path/to/knowledge_market/mcp/src/index.ts"
-        ],
-        "env": { "KM_API_KEY": "km_xxx", "KM_BASE_URL": "https://your-domain.com" }
-      }
-    }
-  }
-}
-```
-
-### OpenClaw + Phantom MCP との組み合わせ
+### Dev mode (TypeScript, no build step)
 
 ```json
 {
   "mcpServers": {
     "knowledge-market": {
       "command": "node",
-      "args": ["--experimental-strip-types", "/path/to/mcp/src/index.ts"],
-      "env": { "KM_API_KEY": "km_xxx", "KM_BASE_URL": "https://your-domain.com" }
-    },
-    "phantom": {
-      "command": "npx",
-      "args": ["-y", "@phantom/mcp-server"]
+      "args": ["--experimental-strip-types", "/path/to/knowledge_market/mcp/src/index.ts"],
+      "env": { "KM_API_KEY": "km_xxx" }
     }
   }
 }
 ```
 
-エージェントは Phantom MCP で SOL 送金 → `km_purchase` で tx_hash 提出、という
-自律購入フローを実行できる。
-
-## 動作確認
+### Verify the server starts
 
 ```bash
-# 起動確認 (stderr に running が出れば OK)
-KM_API_KEY=km_xxx KM_BASE_URL=http://localhost:3000 npm run km-mcp
+# Should print error to stderr and exit (no KM_API_KEY set)
+npx --yes --package @knowledgemarket/mcp-server@0.1.2 mcp-server
 
-# MCP Inspector で対話確認
+# With key — should stay running (waiting for MCP messages on stdin)
+KM_API_KEY=km_xxx KM_BASE_URL=http://localhost:3000 npm run dev
+
+# Interactive inspection
 npx @modelcontextprotocol/inspector node --experimental-strip-types mcp/src/index.ts
 ```
 
-## 開発
+---
 
-```bash
-# 依存インストール
-cd mcp && npm install
+## Requirements
 
-# 型チェック
-npm run build
-
-# 開発実行 (型ストリップ)
-npm run dev
-```
+- Node.js ≥ 22.6.0
+- Knowledge Market API key ([get one here](https://knowledge-market.app/settings/api))

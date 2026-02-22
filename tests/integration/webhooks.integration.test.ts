@@ -11,6 +11,7 @@ import {
   setupWebhooksMocks,
   teardownWebhooksMocks,
   resetMockDb,
+  mockAuth,
 } from "./helpers/supabase-mock";
 
 type PostHandler = (req: Request) => Promise<Response>;
@@ -123,6 +124,25 @@ describe("POST /api/v1/webhooks — url バリデーション", () => {
       })
     );
     assert.equal(res.status, 400);
+  });
+});
+
+// ── 権限不足 ──────────────────────────────────────────────────────────────
+
+describe("POST /api/v1/webhooks — 権限チェック", () => {
+  it("write 権限なし (permissions: ['read']) → 403", async () => {
+    const originalUser = mockAuth.user;
+    mockAuth.user = { userId: "test-user-id", keyId: "test-key-id", permissions: ["read"] };
+    try {
+      const res = await POST(
+        makeRequest({ url: "https://8.8.8.8/hook", events: ["purchase.completed"] })
+      );
+      assert.equal(res.status, 403);
+      const json = (await res.json()) as { success: boolean; error: { code: string } };
+      assert.equal(json.error.code, "forbidden");
+    } finally {
+      mockAuth.user = originalUser;
+    }
   });
 });
 

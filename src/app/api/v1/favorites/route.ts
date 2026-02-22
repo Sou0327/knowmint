@@ -2,6 +2,8 @@ import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * GET /api/v1/favorites
  * Returns the user's favorite knowledge items
@@ -47,10 +49,10 @@ export const POST = withApiAuth(async (request, user) => {
     return apiError(API_ERRORS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  if (!body.knowledge_item_id || typeof body.knowledge_item_id !== "string") {
+  if (!body.knowledge_item_id || typeof body.knowledge_item_id !== "string" || !UUID_RE.test(body.knowledge_item_id)) {
     return apiError(
       API_ERRORS.BAD_REQUEST,
-      "Missing or invalid field: knowledge_item_id"
+      "Missing or invalid field: knowledge_item_id must be a valid UUID"
     );
   }
 
@@ -110,10 +112,10 @@ export const DELETE = withApiAuth(async (request, user) => {
     return apiError(API_ERRORS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  if (!body.knowledge_item_id || typeof body.knowledge_item_id !== "string") {
+  if (!body.knowledge_item_id || typeof body.knowledge_item_id !== "string" || !UUID_RE.test(body.knowledge_item_id)) {
     return apiError(
       API_ERRORS.BAD_REQUEST,
-      "Missing or invalid field: knowledge_item_id"
+      "Missing or invalid field: knowledge_item_id must be a valid UUID"
     );
   }
 

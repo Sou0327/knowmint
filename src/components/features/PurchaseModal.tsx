@@ -20,7 +20,7 @@ interface Props {
   priceSol: number | null;
   priceUsdc: number | null;
   sellerWallet: string;
-  onPurchaseComplete: (txHash: string) => void;
+  onPurchaseComplete: (txHash: string, chain: "solana" | "base" | "ethereum", token: Token) => Promise<void>;
 }
 
 export default function PurchaseModal({
@@ -75,7 +75,7 @@ export default function PurchaseModal({
             transaction = await buildSolTransfer(publicKey, sellerWallet, amount);
           }
           const signature = await sendTransaction(transaction, connection);
-          onPurchaseComplete(signature);
+          await onPurchaseComplete(signature, "solana", "SOL");
         } else {
           if (isSmartContractEnabled()) {
             const { buildSmartContractPurchaseSpl } = await import("@/lib/solana/program");
@@ -87,7 +87,7 @@ export default function PurchaseModal({
               publicKey, buyerAta, sellerAta, feeVaultAta, amountAtomic
             );
             const signature = await sendTransaction(transaction, connection);
-            onPurchaseComplete(signature);
+            await onPurchaseComplete(signature, "solana", "USDC");
           } else {
             setError("USDC決済は現在準備中です");
           }
@@ -105,7 +105,7 @@ export default function PurchaseModal({
           to: sellerWallet as `0x${string}`,
           value: parseEther(amount.toString()),
         });
-        onPurchaseComplete(hash);
+        await onPurchaseComplete(hash, selectedChain as "base" | "ethereum", "ETH");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "決済に失敗しました");
@@ -161,6 +161,12 @@ export default function PurchaseModal({
           </div>
         </div>
 
+        {selectedChain !== "solana" && (
+          <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+            EVM チェーンでの購入は現在準備中です（Solana をご利用ください）
+          </div>
+        )}
+
         {error && (
           <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
             {error}
@@ -175,9 +181,10 @@ export default function PurchaseModal({
             variant="primary"
             onClick={handlePurchase}
             loading={processing}
+            disabled={selectedChain !== "solana"}
             className="flex-1"
           >
-            {(selectedChain === "solana" ? connected : evmConnected)
+            {connected
               ? `${amount} ${selectedToken} で購入`
               : "ウォレットを接続"}
           </Button>

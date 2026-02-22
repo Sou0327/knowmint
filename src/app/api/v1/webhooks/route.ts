@@ -5,6 +5,8 @@ import { encryptSecret } from "@/lib/webhooks/crypto";
 import { checkPublicUrl } from "@/lib/webhooks/ssrf";
 import { logAuditEvent } from "@/lib/audit/log";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const VALID_EVENTS = [
   "purchase.completed",
   "review.created",
@@ -25,7 +27,7 @@ export const GET = withApiAuth(async (_request, user) => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Failed to fetch webhooks:", error);
+    console.error("[webhooks] fetch failed:", { userId: user.userId, error });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -124,10 +126,25 @@ export const POST = withApiAuth(async (request, user) => {
   try {
     secretEncrypted = encryptSecret(secret);
   } catch (err) {
-    console.warn("WEBHOOK_SIGNING_KEY not configured; webhook signing disabled:", err);
+    console.error("[webhooks] WEBHOOK_SIGNING_KEY not configured; webhook signing disabled:", err);
   }
 
   const admin = getAdminClient();
+
+  // Enforce per-user subscription limit
+  const { count, error: countError } = await admin
+    .from("webhook_subscriptions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.userId);
+
+  if (countError) {
+    console.error("[webhooks] count subscriptions failed:", { userId: user.userId, error: countError });
+    return apiError(API_ERRORS.INTERNAL_ERROR);
+  }
+
+  if ((count ?? 0) >= 25) {
+    return apiError(API_ERRORS.BAD_REQUEST, "Maximum 25 webhook subscriptions per user");
+  }
 
   const { data, error } = await admin
     .from("webhook_subscriptions")
@@ -143,7 +160,7 @@ export const POST = withApiAuth(async (request, user) => {
     .single();
 
   if (error) {
-    console.error("Failed to create webhook:", error);
+    console.error("[webhooks] create failed:", { userId: user.userId, error });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -184,11 +201,15 @@ export const DELETE = withApiAuth(async (request, user) => {
     webhookId = url.searchParams.get("webhook_id");
   }
 
-  if (!webhookId) {
+  if (!webhookId || typeof webhookId !== "string") {
     return apiError(
       API_ERRORS.BAD_REQUEST,
       "Field 'webhook_id' is required"
     );
+  }
+
+  if (!UUID_RE.test(webhookId)) {
+    return apiError(API_ERRORS.BAD_REQUEST, "Field 'webhook_id' must be a valid UUID");
   }
 
   const admin = getAdminClient();
@@ -201,7 +222,7 @@ export const DELETE = withApiAuth(async (request, user) => {
     .select("id");
 
   if (error) {
-    console.error("Failed to delete webhook:", error);
+    console.error("[webhooks] delete failed:", { userId: user.userId, webhookId, error });
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 

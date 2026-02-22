@@ -1,10 +1,41 @@
 {
-  "name": "@knowledge-market/mcp-server",
-  "version": "0.1.0",
+  "name": "@knowledgemarket/mcp-server",
+  "version": "0.1.2",
+  "description": "MCP server for Knowledge Market — lets AI agents discover and purchase human tacit knowledge",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "knowledge-market",
+    "ai-agent",
+    "solana",
+    "claude",
+    "opencode",
+    "cursor"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sou0327/knowledge_market.git",
+    "directory": "mcp"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
-  "bin": { "km-mcp": "./dist/index.js" },
+  "bin": {
+    "km-mcp": "dist/index.js",
+    "mcp-server": "dist/index.js"
+  },
   "scripts": {
-    "dev":   "node --experimental-strip-types src/index.ts",
+    "dev": "node --experimental-strip-types src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -16,5 +47,7 @@
     "typescript": "^5.0.0",
     "@types/node": "^22.0.0"
   },
-  "engines": { "node": ">=22.6.0" }
+  "engines": {
+    "node": ">=22.6.0"
+  }
 }

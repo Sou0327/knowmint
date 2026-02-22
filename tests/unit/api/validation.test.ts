@@ -66,6 +66,14 @@ describe("validateExpiresAt()", () => {
     it('"2026-02-22T00:00:00Z" (NOW より前)', () => {
       const r = validateExpiresAt("2026-02-22T00:00:00Z", NOW);
       assert.equal(r.valid, false);
+      assert.ok("reason" in r);
+      assert.ok(r.reason.includes("future date"));
+    });
+  });
+
+  describe("当日（日付のみ形式）→ { valid: true }（23:59:59.999Z まで有効）", () => {
+    it('"2026-02-22" (NOW と同じ日・日付のみ) → valid: true', () => {
+      assert.deepEqual(validateExpiresAt("2026-02-22", NOW), { valid: true });
     });
   });
 

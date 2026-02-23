@@ -72,3 +72,6 @@ cli/node_modules/
 
 # Maestro E2E tests
 maestro/
+
+# Supabase CLI temporary files
+supabase/.temp/

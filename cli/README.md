@@ -1,6 +1,6 @@
-# @knowledge-market/cli
+# @knowmint/cli
 
-Knowledge Market の CLI ツール (`km`) です。  
+KnowMint の CLI ツール (`km`) です。  
 このディレクトリは Web アプリ本体から分離された、公開用 npm パッケージです。
 
 ## ローカル実行

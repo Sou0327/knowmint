@@ -48,7 +48,7 @@ export default function LoginPage() {
             ログイン
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Knowledge Market にログイン
+            KnowMint にログイン
           </p>
         </div>
 

@@ -318,7 +318,7 @@ export default function ApiKeyManager() {
         </h3>
         <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
           <p>
-            APIキーを使用して、Knowledge Market API にプログラムからアクセスできます。
+            APIキーを使用して、KnowMint API にプログラムからアクセスできます。
           </p>
           <code className="block rounded-lg bg-zinc-100 px-3 py-2.5 font-mono text-xs leading-relaxed dark:bg-zinc-800">
             {`curl -H "Authorization: Bearer km_your_key_here" \\`}

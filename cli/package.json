@@ -1,7 +1,7 @@
 {
-  "name": "@knowledge-market/cli",
+  "name": "@knowmint/cli",
   "version": "0.1.0",
-  "description": "Knowledge Market CLI",
+  "description": "KnowMint CLI",
   "type": "module",
   "bin": {
     "km": "./bin/km.mjs"
@@ -18,7 +18,7 @@
     "node": ">=18.17.0"
   },
   "keywords": [
-    "knowledge-market",
+    "knowmint",
     "cli",
     "agent",
     "marketplace"

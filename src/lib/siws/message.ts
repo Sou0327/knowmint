@@ -24,7 +24,7 @@ export function buildSiwsMessage(params: {
   nonce: string;
 }): string {
   return [
-    "Knowledge Market wants you to prove ownership of your Solana wallet.",
+    "KnowMint wants you to prove ownership of your Solana wallet.",
     "",
     `Wallet: ${params.wallet}`,
     `User ID: ${params.userId}`,

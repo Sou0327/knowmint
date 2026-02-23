@@ -19,11 +19,11 @@ const geistMono = Geist_Mono({
 
 const METADATA_BY_LOCALE: Record<Locale, { title: string; description: string }> = {
   ja: {
-    title: "Knowledge Market - 知識売買マーケットプレイス",
+    title: "KnowMint - 知識売買マーケットプレイス",
     description: "専門知識・ノウハウを売買できるプラットフォーム",
   },
   en: {
-    title: "Knowledge Market - Knowledge Marketplace",
+    title: "KnowMint - Knowledge Marketplace",
     description: "A platform to buy and sell expertise and know-how",
   },
 };

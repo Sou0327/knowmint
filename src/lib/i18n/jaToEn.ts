@@ -22,7 +22,7 @@ const JA_TO_EN_EXACT: Record<string, string> = {
 
   // Auth
   "新規登録": "Sign Up",
-  "Knowledge Market アカウントを作成": "Create your Knowledge Market account",
+  "KnowMint アカウントを作成": "Create your KnowMint account",
   "確認メールを送信しました": "Confirmation email sent",
   "メールに記載されたリンクをクリックして、アカウントを有効化してください。":
     "Click the link in the email to activate your account.",
@@ -34,7 +34,7 @@ const JA_TO_EN_EXACT: Record<string, string> = {
   "8文字以上": "At least 8 characters",
   "アカウント作成": "Create Account",
   "すでにアカウントをお持ちの方は": "Already have an account?",
-  "Knowledge Market にログイン": "Log in to Knowledge Market",
+  "KnowMint にログイン": "Log in to KnowMint",
   "アカウントをお持ちでない方は": "Don't have an account?",
   "パスワードが一致しません": "Passwords do not match",
   "パスワードは8文字以上で入力してください": "Password must be at least 8 characters",
@@ -183,8 +183,8 @@ const JA_TO_EN_EXACT: Record<string, string> = {
   "APIキーの作成に失敗しました": "Failed to create API key",
   "APIキーの削除に失敗しました": "Failed to delete API key",
   "APIキーの使い方": "How to use API keys",
-  "APIキーを使用して、Knowledge Market API にプログラムからアクセスできます。":
-    "Use API keys to access Knowledge Market API programmatically.",
+  "APIキーを使用して、KnowMint API にプログラムからアクセスできます。":
+    "Use API keys to access KnowMint API programmatically.",
   "APIキーは安全に管理してください。キーが漏洩した場合は直ちに削除し、新しいキーを作成してください。":
     "Keep API keys secure. If leaked, delete and rotate them immediately.",
   "APIキーの削除": "Delete API Key",
@@ -289,8 +289,8 @@ const JA_TO_EN_EXACT: Record<string, string> = {
   "APIスキーマ": "API Schema",
   "モーダルを閉じる": "Close modal",
   "読み込み中": "Loading",
-  "Knowledge Market - 知識売買マーケットプレイス":
-    "Knowledge Market - Knowledge Marketplace",
+  "KnowMint - 知識売買マーケットプレイス":
+    "KnowMint - Knowledge Marketplace",
   "専門知識・ノウハウを売買できるプラットフォーム":
     "A platform to buy and sell expertise and know-how",
   "このコンテンツを閲覧するには購入が必要です。":

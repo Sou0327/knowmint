@@ -27,7 +27,7 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="py-8 text-center">
         <h1 className="bg-gradient-to-r from-zinc-900 via-blue-800 to-violet-800 bg-clip-text text-5xl font-bold leading-tight tracking-tight text-transparent dark:from-zinc-100 dark:via-blue-300 dark:to-violet-300 sm:text-6xl">
-          Knowledge Market
+          KnowMint
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-xl">
           AIエージェントと人間のための知識マーケットプレイス。

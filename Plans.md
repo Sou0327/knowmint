@@ -1,4 +1,4 @@
-# Knowledge Market - 開発計画
+# KnowMint - 開発計画
 
 > 人間の暗黙知・体験知をAIエージェントに販売できるナレッジマーケットプレイス
 > 決済: Solana (ノンカストディアル P2P → スマートコントラクト自動分配)
@@ -163,6 +163,52 @@ EVM 対応は将来フェーズ (Phase 12 拡張またはマルチチェーン P
 
 UI レベルで EVM を無効化。⑤ の API 制限と整合している。
 EVM が有効化されるまでこの状態を維持 — **変更不要**。
+
+---
+
+## Phase 29: アプリリネーム — Knowledge Market → KnowMint [P1]
+
+> ブランド変更: `Knowledge Market` / `knowledge-market` / `knowledgemarket` / `ナレッジマーケット`
+> → `KnowMint` / `knowmint` (表示名・パッケージ名・設定値)
+>
+> **スコープ外**: Solana プログラム名 (`knowledge_market`) はオンチェーンデプロイ済みのため変更しない。
+> **CLIコマンド `km`**: KnowMint の頭文字と一致するためそのまま維持。
+
+### 29.1 UI・メタデータ (src/)
+
+- [ ] `src/app/layout.tsx` — `<title>`, OGP メタタグ, description cc:TODO
+- [ ] `src/app/(main)/page.tsx` — トップページのサービス名表示 cc:TODO
+- [ ] `src/app/(auth)/login/page.tsx`, `signup/page.tsx` — ページタイトル・表示名 cc:TODO
+- [ ] `src/components/layout/Header.tsx`, `Footer.tsx` — ロゴ・サービス名 cc:TODO
+- [ ] `src/components/dashboard/ApiKeyManager.tsx` — サービス名文字列 cc:TODO
+- [ ] `src/lib/siws/message.ts` — SIWS メッセージ内のサービス名 cc:TODO
+- [ ] `src/lib/evm/config.ts`, `src/lib/i18n/jaToEn.ts` — サービス名文字列 cc:TODO
+
+### 29.2 設定ファイル
+
+- [ ] `package.json` (root) — `"name"` フィールド cc:TODO
+- [ ] `wrangler.toml` — `name="knowledgemarket"` → `name="knowmint"` cc:TODO
+- [ ] `mcp/package.json` — `"name"` + `"description"` cc:TODO
+- [ ] `cli/package.json` — `"name"` + `"description"` cc:TODO
+
+### 29.3 MCP・SDK ソース
+
+- [ ] `mcp/src/index.ts`, `mcp/src/api.ts`, `mcp/src/tools.ts` — サービス名文字列 cc:TODO
+- [ ] `sdk/src/client.ts`, `sdk/src/types.ts` — サービス名文字列 cc:TODO
+- [ ] `sdk/examples/openclaw-integration.ts` — コメント・表示名 cc:TODO
+
+### 29.4 ドキュメント
+
+- [ ] `README.md` — タイトル・説明文 cc:TODO
+- [ ] `mcp/README.md`, `cli/README.md` — サービス名 cc:TODO
+
+### 29.5 Plans.md・CLAUDE.md 更新
+
+- [ ] `Plans.md` 冒頭タイトル・説明文を KnowMint に変更 cc:TODO
+- [ ] `CLAUDE.md` Project Overview のサービス名を更新 cc:TODO
+- [ ] メモリファイル (`MEMORY.md`) のサービス名を更新 cc:TODO
+
+**成果物**: 全 UI・設定・パッケージ名が `KnowMint` / `knowmint` に統一された状態
 
 ---
 

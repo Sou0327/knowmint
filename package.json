@@ -1,5 +1,5 @@
 {
-  "name": "knowledge-market",
+  "name": "knowmint",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -18,7 +18,9 @@
     "test:e2e:devnet": "node scripts/e2e/devnet-purchase-flow.mjs",
     "build:cf": "opennextjs-cloudflare build && node scripts/patch-og-stub.mjs",
     "deploy:cf": "opennextjs-cloudflare deploy",
-    "preview:cf": "opennextjs-cloudflare preview"
+    "preview:cf": "opennextjs-cloudflare preview",
+    "test:e2e:ui": "bash maestro/run-tests.sh",
+    "test:e2e:ui:studio": "maestro -p web studio"
   },
   "dependencies": {
     "@solana/wallet-adapter-base": "^0.9.27",

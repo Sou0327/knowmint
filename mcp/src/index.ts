@@ -8,7 +8,7 @@ async function main(): Promise<void> {
   const config = await loadConfig(); // 失敗時は stderr + exit(1)
 
   const server = new McpServer({
-    name: "knowledge-market",
+    name: "knowmint",
     version: "0.1.0",
   });
 

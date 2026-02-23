@@ -1,8 +1,8 @@
-# Knowledge Market MCP Server
+# KnowMint MCP Server
 
 **Give your AI agent access to human tacit knowledge — the kind that isn't in any training data.**
 
-Connect Claude Code, Cursor, or OpenCode to [Knowledge Market](https://knowledge-market.app) and let your agent autonomously discover, evaluate, and purchase real-world expertise: battle-tested prompts, live datasets, tool definitions, and hard-won domain know-how.
+Connect Claude Code, Cursor, or OpenCode to [KnowMint](https://knowmint.shop) and let your agent autonomously discover, evaluate, and purchase real-world expertise: battle-tested prompts, live datasets, tool definitions, and hard-won domain know-how.
 
 > **Why agents buy knowledge**: Higher success rates. Fewer retries. Access to current, verified information that no LLM was trained on.
 
@@ -15,12 +15,12 @@ Connect Claude Code, Cursor, or OpenCode to [Knowledge Market](https://knowledge
 ```json
 {
   "mcpServers": {
-    "knowledge-market": {
+    "knowmint": {
       "command": "npx",
-      "args": ["--yes", "--package", "@knowledgemarket/mcp-server@0.1.2", "mcp-server"],
+      "args": ["--yes", "--package", "@knowmint/mcp-server@0.1.2", "mcp-server"],
       "env": {
         "KM_API_KEY": "km_xxx",
-        "KM_BASE_URL": "https://knowledge-market.app"
+        "KM_BASE_URL": "https://knowmint.shop"
       }
     }
   }
@@ -32,12 +32,12 @@ Connect Claude Code, Cursor, or OpenCode to [Knowledge Market](https://knowledge
 ```json
 {
   "mcpServers": {
-    "knowledge-market": {
+    "knowmint": {
       "command": "npx",
-      "args": ["--yes", "--package", "@knowledgemarket/mcp-server@0.1.2", "mcp-server"],
+      "args": ["--yes", "--package", "@knowmint/mcp-server@0.1.2", "mcp-server"],
       "env": {
         "KM_API_KEY": "km_xxx",
-        "KM_BASE_URL": "https://knowledge-market.app"
+        "KM_BASE_URL": "https://knowmint.shop"
       }
     }
   }
@@ -50,18 +50,18 @@ Connect Claude Code, Cursor, or OpenCode to [Knowledge Market](https://knowledge
 {
   "mcp": {
     "servers": {
-      "knowledge-market": {
+      "knowmint": {
         "command": "npx",
-        "args": ["--yes", "--package", "@knowledgemarket/mcp-server@0.1.2", "mcp-server"],
-        "env": { "KM_API_KEY": "km_xxx", "KM_BASE_URL": "https://knowledge-market.app" }
+        "args": ["--yes", "--package", "@knowmint/mcp-server@0.1.2", "mcp-server"],
+        "env": { "KM_API_KEY": "km_xxx", "KM_BASE_URL": "https://knowmint.shop" }
       }
     }
   }
 }
 ```
 
-> **`KM_BASE_URL`** defaults to `https://knowledge-market.app` when omitted.
-> Get your API key at [knowledge-market.app/settings/api](https://knowledge-market.app/settings/api) or run `km login`.
+> **`KM_BASE_URL`** defaults to `https://knowmint.shop` when omitted.
+> Get your API key at [knowmint.shop/settings/api](https://knowmint.shop/settings/api) or run `km login`.
 
 ---
 
@@ -125,7 +125,7 @@ cd mcp && npm install && npm run build
 ```json
 {
   "mcpServers": {
-    "knowledge-market": {
+    "knowmint": {
       "command": "node",
       "args": ["/path/to/knowledge_market/mcp/dist/index.js"],
       "env": { "KM_API_KEY": "km_xxx" }
@@ -139,7 +139,7 @@ cd mcp && npm install && npm run build
 ```json
 {
   "mcpServers": {
-    "knowledge-market": {
+    "knowmint": {
       "command": "node",
       "args": ["--experimental-strip-types", "/path/to/knowledge_market/mcp/src/index.ts"],
       "env": { "KM_API_KEY": "km_xxx" }
@@ -152,7 +152,7 @@ cd mcp && npm install && npm run build
 
 ```bash
 # Should print error to stderr and exit (no KM_API_KEY set)
-npx --yes --package @knowledgemarket/mcp-server@0.1.2 mcp-server
+npx --yes --package @knowmint/mcp-server@0.1.2 mcp-server
 
 # With key — should stay running (waiting for MCP messages on stdin)
 KM_API_KEY=km_xxx KM_BASE_URL=http://localhost:3000 npm run dev
@@ -166,4 +166,4 @@ npx @modelcontextprotocol/inspector node --experimental-strip-types mcp/src/inde
 ## Requirements
 
 - Node.js ≥ 22.6.0
-- Knowledge Market API key ([get one here](https://knowledge-market.app/settings/api))
+- KnowMint API key ([get one here](https://knowmint.shop/settings/api))

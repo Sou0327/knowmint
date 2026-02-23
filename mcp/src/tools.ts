@@ -84,7 +84,7 @@ export function registerTools(server: McpServer, config: KmConfig): void {
   // ── km_search ────────────────────────────────────────────────────────────
   server.tool(
     "km_search",
-    "Search knowledge items in the Knowledge Market. Returns a list of items with title, description, price, and metadata.",
+    "Search knowledge items in KnowMint. Returns a list of items with title, description, price, and metadata.",
     {
       query: z.string().min(1).max(200).describe("Search query"),
       content_type: z

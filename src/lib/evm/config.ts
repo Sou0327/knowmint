@@ -6,7 +6,7 @@ export const wagmiConfig = createConfig({
   chains: [base, mainnet],
   connectors: [
     metaMask(),
-    coinbaseWallet({ appName: "Knowledge Market" }),
+    coinbaseWallet({ appName: "KnowMint" }),
   ],
   transports: {
     [base.id]: http(),

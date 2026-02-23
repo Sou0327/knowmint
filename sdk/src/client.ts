@@ -12,7 +12,7 @@ import type {
 } from "./types.js";
 
 /**
- * Knowledge Market API クライアント。
+ * KnowMint API クライアント。
  *
  * @example
  * ```typescript

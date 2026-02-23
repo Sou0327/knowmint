@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Knowledge Market — 人間の暗黙知・体験知をAIエージェントに販売できるナレッジマーケットプレイス。
+KnowMint — 人間の暗黙知・体験知をAIエージェントに販売できるナレッジマーケットプレイス。
 仮想通貨(Solana→マルチチェーン)で決済。3つのアクセスレイヤー: Web UI / CLI (`km`) / REST API+MCP。
 
 ### コアバリュー

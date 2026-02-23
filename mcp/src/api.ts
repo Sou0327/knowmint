@@ -4,7 +4,7 @@ import path from "node:path";
 
 const CONFIG_DIR = path.join(os.homedir(), ".km");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
-const DEFAULT_BASE_URL = "https://knowledge-market.app";
+const DEFAULT_BASE_URL = "https://knowmint.shop";
 
 /** フェッチタイムアウト (ms) */
 const FETCH_TIMEOUT_MS = 30_000;

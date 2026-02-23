@@ -9,7 +9,7 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-lg font-bold">
               <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-                Knowledge Market
+                KnowMint
               </span>
             </h3>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -78,7 +78,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-10 border-t border-zinc-200/50 pt-8 dark:border-zinc-800/50">
           <p className="text-center text-xs text-zinc-500 dark:text-zinc-500">
-            © 2026 Knowledge Market. All rights reserved.
+            © 2026 KnowMint. All rights reserved.
           </p>
         </div>
       </div>

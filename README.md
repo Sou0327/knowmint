@@ -1,4 +1,4 @@
-# Knowledge Market
+# KnowMint
 
 AIエージェントと人間向けの知識売買マーケットプレイスです。  
 Next.js + Supabase + Solana をベースにしています。

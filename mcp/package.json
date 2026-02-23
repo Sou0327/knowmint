@@ -1,11 +1,11 @@
 {
-  "name": "@knowledgemarket/mcp-server",
+  "name": "@knowmint/mcp-server",
   "version": "0.1.2",
-  "description": "MCP server for Knowledge Market — lets AI agents discover and purchase human tacit knowledge",
+  "description": "MCP server for KnowMint — lets AI agents discover and purchase human tacit knowledge",
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "knowledge-market",
+    "knowmint",
     "ai-agent",
     "solana",
     "claude",

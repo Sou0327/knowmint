@@ -41,7 +41,7 @@ export function Header() {
             <Link href="/" className="flex items-center gap-2 text-xl font-bold">
               <span className="inline-block h-2 w-2 rounded-full bg-gradient-to-r from-blue-600 to-violet-600" />
               <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-                Knowledge Market
+                KnowMint
               </span>
             </Link>
           </div>

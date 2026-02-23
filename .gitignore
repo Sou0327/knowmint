@@ -79,3 +79,6 @@ supabase/.temp/
 
 # Solana test ledger
 test-ledger/
+
+# Local planning files
+plans/

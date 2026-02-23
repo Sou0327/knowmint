@@ -34,6 +34,7 @@ interface FormData {
     applicable_to: string[];
     source_type: string;
   };
+  seller_disclosure: string;
 }
 
 const EMPTY_REQUEST_CONTENT: RequestContentInput = {
@@ -61,6 +62,7 @@ const initialForm: FormData = {
     applicable_to: [],
     source_type: "",
   },
+  seller_disclosure: "",
 };
 
 export default function EditListingPage() {
@@ -103,7 +105,7 @@ export default function EditListingPage() {
         const { data: item, error: itemError } = await supabase
           .from("knowledge_items")
           .select(
-            "id, seller_id, listing_type, title, description, content_type, category_id, tags, preview_content, price_sol, price_usdc, metadata"
+            "id, seller_id, listing_type, title, description, content_type, category_id, tags, preview_content, price_sol, price_usdc, metadata, seller_disclosure"
           )
           .eq("id", listingId)
           .single();
@@ -156,6 +158,7 @@ export default function EditListingPage() {
               ? String(item.price_usdc)
               : "",
           metadata: existingMetadata,
+          seller_disclosure: item.seller_disclosure || "",
         });
       } catch (error) {
         if (!active) return;
@@ -255,6 +258,7 @@ export default function EditListingPage() {
         category_id: form.category_id,
         tags: form.tags,
         metadata: Object.keys(metadataPayload).length > 0 ? metadataPayload : {},
+        seller_disclosure: form.seller_disclosure,
       };
 
       if (form.listing_type === "request") {

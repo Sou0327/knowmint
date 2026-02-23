@@ -21,6 +21,7 @@ interface BasicInfoData {
   category_id: string;
   tags: string[];
   metadata: KnowledgeMetadataForm;
+  seller_disclosure?: string;
 }
 
 interface Props {
@@ -211,6 +212,27 @@ export default function BasicInfoStep({
                   </label>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="seller-disclosure"
+                className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
+                販売者情報（任意）
+              </label>
+              <textarea
+                id="seller-disclosure"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                rows={2}
+                maxLength={500}
+                value={data.seller_disclosure ?? ""}
+                onChange={(e) => onChange({ seller_disclosure: e.target.value })}
+                placeholder="個人・法人名、連絡先等（任意、特商法上の任意開示）"
+              />
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                最大500文字。特定商取引法に基づき出品者情報を任意で開示できます。
+              </p>
             </div>
           </div>
         )}

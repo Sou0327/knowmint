@@ -31,7 +31,7 @@ export function PurchaseSection({
     chain: "solana" | "base" | "ethereum",
     token: Token
   ): Promise<void> => {
-    const result = await recordPurchase(knowledgeId, txHash, chain, token);
+    const result = await recordPurchase(knowledgeId, txHash, chain, token, true);
     if (!result.success) {
       throw new Error(result.error ?? "購入記録に失敗しました");
     }

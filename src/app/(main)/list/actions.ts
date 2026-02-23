@@ -55,6 +55,7 @@ const listingSchemaBase = z.object({
   category_id: z.string().uuid().or(z.literal("")).default(""),
   tags: z.array(z.string().max(50)).max(10).default([]),
   metadata: metadataSchema.nullable().default(null),
+  seller_disclosure: z.string().trim().max(500).optional(),
 });
 
 const listingSchema = listingSchemaBase.superRefine((data, ctx) => {
@@ -87,13 +88,14 @@ export async function createListing(input: {
     applicable_to?: string[];
     source_type?: string;
   } | null;
+  seller_disclosure?: string;
 }) {
   const parsed = listingSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message || "入力が不正です", id: null };
   }
 
-  const { full_content, request_content, metadata, ...itemData } = parsed.data;
+  const { full_content, request_content, metadata, seller_disclosure, ...itemData } = parsed.data;
   const user = await requireAuth();
   const supabase = await createClient();
   let previewContent = itemData.preview_content;
@@ -133,6 +135,7 @@ export async function createListing(input: {
       tags: itemData.tags,
       status: "draft" as KnowledgeStatus,
       metadata: sanitizedMetadata,
+      seller_disclosure: seller_disclosure?.trim() || null,
     })
     .select("id")
     .single();
@@ -168,7 +171,7 @@ export async function updateListing(id: string, input: Record<string, unknown>) 
     return { error: parsed.error.issues[0]?.message || "入力が不正です" };
   }
 
-  const { full_content, request_content, metadata, ...itemData } = parsed.data;
+  const { full_content, request_content, metadata, seller_disclosure: rawDisclosure, ...itemData } = parsed.data;
   const user = await requireAuth();
   const supabase = await createClient();
   let fullContent = full_content;
@@ -180,7 +183,12 @@ export async function updateListing(id: string, input: Record<string, unknown>) 
   }
 
   // metadata サニタイズ
-  let updatePayload: Record<string, unknown> = { ...itemData };
+  let updatePayload: Record<string, unknown> = {
+    ...itemData,
+    ...(rawDisclosure !== undefined
+      ? { seller_disclosure: rawDisclosure?.trim() || null }
+      : {}),
+  };
   if (metadata !== undefined) {
     const sanitizedMetadata: Record<string, unknown> = {};
     if (metadata) {

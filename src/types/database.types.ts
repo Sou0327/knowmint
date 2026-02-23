@@ -64,6 +64,7 @@ export interface KnowledgeItem {
   average_rating: number | null;
   metadata: KnowledgeItemMetadata | null;
   usefulness_score: number | null;
+  seller_disclosure: string | null;
   search_vector: unknown;
   created_at: string;
   updated_at: string;

@@ -33,6 +33,7 @@ interface FormData {
     applicable_to: string[];
     source_type: string;
   };
+  seller_disclosure: string;
 }
 
 const initialForm: FormData = {
@@ -58,6 +59,7 @@ const initialForm: FormData = {
     applicable_to: [],
     source_type: "",
   },
+  seller_disclosure: "",
 };
 
 export default function ListPage() {
@@ -165,6 +167,7 @@ export default function ListPage() {
         category_id: form.category_id,
         tags: form.tags,
         metadata: Object.keys(metadataPayload).length > 0 ? metadataPayload : null,
+        ...(form.seller_disclosure.trim() ? { seller_disclosure: form.seller_disclosure.trim() } : {}),
       };
       const { error, id } = await createListing(payload);
 

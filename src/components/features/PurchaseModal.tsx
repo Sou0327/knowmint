@@ -42,10 +42,15 @@ export default function PurchaseModal({
   );
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
 
   const amount = getPaymentAmount(priceSol, priceUsdc, selectedToken);
 
   const handlePurchase = async () => {
+    if (!agreed) {
+      setError("利用規約に同意してください");
+      return;
+    }
     if (!amount || !sellerWallet) {
       setError("価格情報または出品者のウォレットアドレスが不足しています");
       return;
@@ -132,7 +137,7 @@ export default function PurchaseModal({
               <button
                 type="button"
                 onClick={() => setSelectedToken("SOL")}
-                className={`flex-1 rounded-lg border p-3 text-center transition-colors ${
+                className={`flex-1 rounded-lg border p-3 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   selectedToken === "SOL"
                     ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
                     : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700"
@@ -147,7 +152,7 @@ export default function PurchaseModal({
               <button
                 type="button"
                 onClick={() => setSelectedToken("USDC")}
-                className={`flex-1 rounded-lg border p-3 text-center transition-colors ${
+                className={`flex-1 rounded-lg border p-3 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   selectedToken === "USDC"
                     ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
                     : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700"
@@ -173,6 +178,32 @@ export default function PurchaseModal({
           </div>
         )}
 
+        {/* 利用規約同意 */}
+        <label
+          htmlFor="terms-agree"
+          className="flex cursor-pointer items-start gap-2.5 text-sm text-zinc-600 dark:text-zinc-400"
+        >
+          <input
+            id="terms-agree"
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+          />
+          <span>
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="利用規約（新しいタブで開きます）"
+              className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              利用規約
+            </a>
+            に同意します
+          </span>
+        </label>
+
         <div className="flex gap-3 pt-2">
           <Button variant="outline" onClick={onClose} className="flex-1">
             キャンセル
@@ -181,7 +212,7 @@ export default function PurchaseModal({
             variant="primary"
             onClick={handlePurchase}
             loading={processing}
-            disabled={selectedChain !== "solana"}
+            disabled={selectedChain !== "solana" || !agreed}
             className="flex-1"
           >
             {connected

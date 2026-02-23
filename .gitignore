@@ -75,3 +75,7 @@ maestro/
 
 # Supabase CLI temporary files
 supabase/.temp/
+.env.e2e.tmp
+
+# Solana test ledger
+test-ledger/

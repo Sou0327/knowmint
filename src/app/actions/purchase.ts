@@ -19,6 +19,9 @@ const schema = z
     txHash: z.string().min(1).max(256),
     chain: z.enum(["solana", "base", "ethereum"]),
     token: z.enum(["SOL", "USDC", "ETH"]),
+    termsAgreed: z.literal(true, {
+      errorMap: () => ({ message: "利用規約への同意が必要です" }),
+    }),
   })
   .refine(
     (d) =>
@@ -32,9 +35,10 @@ export async function recordPurchase(
   knowledgeId: string,
   txHash: string,
   chain: "solana" | "base" | "ethereum",
-  token: "SOL" | "USDC" | "ETH"
+  token: "SOL" | "USDC" | "ETH",
+  termsAgreed: true
 ): Promise<{ success: boolean; error?: string }> {
-  const parsed = schema.safeParse({ knowledgeId, txHash, chain, token });
+  const parsed = schema.safeParse({ knowledgeId, txHash, chain, token, termsAgreed });
   if (!parsed.success) return { success: false, error: "Invalid input" };
 
   const supabase = await createClient();

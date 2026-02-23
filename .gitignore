@@ -69,3 +69,6 @@ cli/node_modules/
 # Cloudflare / OpenNext build output
 .open-next/
 .wrangler/
+
+# Maestro E2E tests
+maestro/

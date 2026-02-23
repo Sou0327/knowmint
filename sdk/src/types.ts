@@ -1,6 +1,6 @@
 /** SDK クライアント設定 */
 export interface KmClientOptions {
-  /** Knowledge Market API キー (km_<64 hex>) */
+  /** KnowMint API キー (km_<64 hex>) */
   apiKey: string;
   /** API ベース URL (デフォルト: http://127.0.0.1:3000) */
   baseUrl?: string;

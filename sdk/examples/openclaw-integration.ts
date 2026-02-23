@@ -1,7 +1,7 @@
 import { KnowledgeMarketClient, KmApiError } from "../src/index.js";
 import type { KnowledgeItem } from "../src/index.js";
 
-// OpenClaw エージェントが Knowledge Market を活用するサンプル
+// OpenClaw エージェントが KnowMint を活用するサンプル
 // 実際の OpenClaw Tool 定義に統合する想定
 
 const client = new KnowledgeMarketClient({
@@ -83,7 +83,7 @@ async function acquireKnowledge(
 export const knowledgeMarketTools = [
   {
     name: "km_search",
-    description: "Knowledge Market でナレッジを検索する。AIが自力で獲得できない体験知・暗黙知を人間の売り手から購入できる。",
+    description: "KnowMint でナレッジを検索する。AIが自力で獲得できない体験知・暗黙知を人間の売り手から購入できる。",
     parameters: {
       type: "object",
       properties: {

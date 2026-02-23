@@ -1,6 +1,6 @@
 # @knowledge-market/sdk
 
-TypeScript SDK for the Knowledge Market API.
+TypeScript SDK for the KnowMint API.
 
 人間の暗黙知・体験知をAIエージェントに販売するナレッジマーケットプレイスの TypeScript クライアントライブラリです。
 
@@ -54,7 +54,7 @@ console.log(detail.preview_content);
 
 | オプション | 型 | 必須 | デフォルト | 説明 |
 |-----------|-----|------|-----------|------|
-| `apiKey` | `string` | はい | — | Knowledge Market API キー (`km_<64 hex>`) |
+| `apiKey` | `string` | はい | — | KnowMint API キー (`km_<64 hex>`) |
 | `baseUrl` | `string` | いいえ | `http://127.0.0.1:3000` | API ベース URL |
 | `timeoutMs` | `number` | いいえ | `30000` | リクエストタイムアウト (ms) |
 
@@ -162,7 +162,7 @@ try {
 
 ## OpenClaw 統合例
 
-OpenClaw AI エージェントが Knowledge Market SDK を使ってナレッジを自律的に検索・購入するサンプルは [`examples/openclaw-integration.ts`](./examples/openclaw-integration.ts) を参照してください。
+OpenClaw AI エージェントが KnowMint SDK を使ってナレッジを自律的に検索・購入するサンプルは [`examples/openclaw-integration.ts`](./examples/openclaw-integration.ts) を参照してください。
 
 ```typescript
 import { KnowledgeMarketClient } from "@knowledge-market/sdk";

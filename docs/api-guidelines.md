@@ -1,4 +1,4 @@
-# Knowledge Market API Guidelines
+# KnowMint API Guidelines
 
 ## Authentication
 - Default: `Authorization: Bearer km_...`

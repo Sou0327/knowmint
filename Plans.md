@@ -47,7 +47,7 @@ Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード
 
 ## Phase 24: Coinbase AgentKit Action Provider [P1]
 
-> AgentKit エージェントが Knowledge Market を「ウォレット付きツール」として使えるプラグイン。
+> AgentKit エージェントが KnowMint を「ウォレット付きツール」として使えるプラグイン。
 > `ActionProvider` クラス + `@CreateAction` デコレーター パターン。
 
 ### 24.1 パッケージ骨格
@@ -166,9 +166,9 @@ EVM が有効化されるまでこの状態を維持 — **変更不要**。
 
 ---
 
-## Phase 29: アプリリネーム — Knowledge Market → KnowMint [P1]
+## Phase 29: アプリリネーム — KnowMint → KnowMint [P1]
 
-> ブランド変更: `Knowledge Market` / `knowledge-market` / `knowledgemarket` / `ナレッジマーケット`
+> ブランド変更: `KnowMint` / `knowledge-market` / `knowledgemarket` / `ナレッジマーケット`
 > → `KnowMint` / `knowmint` (表示名・パッケージ名・設定値)
 >
 > **スコープ外**: Solana プログラム名 (`knowledge_market`) はオンチェーンデプロイ済みのため変更しない。

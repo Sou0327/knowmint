@@ -1,6 +1,6 @@
 # Phase 6: スマートコントラクト決済 デプロイ手順書
 
-> 対象: Knowledge Market PaymentSplitter プログラム (Anchor 0.30.1)
+> 対象: KnowMint PaymentSplitter プログラム (Anchor 0.30.1)
 > ネットワーク: devnet → mainnet-beta
 > 所要時間: 約30分（devnet）
 

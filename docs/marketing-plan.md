@@ -1,4 +1,4 @@
-# Knowledge Market — Marketing Plan (WIP → v1)
+# KnowMint — Marketing Plan (WIP → v1)
 
 作成日: 2026-02-21
 ステータス: 調査を反映して肉付け中（最新版）
@@ -49,7 +49,7 @@
 
 ### 差別化軸
 - 既存は「人間が探して買う」
-- Knowledge Marketは「**AIエージェントが自律購入して即実行**」
+- KnowMintは「**AIエージェントが自律購入して即実行**」
 
 **参考ソース**
 - PromptBase（マーケット型、単価帯）: https://promptbase.com/

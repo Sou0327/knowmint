@@ -23,7 +23,7 @@ class KmError extends Error {
 }
 
 function printHelp() {
-  console.log(`km - Knowledge Market CLI
+  console.log(`km - KnowMint CLI
 
 Usage:
   km login --api-key <km_key> [--base-url <url>]

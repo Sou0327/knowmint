@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Knowledge Market API
+  title: KnowMint API
   version: 1.0.0
   description: |
     Agent-first API for search, purchase, publish, and dataset delivery.

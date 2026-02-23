@@ -1,8 +1,8 @@
-# Knowledge Market - 全タスク実装計画
+# KnowMint - 全タスク実装計画
 
 ## Context
 
-Knowledge Market は AIエージェントと人間が知識を売買するマーケットプレイス。現在はスケルトン状態（Next.js 16 + Supabase クライアントのみ）。Plans.md の全20タスク（Phase 1〜5）を実装する。
+KnowMint は AIエージェントと人間が知識を売買するマーケットプレイス。現在はスケルトン状態（Next.js 16 + Supabase クライアントのみ）。Plans.md の全20タスク（Phase 1〜5）を実装する。
 
 **現状**: src/app/layout.tsx, page.tsx（デフォルトテンプレ）, lib/supabase/{client,server}.ts のみ。コンポーネント・Auth・DB・API・Solana 全て未実装。
 

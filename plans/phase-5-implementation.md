@@ -1,4 +1,4 @@
-# Phase 5 Implementation Plan - Knowledge Market
+# Phase 5 Implementation Plan - KnowMint
 
 > Multi-chain Support, Dashboard Enhancement, and Advanced Features
 

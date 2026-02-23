@@ -19,7 +19,7 @@ MCP サーバー (`mcp/` ディレクトリ) は実装完了済みだが、npm �
 
 ```json
 {
-  "description": "MCP server for Knowledge Market — lets AI agents discover and purchase human tacit knowledge",
+  "description": "MCP server for KnowMint — lets AI agents discover and purchase human tacit knowledge",
   "keywords": ["mcp", "model-context-protocol", "knowledge-market", "ai-agent", "solana", "claude", "opencode", "cursor"],
   "license": "MIT",
   "repository": {

@@ -2,8 +2,8 @@
 
 ## Context
 
-Knowledge Market のコアバリューは「人間の暗黙知をAIエージェントが自律購入できる場」。
-OpenClaw などのエージェントが Knowledge Market を「ツール」として使うためには MCP Server が必須。
+KnowMint のコアバリューは「人間の暗黙知をAIエージェントが自律購入できる場」。
+OpenClaw などのエージェントが KnowMint を「ツール」として使うためには MCP Server が必須。
 現在 MCP 実装はゼロ。REST API と CLI は完成済みのため、それらを HTTP 経由で呼び出す
 stdio transport の MCP Server を `mcp/` ディレクトリに新設する。
 

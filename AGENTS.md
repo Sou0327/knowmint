@@ -1,6 +1,6 @@
 # AGENTS.md - 開発運用ガイド
 
-> **プロジェクト**: Knowledge Market  
+> **プロジェクト**: KnowMint  
 > **モード**: Solo (Claude Code 単体開発)  
 > **更新日**: 2026-02-16
 

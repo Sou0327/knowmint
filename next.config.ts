@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
   // @vercel/og (resvg.wasm + yoga.wasm) を空スタブに差し替えてバンドルサイズを削減
   // Cloudflare Workers free 上限 3 MiB (gzip) に収めるため
@@ -41,7 +43,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.solana.com https://api.mainnet-beta.solana.com",
+              `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.solana.com https://api.mainnet-beta.solana.com${isDev ? " http://127.0.0.1:54321 ws://127.0.0.1:54321" : ""}`,
               "font-src 'self'",
               "frame-ancestors 'none'",
             ].join("; "),

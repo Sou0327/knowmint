@@ -9,33 +9,55 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード実装分), 23, 27, 28 すべて `cc:DONE`
+Phase 1-14, 15 (全タスク完了), 16, 20, 21, 22, 23, 27, 28, 29 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。
 
----
-
-## Phase 15 残タスク + Phase 12: mainnet 移行 [P0]
-
-> Phase 15 残り: 要外部操作 (Supabase staging 作成・RLS 統合テスト・devnet 実送金 E2E・Webhook 疎通)
-> Phase 12 (15 完了後): `.env.local.example` mainnet 更新 / Helius RPC / `anchor deploy --cluster mainnet-beta` / Vercel 環境変数
+**Maestro E2E テスト**: 18フロー整備済み・通過確認済み (21/22 ページカバー, 95%) `cc:DONE`
+- フロー 01-14: 全通過済み (KnowMint リブランド対応済み)
+- フロー 15-18: `/dashboard/rankings`, `/library`, `/list/[id]/edit`, `/category/[slug]` 追加・通過確認済み
+- 未カバー: `/library/[id]` のみ (実購入必要のためスキップ継続)
 
 ---
 
-## Phase 16: 運用信頼性強化 [P1] — 外部操作のみ残
+## Phase 15.6: CLI E2E テスト [P1]
 
-> コード実装はすべて完了済み。Vercel へのデプロイと環境変数設定のみ残る。
+> Phase 15 で完了した REST API E2E に続き、`km` CLI の購入フローを検証する。
+> mock server テスト (既存) は通過済み。実 Solana 送金を伴う CLI フローが未検証。
+>
+> **スマートコントラクト**: Phase 6 で devnet デプロイ済み。
+> Program ID: `B4Jh6N5ftNZimEu3aWR7JiYu4yhPWN5mpds68E6gWRMb`
+> Fee Vault: `GdK2gyBLaoB9PxTLfUesaUn1qsNaKjaux9PzfHKt4ihc`
 
-### 実装済み (コード確認済み)
+### 15.6.1 既存テストの実行確認
 
-- [x] `src/app/api/cron/cleanup-pending-tx/route.ts` — pending TX を 30分後に failed へ更新 (タイミングセーフ認証付き) cc:DONE
-- [x] `vercel.json` — cron スケジュール設定済み (`*/30 * * * *`) cc:DONE
-- [x] Upstash Redis レート制限 (インメモリフォールバック付き) cc:DONE
+- [ ] `npm run test:e2e:cli-flow` — mock server で `login → search → install → publish → deploy` が PASS することを確認
+- [ ] `npm run test:e2e:fake-tx` — 偽トランザクション拒否が PASS することを確認
+- [ ] `npm run test:e2e:x402-flow` — x402 フローが PASS することを確認
 
-### 残り: Vercel 環境変数設定 (外部操作)
+### 15.6.2a CLI 実購入フロー — ローカルバリデータ (スマコンなし)
 
-- [ ] Vercel に `CRON_SECRET` を設定 → `/api/cron/cleanup-pending-tx` 認証に必須 (本番では未設定だと 401)
-- [ ] Vercel に `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` を設定 → 現在インメモリフォールバック動作中
-- [ ] Sentry DSN 設定 → Phase 17 スコープ
+> `NEXT_PUBLIC_KM_PROGRAM_ID=""` で起動。P2P 直接送金 → tx-hash 検証のシンプルな確認。
+
+- [ ] `supabase start` + dev server 起動 (`NEXT_PUBLIC_KM_PROGRAM_ID="" NEXT_PUBLIC_SOLANA_RPC_URL=http://127.0.0.1:8899 NEXT_PUBLIC_SOLANA_NETWORK=devnet`)
+- [ ] `solana-test-validator --reset --quiet &` で起動、`solana airdrop 10 <buyer> --url http://127.0.0.1:8899`
+- [ ] `solana transfer <seller_pubkey> 0.01 --keypair devnet-buyer-keypair.json --url http://127.0.0.1:8899` → tx-hash 取得
+- [ ] `km login --api-key <buyer_api_key> --base-url http://localhost:3000`
+- [ ] `km install <knowledge_id> --tx-hash <hash> --dir /tmp/km-test` → コンテンツ保存を確認
+
+### 15.6.2b CLI 実購入フロー — 本物 devnet (スマコンあり・5%収益発生)
+
+> `NEXT_PUBLIC_KM_PROGRAM_ID=B4Jh6N5ftNZimEu3aWR7JiYu4yhPWN5mpds68E6gWRMb` で起動。
+> API 側がスマートコントラクト経由の送金かどうかを検証 → 通過で Fee Vault に 5% 入金。
+
+- [ ] dev server を本物 devnet env (`NEXT_PUBLIC_SOLANA_NETWORK=devnet`, `NEXT_PUBLIC_SOLANA_RPC_URL=<Helius RPC>`, `NEXT_PUBLIC_KM_PROGRAM_ID=B4Jh6N5ftNZimEu3aWR7JiYu4yhPWN5mpds68E6gWRMb`) で起動
+- [ ] Phantom / solana CLI でスマコン経由の送金を行い tx-hash 取得
+- [ ] `km install <knowledge_id> --tx-hash <hash> --dir /tmp/km-test` → コンテンツ保存を確認
+- [ ] Fee Vault (`GdK2gyBLaoB9PxTLfUesaUn1qsNaKjaux9PzfHKt4ihc`) に 5% 着金を Solana Explorer で確認
+
+### 15.6.3 (任意) CLI 購入フロー スクリプト化
+
+- [ ] `scripts/e2e/cli-purchase-flow.mjs` — 15.6.2a フローを自動化
+- [ ] `package.json` に `"test:e2e:cli-purchase": "node scripts/e2e/cli-purchase-flow.mjs"` を追加
 
 ---
 
@@ -143,72 +165,60 @@ Phase 1-14, 20, 21, 22, 15 (15.5・15.3前準備・15.1前準備), 16 (コード
 
 ---
 
-## 設計メモ・要確認事項
+## 設計メモ
 
-> 軽微または将来対応可。タスク化は不要だが記録しておく。
-
-### ④ dataset カラム Migration 確認
-
-`knowledge_item_contents` または `knowledge_items` テーブルに `storage_path`, `checksum_sha256` カラムが存在するか確認が必要。
-初期スキーマ (`supabase/migrations/` の最初期ファイル) に含まれているかもしれない。
-**対応**: Phase 15 残タスク (staging 統合テスト) 実施時に合わせて確認。問題があれば Migration 追加。
-
-### ⑤ EVM 購入は意図的未対応 (設計上の制限)
-
-`purchase/route.ts` — `chain !== "solana"` は `BAD_REQUEST` を返す。
-コメントに `"this phase"` と記載あり。**Solana 優先の設計判断**。
-EVM 対応は将来フェーズ (Phase 12 拡張またはマルチチェーン Phase) にて対応予定。
-
-### ⑥ ChainSelector の EVM "Coming Soon" 表示
-
-UI レベルで EVM を無効化。⑤ の API 制限と整合している。
-EVM が有効化されるまでこの状態を維持 — **変更不要**。
+- **④ dataset Migration**: `storage_path`, `checksum_sha256` カラム → Phase 15 staging テスト時に確認
+- **⑤⑥ EVM**: 意図的未対応 (Solana 優先)。`chain !== "solana"` → BAD_REQUEST、ChainSelector も Coming Soon。将来フェーズで対応。
+- **Phase 29** (KnowMint リブランド): cc:DONE。詳細: `plans/archive-phase16-29.md`
 
 ---
 
-## Phase 29: アプリリネーム — KnowMint → KnowMint [P1]
+## Phase 30: 特商法・消費者保護法対応 [P1 — 法的必須]
 
-> ブランド変更: `KnowMint` / `knowledge-market` / `knowledgemarket` / `ナレッジマーケット`
-> → `KnowMint` / `knowmint` (表示名・パッケージ名・設定値)
->
-> **スコープ外**: Solana プログラム名 (`knowledge_market`) はオンチェーンデプロイ済みのため変更しない。
-> **CLIコマンド `km`**: KnowMint の頭文字と一致するためそのまま維持。
+> マーケットプレイスとして法的に必要な表示義務・消費者保護体制を整備する。
+> 暗号資産規制とは独立して、デジタルコンテンツ販売プラットフォームとして確実に対応が必要。
+> 詳細調査: [`docs/legal-risk-analysis.md`](docs/legal-risk-analysis.md)
 
-### 29.1 UI・メタデータ (src/)
+### 30.1 利用規約・プライバシーポリシー整備
 
-- [ ] `src/app/layout.tsx` — `<title>`, OGP メタタグ, description cc:TODO
-- [ ] `src/app/(main)/page.tsx` — トップページのサービス名表示 cc:TODO
-- [ ] `src/app/(auth)/login/page.tsx`, `signup/page.tsx` — ページタイトル・表示名 cc:TODO
-- [ ] `src/components/layout/Header.tsx`, `Footer.tsx` — ロゴ・サービス名 cc:TODO
-- [ ] `src/components/dashboard/ApiKeyManager.tsx` — サービス名文字列 cc:TODO
-- [ ] `src/lib/siws/message.ts` — SIWS メッセージ内のサービス名 cc:TODO
-- [ ] `src/lib/evm/config.ts`, `src/lib/i18n/jaToEn.ts` — サービス名文字列 cc:TODO
+- [ ] `src/app/(main)/terms/page.tsx` — 利用規約ページ作成
+  - サービス概要、禁止事項、免責事項、準拠法・管轄裁判所
+  - デジタルコンテンツの返金ポリシー（原則返金不可 + 例外条件）
+  - 暗号資産決済に関する免責（価格変動リスク、送金ミスの自己責任）
+  - ノンカストディアルの説明（運営は資産を管理しない旨）
+- [ ] `src/app/(main)/privacy/page.tsx` — プライバシーポリシーページ作成
+  - 収集データ（ウォレットアドレス、APIキーハッシュ、取引履歴等）
+  - Cookie / アナリティクスの使用
+  - 第三者提供の有無
+- [ ] フッターに利用規約・プライバシーポリシーへのリンク追加
 
-### 29.2 設定ファイル
+### 30.2 特定商取引法に基づく表示
 
-- [ ] `package.json` (root) — `"name"` フィールド cc:TODO
-- [ ] `wrangler.toml` — `name="knowledgemarket"` → `name="knowmint"` cc:TODO
-- [ ] `mcp/package.json` — `"name"` + `"description"` cc:TODO
-- [ ] `cli/package.json` — `"name"` + `"description"` cc:TODO
+- [ ] `src/app/(main)/legal/page.tsx` — 特商法に基づく表示ページ
+  - 運営者情報（名称、所在地、連絡先）
+  - 販売価格の表示方法（暗号資産建て）
+  - 引渡時期（即時ダウンロード）
+  - 返品・返金について
+- [ ] 出品者への表示義務ガイドライン
+  - 出品フォームに販売者情報の入力欄追加（または省略条件の明示）
+  - `knowledge_items` テーブルに `seller_disclosure` カラム追加を検討
 
-### 29.3 MCP・SDK ソース
+### 30.3 取引DPF消費者保護法対応
 
-- [ ] `mcp/src/index.ts`, `mcp/src/api.ts`, `mcp/src/tools.ts` — サービス名文字列 cc:TODO
-- [ ] `sdk/src/client.ts`, `sdk/src/types.ts` — サービス名文字列 cc:TODO
-- [ ] `sdk/examples/openclaw-integration.ts` — コメント・表示名 cc:TODO
+- [ ] 苦情処理体制の整備
+  - お問い合わせフォーム or メールアドレスの設置
+  - `src/app/(main)/contact/page.tsx` — お問い合わせページ
+- [ ] 出品者の身元確認努力義務への対応
+  - 出品時にウォレット署名認証（SIWS）を必須化（Phase 21 で実装済み）
+  - 出品者プロフィールに最低限の情報表示
+- [ ] 販売者情報の開示請求対応フローの策定
+  - 消費者からの開示請求があった場合の運営手順をドキュメント化
 
-### 29.4 ドキュメント
+### 30.4 フッター・ナビゲーション更新
 
-- [ ] `README.md` — タイトル・説明文 cc:TODO
-- [ ] `mcp/README.md`, `cli/README.md` — サービス名 cc:TODO
-
-### 29.5 Plans.md・CLAUDE.md 更新
-
-- [ ] `Plans.md` 冒頭タイトル・説明文を KnowMint に変更 cc:TODO
-- [ ] `CLAUDE.md` Project Overview のサービス名を更新 cc:TODO
-- [ ] メモリファイル (`MEMORY.md`) のサービス名を更新 cc:TODO
-
-**成果物**: 全 UI・設定・パッケージ名が `KnowMint` / `knowmint` に統一された状態
+- [ ] フッターコンポーネントにリーガルリンク群を追加
+  - 利用規約 / プライバシーポリシー / 特商法表示 / お問い合わせ
+- [ ] 購入フロー内に利用規約同意チェックボックス追加
 
 ---
 
@@ -224,4 +234,4 @@ EVM が有効化されるまでこの状態を維持 — **変更不要**。
 | Backend/DB | Supabase (PostgreSQL, Auth, Storage, RLS) |
 | 決済 | Anchor 0.32.1 (Solana Program) 95/5 自動分配 — devnet デプロイ済み |
 | MCP | `@modelcontextprotocol/sdk` (TypeScript) |
-| デプロイ | Vercel |
+| デプロイ | Cloudflare Workers (opennextjs-cloudflare) |

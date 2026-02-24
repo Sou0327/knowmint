@@ -16,6 +16,7 @@
     "test:e2e:x402-flow": "node scripts/e2e/x402-flow-check.mjs",
     "test:staging": "TS_NODE_PROJECT=tsconfig.test.json TS_CONFIG_PATHS=true ts-mocha 'tests/staging/**/*.test.ts' --timeout 30000",
     "test:e2e:devnet": "node scripts/e2e/devnet-purchase-flow.mjs",
+    "test:e2e:cli-purchase": "node scripts/e2e/cli-purchase-flow.mjs",
     "build:cf": "opennextjs-cloudflare build && node scripts/patch-og-stub.mjs",
     "deploy:cf": "opennextjs-cloudflare deploy",
     "preview:cf": "opennextjs-cloudflare preview",

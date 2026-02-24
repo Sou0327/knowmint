@@ -9,55 +9,13 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15 (全タスク完了), 16, 20, 21, 22, 23, 27, 28, 29, 30 すべて `cc:DONE`
+Phase 1-14, 15 (全タスク完了), 15.6, 16, 20, 21, 22, 23, 27, 28, 29, 30, 31 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。
 
 **Maestro E2E テスト**: 18フロー整備済み・通過確認済み (21/22 ページカバー, 95%) `cc:DONE`
 - フロー 01-14: 全通過済み (KnowMint リブランド対応済み)
 - フロー 15-18: `/dashboard/rankings`, `/library`, `/list/[id]/edit`, `/category/[slug]` 追加・通過確認済み
 - 未カバー: `/library/[id]` のみ (実購入必要のためスキップ継続)
-
----
-
-## Phase 15.6: CLI E2E テスト [P1]
-
-> Phase 15 で完了した REST API E2E に続き、`km` CLI の購入フローを検証する。
-> mock server テスト (既存) は通過済み。実 Solana 送金を伴う CLI フローが未検証。
->
-> **スマートコントラクト**: Phase 6 で devnet デプロイ済み。
-> Program ID: `B4Jh6N5ftNZimEu3aWR7JiYu4yhPWN5mpds68E6gWRMb`
-> Fee Vault: `GdK2gyBLaoB9PxTLfUesaUn1qsNaKjaux9PzfHKt4ihc`
-
-### 15.6.1 既存テストの実行確認
-
-- [ ] `npm run test:e2e:cli-flow` — mock server で `login → search → install → publish → deploy` が PASS することを確認
-- [ ] `npm run test:e2e:fake-tx` — 偽トランザクション拒否が PASS することを確認
-- [ ] `npm run test:e2e:x402-flow` — x402 フローが PASS することを確認
-
-### 15.6.2a CLI 実購入フロー — ローカルバリデータ (スマコンなし)
-
-> `NEXT_PUBLIC_KM_PROGRAM_ID=""` で起動。P2P 直接送金 → tx-hash 検証のシンプルな確認。
-
-- [ ] `supabase start` + dev server 起動 (`NEXT_PUBLIC_KM_PROGRAM_ID="" NEXT_PUBLIC_SOLANA_RPC_URL=http://127.0.0.1:8899 NEXT_PUBLIC_SOLANA_NETWORK=devnet`)
-- [ ] `solana-test-validator --reset --quiet &` で起動、`solana airdrop 10 <buyer> --url http://127.0.0.1:8899`
-- [ ] `solana transfer <seller_pubkey> 0.01 --keypair devnet-buyer-keypair.json --url http://127.0.0.1:8899` → tx-hash 取得
-- [ ] `km login --api-key <buyer_api_key> --base-url http://localhost:3000`
-- [ ] `km install <knowledge_id> --tx-hash <hash> --dir /tmp/km-test` → コンテンツ保存を確認
-
-### 15.6.2b CLI 実購入フロー — 本物 devnet (スマコンあり・5%収益発生)
-
-> `NEXT_PUBLIC_KM_PROGRAM_ID=B4Jh6N5ftNZimEu3aWR7JiYu4yhPWN5mpds68E6gWRMb` で起動。
-> API 側がスマートコントラクト経由の送金かどうかを検証 → 通過で Fee Vault に 5% 入金。
-
-- [ ] dev server を本物 devnet env (`NEXT_PUBLIC_SOLANA_NETWORK=devnet`, `NEXT_PUBLIC_SOLANA_RPC_URL=<Helius RPC>`, `NEXT_PUBLIC_KM_PROGRAM_ID=B4Jh6N5ftNZimEu3aWR7JiYu4yhPWN5mpds68E6gWRMb`) で起動
-- [ ] Phantom / solana CLI でスマコン経由の送金を行い tx-hash 取得
-- [ ] `km install <knowledge_id> --tx-hash <hash> --dir /tmp/km-test` → コンテンツ保存を確認
-- [ ] Fee Vault (`GdK2gyBLaoB9PxTLfUesaUn1qsNaKjaux9PzfHKt4ihc`) に 5% 着金を Solana Explorer で確認
-
-### 15.6.3 (任意) CLI 購入フロー スクリプト化
-
-- [ ] `scripts/e2e/cli-purchase-flow.mjs` — 15.6.2a フローを自動化
-- [ ] `package.json` に `"test:e2e:cli-purchase": "node scripts/e2e/cli-purchase-flow.mjs"` を追加
 
 ---
 
@@ -173,13 +131,48 @@ Phase 1-14, 15 (全タスク完了), 16, 20, 21, 22, 23, 27, 28, 29, 30 すべ�
 
 ---
 
-## Phase 30: 特商法・消費者保護法対応 `cc:DONE`
+## Phase 32: mainnet 移行 (P2P モード) [P1]
 
-- `/terms`, `/privacy`, `/legal`, `/contact` 法的ページ4件作成
-- フッターに「法的情報」列追加、購入フローに利用規約同意チェックボックス追加
-- `seller_disclosure` カラム追加 (migration + 型定義 + 出品/編集フォーム)
-- Server Action に `termsAgreed: z.literal(true)` 検証追加
-- 連絡先: h.client.walletapp@gmail.com
+> 会話ログ (2026-02-24) の方針決定:
+> - **Step 1**: P2P モード (`NEXT_PUBLIC_KM_PROGRAM_ID=""`) で mainnet 移行 → コスト ¥0
+> - **Step 2**: デモ動画 (Phase 26) を mainnet P2P で撮影・拡散
+> - **Step 3**: 反響確認後にスマコン mainnet デプロイ (~1.5 SOL / ¥18,000 相当、一回限り)
+
+### 32.1 環境変数変更 (P2P mainnet)
+
+- [ ] 本番環境変数を更新
+  - `NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta`
+  - `NEXT_PUBLIC_SOLANA_RPC_URL=<Helius mainnet RPC URL>` (無料枠で十分)
+  - `NEXT_PUBLIC_KM_PROGRAM_ID=""` (P2P 直接送金モード)
+  - `X402_NETWORK=solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d` (mainnet CAIP-2)
+- [ ] Cloudflare Workers の環境変数 (wrangler secrets) に反映
+- [ ] `npm run deploy:cf` でデプロイ確認
+
+### 32.2 動作確認
+
+- [ ] ウォレット接続 → mainnet SOL 残高表示を確認
+- [ ] 0.001 SOL の P2P テスト送金 → tx-hash を purchase API に送信 → 成功を確認
+- [ ] MCP `km_purchase` を devnet → mainnet に切り替えて動作確認
+
+### 32.3 (後回し可) スマコン mainnet デプロイ
+
+> Phase 26 デモ・拡散の反響を見てから着手する。
+> コスト: ~1.5 SOL ($120 / ¥18,000 相当、一回限り・維持費ゼロ)
+
+- [ ] `anchor build` → `target/deploy/knowledge_market.so` (212KB) を確認
+- [ ] `anchor deploy --provider.cluster mainnet` で mainnet にデプロイ
+- [ ] 新 Program ID / Fee Vault を環境変数に設定
+- [ ] 5% フィー着金をテストトランザクションで確認
+
+**成果物**: mainnet P2P モードで動作する KnowMint 本番環境
+
+---
+
+## 完了済みフェーズ詳細 `cc:DONE`
+
+- **Phase 15.6** (CLI E2E テスト): `scripts/e2e/cli-purchase-flow.mjs` 新規作成 (8ステップ: env検証→購入→km install→ファイル確認)。P2P直接送金・スマコン(`execute_purchase`)両モード PASS。Codex 4ラウンド → ISSUES_FOUND: 0
+- **Phase 30** (特商法対応): `/terms` `/privacy` `/legal` `/contact` 4件作成、購入フロー利用規約同意、`seller_disclosure` カラム追加
+- **Phase 31** (README 現状反映): 技術スタック・MCP・Cloudflare Workers・全 API・環境変数・テスト手順を現状に同期。Codex 4ラウンド → ISSUES_FOUND: 0
 
 ---
 

@@ -16,12 +16,12 @@ interface SidebarProps {
 
 export function Sidebar({ categories, currentSlug }: SidebarProps) {
   return (
-    <aside className="w-full md:w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
+    <aside className="w-full md:w-64 bg-dq-window-bg border-r-2 border-dq-border">
       <div className="p-4">
-        <h2 className="text-sm font-semibold text-zinc-900 dark:text-white mb-4">
+        <h2 className="text-sm font-semibold text-dq-gold mb-4">
           カテゴリ
         </h2>
-        <nav aria-label="カテゴリナビゲーション">
+        <nav aria-label="Category navigation">
           <ul className="space-y-1">
             {categories.map((category) => {
               const isActive = category.slug === currentSlug;
@@ -30,13 +30,16 @@ export function Sidebar({ categories, currentSlug }: SidebarProps) {
                 <li key={category.id}>
                   <Link
                     href={`/category/${category.slug}`}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-sm transition-colors ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                        : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                        ? 'bg-dq-surface text-dq-gold'
+                        : 'text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold'
                     }`}
                     aria-current={isActive ? 'page' : undefined}
                   >
+                    {isActive && (
+                      <span className="dq-cursor text-dq-gold">▶</span>
+                    )}
                     <span className="text-xl" role="img" aria-label={category.name}>
                       {category.icon}
                     </span>

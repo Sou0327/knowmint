@@ -33,43 +33,47 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200/60 bg-white/80 backdrop-blur-xl shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900/80">
+    <header className="sticky top-0 z-50 w-full border-b-3 border-dq-border-outer bg-dq-window-bg">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-              <span className="inline-block h-2 w-2 rounded-full bg-gradient-to-r from-blue-600 to-violet-600" />
-              <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+              <span className="text-dq-gold">◆</span>
+              <span className="text-dq-gold">
                 KnowMint
               </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/"
-              className="relative text-sm text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300"
+              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               マーケット
             </Link>
             <Link
               href="/list"
-              className="relative text-sm text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300"
+              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               出品する
             </Link>
             <Link
               href="/library"
-              className="relative text-sm text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300"
+              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               マイライブラリ
             </Link>
             <Link
               href="/dashboard"
-              className="relative text-sm text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300"
+              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               ダッシュボード
             </Link>
           </nav>
@@ -92,10 +96,10 @@ export function Header() {
                   type="text"
                   name="q"
                   placeholder="検索..."
-                  className="w-full px-4 py-2 pl-10 text-sm border border-zinc-300 rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all dark:bg-zinc-800/80 dark:border-zinc-700 dark:text-white"
+                  className="w-full px-4 py-2 pl-10 text-sm border-2 border-dq-border rounded-sm bg-dq-surface text-dq-text placeholder:text-dq-text-muted focus:outline-none focus:ring-2 focus:ring-dq-gold focus:border-dq-gold transition-colors"
                 />
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-dq-text-muted"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -121,8 +125,8 @@ export function Header() {
             <div ref={userMenuRef} className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
-                aria-label="ユーザーメニュー"
+                className="flex items-center gap-2 text-dq-text-sub hover:text-dq-gold transition-colors"
+                aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
                 <svg
@@ -141,35 +145,37 @@ export function Header() {
                 </svg>
               </button>
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg">
+                <div className="absolute right-0 mt-2 w-48 dq-window-sm">
                   {loading ? (
-                    <div className="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      読み込み中...
+                    <div className="px-4 py-2 text-sm text-dq-text-muted">
+                      Loading...
                     </div>
                   ) : user ? (
                     <>
-                      <div className="border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-700">
-                        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                          {profile?.display_name || user.email || 'ユーザー'}
+                      <div className="border-b-2 border-dq-border px-4 py-2.5">
+                        <p className="truncate text-sm font-medium text-dq-text">
+                          {profile?.display_name || user.email || 'User'}
                         </p>
                         {user.email && (
-                          <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className="truncate text-xs text-dq-text-muted">
                             {user.email}
                           </p>
                         )}
                       </div>
                       <Link
                         href="/profile"
-                        className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                        className="group flex items-center px-4 py-2 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
                         onClick={() => setUserMenuOpen(false)}
                       >
+                        <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
                         プロフィール
                       </Link>
                       <button
                         type="button"
-                        className="block w-full rounded-b-lg px-4 py-2 text-left text-sm text-red-600 hover:bg-zinc-100 dark:text-red-400 dark:hover:bg-zinc-700"
+                        className="group flex w-full items-center px-4 py-2 text-left text-sm text-dq-red hover:bg-dq-surface"
                         onClick={handleSignOut}
                       >
+                        <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
                         ログアウト
                       </button>
                     </>
@@ -177,16 +183,18 @@ export function Header() {
                     <>
                       <Link
                         href="/login"
-                        className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700 rounded-t-lg"
+                        className="group flex items-center px-4 py-2 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
                         onClick={() => setUserMenuOpen(false)}
                       >
+                        <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
                         ログイン
                       </Link>
                       <Link
                         href="/signup"
-                        className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700 rounded-b-lg"
+                        className="group flex items-center px-4 py-2 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
                         onClick={() => setUserMenuOpen(false)}
                       >
+                        <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
                         サインアップ
                       </Link>
                     </>
@@ -199,9 +207,9 @@ export function Header() {
           {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden p-2 text-zinc-700 dark:text-zinc-300"
+            className="md:hidden p-2 text-dq-text-sub hover:text-dq-gold"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'メニューを閉じる' : 'メニューを開く'}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
           >
             <svg
@@ -232,7 +240,7 @@ export function Header() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-zinc-200/60 dark:border-zinc-800/60 transition-all duration-300">
+          <div className="md:hidden py-4 border-t-2 border-dq-border transition-all duration-300">
             {/* Mobile Search */}
             <div className="mb-4">
               <form
@@ -250,60 +258,66 @@ export function Header() {
                   type="text"
                   name="q"
                   placeholder="検索..."
-                  className="w-full px-4 py-2 text-sm border border-zinc-300 rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all dark:bg-zinc-800/80 dark:border-zinc-700 dark:text-white"
+                  className="w-full px-4 py-2 text-sm border-2 border-dq-border rounded-sm bg-dq-surface text-dq-text placeholder:text-dq-text-muted focus:outline-none focus:ring-2 focus:ring-dq-gold focus:border-dq-gold transition-colors"
                 />
               </form>
             </div>
 
             {/* Mobile Navigation Links */}
-            <nav className="flex flex-col gap-2">
+            <nav className="flex flex-col gap-1">
               <Link
                 href="/"
-                className="px-4 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg"
+                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                 マーケット
               </Link>
               <Link
                 href="/list"
-                className="px-4 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg"
+                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                 出品する
               </Link>
               <Link
                 href="/library"
-                className="px-4 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg"
+                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                 マイライブラリ
               </Link>
               <Link
                 href="/dashboard"
-                className="px-4 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg"
+                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                 ダッシュボード
               </Link>
-              <div className="border-t border-zinc-200/60 dark:border-zinc-800/60 my-2" />
+              <div className="border-t-2 border-dq-border my-2" />
               {loading ? (
-                <div className="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400">
-                  読み込み中...
+                <div className="px-4 py-2 text-sm text-dq-text-muted">
+                  Loading...
                 </div>
               ) : user ? (
                 <>
                   <Link
                     href="/profile"
-                    className="px-4 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg"
+                    className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                     プロフィール
                   </Link>
                   <button
                     type="button"
-                    className="rounded-lg px-4 py-2 text-left text-red-600 hover:bg-zinc-100 dark:text-red-400 dark:hover:bg-zinc-800"
+                    className="group flex items-center rounded-sm px-4 py-2 text-left text-dq-red hover:bg-dq-surface"
                     onClick={handleSignOut}
                   >
+                    <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                     ログアウト
                   </button>
                 </>
@@ -311,16 +325,18 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="px-4 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg"
+                    className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                     ログイン
                   </Link>
                   <Link
                     href="/signup"
-                    className="px-4 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg"
+                    className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
                     サインアップ
                   </Link>
                 </>

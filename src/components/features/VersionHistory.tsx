@@ -90,7 +90,7 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
 
   if (loading) {
     return (
-      <div className="py-8 text-center text-sm text-gray-500">
+      <div className="py-8 text-center text-sm text-dq-text-muted">
         Loading version history...
       </div>
     );
@@ -98,7 +98,7 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
 
   if (error) {
     return (
-      <div className="py-8 text-center text-sm text-red-500">
+      <div className="py-8 text-center text-sm text-dq-red">
         Failed to load version history: {error}
       </div>
     );
@@ -106,7 +106,7 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
 
   if (versions.length === 0) {
     return (
-      <div className="py-8 text-center text-sm text-gray-500">
+      <div className="py-8 text-center text-sm text-dq-text-muted">
         No version history yet.
       </div>
     );
@@ -114,24 +114,24 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-base font-semibold text-gray-900">Version History</h3>
-      <ul className="divide-y divide-gray-200 rounded-md border border-gray-200">
+      <h3 className="text-base font-semibold text-dq-gold">Version History</h3>
+      <ul className="divide-y divide-dq-border rounded-sm border-2 border-dq-border">
         {versions.map((v) => (
           <li key={v.id} className="flex items-start gap-4 px-4 py-3">
-            <span className="mt-0.5 flex h-6 w-10 flex-shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-mono font-semibold text-gray-600">
+            <span className="mt-0.5 flex h-6 w-10 flex-shrink-0 items-center justify-center rounded-sm bg-dq-surface text-xs font-mono font-semibold text-dq-cyan">
               v{v.version_number}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-800">{v.title}</p>
+              <p className="truncate text-sm font-medium text-dq-text">{v.title}</p>
               {v.change_summary ? (
-                <p className="mt-0.5 text-xs text-gray-500">{v.change_summary}</p>
+                <p className="mt-0.5 text-xs text-dq-text-muted">{v.change_summary}</p>
               ) : (
-                <p className="mt-0.5 text-xs text-gray-400 italic">No summary</p>
+                <p className="mt-0.5 text-xs text-dq-text-muted italic">No summary</p>
               )}
             </div>
             <time
               dateTime={v.created_at}
-              className="flex-shrink-0 text-xs text-gray-400"
+              className="flex-shrink-0 text-xs text-dq-text-muted"
               title={new Date(v.created_at).toLocaleString()}
             >
               {new Date(v.created_at).toLocaleDateString()}
@@ -145,17 +145,17 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-sm px-3 py-1 text-sm text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold disabled:cursor-not-allowed disabled:opacity-40"
           >
             Previous
           </button>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-dq-text-muted">
             Page {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-sm px-3 py-1 text-sm text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next
           </button>

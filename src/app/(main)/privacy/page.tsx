@@ -6,34 +6,34 @@ export const metadata = {
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-2 text-3xl font-bold text-dq-gold">
         プライバシーポリシー
       </h1>
-      <p className="mb-8 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mb-8 text-sm text-dq-text-muted">
         最終更新日: 2026年2月24日
       </p>
 
-      <div className="space-y-8 text-zinc-700 dark:text-zinc-300">
+      <div className="font-legal space-y-8 text-dq-text-sub">
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             1. 収集する情報
           </h2>
           <p className="mb-2 leading-relaxed">
             本サービスは以下の情報を収集・保管します。
           </p>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-200 rounded-lg border border-zinc-200 text-sm dark:divide-zinc-700 dark:border-zinc-700">
-              <thead className="bg-zinc-50 dark:bg-zinc-800">
+            <table className="min-w-full divide-y divide-dq-border rounded-sm border border-dq-border text-sm">
+              <thead className="bg-dq-surface">
                 <tr>
-                  <th scope="col" className="px-4 py-2.5 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  <th scope="col" className="px-4 py-2.5 text-left font-medium text-dq-text-sub">
                     データ種別
                   </th>
-                  <th scope="col" className="px-4 py-2.5 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  <th scope="col" className="px-4 py-2.5 text-left font-medium text-dq-text-sub">
                     収集目的
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
+              <tbody className="divide-y divide-dq-border bg-dq-window-bg">
                 {[
                   ["メールアドレス", "アカウント認証・通知送信"],
                   ["ウォレットアドレス", "決済処理・取引記録"],
@@ -44,10 +44,10 @@ export default function PrivacyPage() {
                   ["IPアドレス", "レート制限・不正アクセス防止"],
                 ].map(([type, purpose]) => (
                   <tr key={type}>
-                    <td className="px-4 py-2.5 text-zinc-700 dark:text-zinc-300">
+                    <td className="px-4 py-2.5 text-dq-text-sub">
                       {type}
                     </td>
-                    <td className="px-4 py-2.5 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-2.5 text-dq-text-sub">
                       {purpose}
                     </td>
                   </tr>
@@ -58,7 +58,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             2. 情報の利用目的
           </h2>
           <ul className="list-disc space-y-1.5 pl-5 leading-relaxed">
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             3. Cookie・アナリティクス
           </h2>
           <p className="leading-relaxed">
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             4. 第三者への提供
           </h2>
           <p className="mb-2 leading-relaxed">
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             5. データの保管・セキュリティ
           </h2>
           <p className="leading-relaxed">
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             6. ユーザーの権利
           </h2>
           <p className="mb-2 leading-relaxed">
@@ -129,7 +129,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             7. ポリシーの変更
           </h2>
           <p className="leading-relaxed">
@@ -139,14 +139,14 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             8. お問い合わせ
           </h2>
           <p className="leading-relaxed">
             個人情報の取り扱いに関するご質問・開示請求等は、
             <a
               href="/contact"
-              className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
             >
               お問い合わせページ
             </a>

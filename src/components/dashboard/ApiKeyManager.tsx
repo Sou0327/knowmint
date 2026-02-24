@@ -146,7 +146,7 @@ export default function ApiKeyManager() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <span className="text-dq-gold dq-cursor text-2xl">▶▶▶</span>
       </div>
     );
   }
@@ -154,8 +154,8 @@ export default function ApiKeyManager() {
   return (
     <div>
       {errorMessage && (
-        <Card padding="md" className="mb-6 border-red-500 bg-red-50 dark:bg-red-950">
-          <p className="text-sm text-red-700 dark:text-red-300">
+        <Card padding="md" className="mb-6 !border-dq-red">
+          <p className="text-sm text-dq-red">
             {errorMessage}
           </p>
         </Card>
@@ -163,13 +163,13 @@ export default function ApiKeyManager() {
 
       {/* Created Key Display */}
       {createdKey && (
-        <Card padding="md" className="mb-6 border-green-500 bg-green-50 dark:bg-green-950">
+        <Card padding="md" className="mb-6 !border-dq-green">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+              <p className="text-sm font-medium text-dq-green">
                 APIキーが作成されました。このキーは一度だけ表示されます。
               </p>
-              <code className="mt-2 block break-all rounded-lg bg-green-100 px-3 py-2.5 font-mono text-sm text-green-900 dark:bg-green-900 dark:text-green-100">
+              <code className="mt-2 block break-all rounded-sm bg-dq-surface px-3 py-2.5 font-mono text-sm text-dq-cyan border border-dq-border">
                 {createdKey}
               </code>
             </div>
@@ -196,7 +196,7 @@ export default function ApiKeyManager() {
       {/* Create Form */}
       {showCreate ? (
         <Card padding="md" className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+          <h3 className="mb-4 text-lg font-semibold text-dq-gold">
             新しいAPIキーを作成
           </h3>
           <div className="space-y-4">
@@ -207,26 +207,26 @@ export default function ApiKeyManager() {
               onChange={(e) => setNewKeyName(e.target.value)}
             />
             <div>
-              <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <p className="mb-2 text-sm font-medium text-dq-text-sub">
                 権限
               </p>
               <div className="space-y-2">
                 {PERMISSION_OPTIONS.map((opt) => (
                   <label
                     key={opt.value}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                    className="flex cursor-pointer items-center gap-3 rounded-sm border-2 border-dq-border p-3 hover:bg-dq-surface transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={newKeyPermissions.includes(opt.value)}
                       onChange={() => togglePermission(opt.value)}
-                      className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded-sm border-dq-border accent-dq-gold"
                     />
                     <div>
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      <p className="text-sm font-medium text-dq-text">
                         {opt.label}
                       </p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      <p className="text-xs text-dq-text-muted">
                         {opt.description}
                       </p>
                     </div>
@@ -262,7 +262,7 @@ export default function ApiKeyManager() {
       {/* Key List */}
       {keys.length === 0 ? (
         <Card padding="lg">
-          <p className="text-center text-zinc-500 dark:text-zinc-400">
+          <p className="text-center text-dq-text-muted">
             APIキーがありません
           </p>
         </Card>
@@ -273,7 +273,7 @@ export default function ApiKeyManager() {
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                    <p className="font-medium text-dq-text">
                       {key.name}
                     </p>
                     {key.permissions.map((p) => (
@@ -282,7 +282,7 @@ export default function ApiKeyManager() {
                       </Badge>
                     ))}
                   </div>
-                  <div className="mt-1 flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="mt-1 flex items-center gap-4 text-xs text-dq-text-muted">
                     <span>
                       作成: {new Date(key.created_at).toLocaleDateString("ja-JP")}
                     </span>
@@ -313,19 +313,19 @@ export default function ApiKeyManager() {
 
       {/* Usage Guide */}
       <Card padding="md" className="mt-8">
-        <h3 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+        <h3 className="mb-3 text-lg font-semibold text-dq-gold">
           APIキーの使い方
         </h3>
-        <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="space-y-2 text-sm text-dq-text-sub">
           <p>
             APIキーを使用して、KnowMint API にプログラムからアクセスできます。
           </p>
-          <code className="block rounded-lg bg-zinc-100 px-3 py-2.5 font-mono text-xs leading-relaxed dark:bg-zinc-800">
+          <code className="block rounded-sm bg-dq-surface px-3 py-2.5 font-mono text-xs leading-relaxed text-dq-cyan border border-dq-border">
             {`curl -H "Authorization: Bearer km_your_key_here" \\`}
             <br />
             {`  ${typeof window !== "undefined" ? window.location.origin : "https://your-domain.com"}/api/v1/knowledge`}
           </code>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-dq-text-muted">
             APIキーは安全に管理してください。キーが漏洩した場合は直ちに削除し、新しいキーを作成してください。
           </p>
         </div>
@@ -338,8 +338,8 @@ export default function ApiKeyManager() {
         title="APIキーの削除"
         size="sm"
       >
-        <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-          <strong className="text-zinc-900 dark:text-zinc-100">
+        <p className="mb-4 text-dq-text-sub">
+          <strong className="text-dq-text">
             {deleteTarget?.name}
           </strong>{" "}
           を削除しますか？この操作は取り消せません。

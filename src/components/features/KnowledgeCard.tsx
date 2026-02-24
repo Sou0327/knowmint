@@ -46,7 +46,7 @@ export default function KnowledgeCard({
 
   return (
     <Link href={`/knowledge/${id}`} className="group">
-      <Card hover padding="md" className="h-full transition-all duration-300 hover:shadow-md group-hover:border-blue-200 dark:group-hover:border-blue-800/50">
+      <Card hover padding="md" className="h-full transition-all duration-300">
         <div className="flex h-full flex-col">
           <div className="mb-2 flex items-start justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1">
@@ -58,17 +58,17 @@ export default function KnowledgeCard({
               </Badge>
             </div>
             {category && (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="text-xs text-dq-text-muted">
                 {category.name}
               </span>
             )}
           </div>
 
-          <h3 className="mb-1 line-clamp-2 text-base font-semibold text-zinc-900 transition-colors group-hover:text-blue-600 dark:text-zinc-100 dark:group-hover:text-blue-400">
+          <h3 className="mb-1 line-clamp-2 text-base font-semibold text-dq-text transition-colors group-hover:text-dq-gold">
             {title}
           </h3>
 
-          <p className="mb-3 line-clamp-2 flex-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mb-3 line-clamp-2 flex-1 text-sm text-dq-text-sub">
             {description}
           </p>
 
@@ -77,39 +77,39 @@ export default function KnowledgeCard({
               {tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+                  className="rounded-sm bg-dq-cyan/10 px-2 py-0.5 text-xs text-dq-cyan border border-dq-cyan/20"
                 >
                   {tag}
                 </span>
               ))}
               {tags.length > 3 && (
-                <span className="text-xs text-zinc-400">+{tags.length - 3}</span>
+                <span className="text-xs text-dq-text-muted">+{tags.length - 3}</span>
               )}
             </div>
           )}
 
-          <div className="mt-auto flex items-end justify-between border-t border-zinc-200/60 pt-3 dark:border-zinc-800/60">
+          <div className="mt-auto flex items-end justify-between border-t-2 border-dq-border pt-3">
             <div>
-              <span className="mr-2 text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="mr-2 text-xs text-dq-text-muted">
                 {listingType === "request" ? "報酬" : "価格"}
               </span>
               {price_sol !== null && (
-                <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                <span className="text-lg font-bold tracking-tight text-dq-gold">
                   {price_sol} <span className="text-sm font-semibold">SOL</span>
                 </span>
               )}
               {price_usdc !== null && price_sol !== null && (
-                <span className="mx-1 text-zinc-400">/</span>
+                <span className="mx-1 text-dq-text-muted">/</span>
               )}
               {price_usdc !== null && (
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                <span className="text-sm text-dq-text-sub">
                   {price_usdc} USDC
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center gap-3 text-xs text-dq-text-muted">
               {average_rating !== null && (
-                <span><span className="font-semibold text-amber-500">★</span> {average_rating.toFixed(1)}</span>
+                <span><span className="font-semibold text-dq-gold">★</span> {average_rating.toFixed(1)}</span>
               )}
               <span>
                 {purchase_count} {listingType === "request" ? "反応" : "購入"}
@@ -117,7 +117,7 @@ export default function KnowledgeCard({
             </div>
           </div>
 
-          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-xs text-dq-text-muted">
             {seller.display_name || "匿名"}
           </p>
         </div>

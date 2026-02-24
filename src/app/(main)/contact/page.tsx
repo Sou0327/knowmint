@@ -40,14 +40,14 @@ const CATEGORIES = [
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-2 text-3xl font-bold text-dq-text">
         お問い合わせ
       </h1>
-      <p className="mb-8 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mb-8 text-sm text-dq-text-muted">
         最終更新日: 2026年2月24日
       </p>
 
-      <p className="mb-8 leading-relaxed text-zinc-700 dark:text-zinc-300">
+      <p className="mb-8 leading-relaxed text-dq-text-sub">
         お問い合わせの内容に応じて、以下の窓口をご利用ください。
         なお、返信にはお時間をいただく場合があります。
       </p>
@@ -56,19 +56,19 @@ export default function ContactPage() {
         {CATEGORIES.map((cat) => (
           <div
             key={cat.title}
-            className="flex flex-col rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="flex flex-col rounded-sm border border-dq-border bg-dq-window-bg p-5"
           >
-            <h2 className="mb-2 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+            <h2 className="mb-2 text-base font-semibold text-dq-text">
               {cat.title}
             </h2>
-            <p className="mb-4 flex-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <p className="mb-4 flex-1 text-sm leading-relaxed text-dq-text-sub">
               {cat.description}
             </p>
             <a
               href={cat.href}
               target={cat.isExternal ? "_blank" : undefined}
               rel={cat.isExternal ? "noopener noreferrer" : undefined}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:hover:bg-blue-500"
+              className="inline-flex items-center gap-1.5 rounded-sm bg-dq-gold px-4 py-2 text-center text-sm font-medium text-dq-bg transition-colors hover:bg-dq-gold/80"
             >
               {cat.action}
               {cat.isExternal && (
@@ -91,37 +91,37 @@ export default function ContactPage() {
         ))}
       </div>
 
-      <div className="mt-10 rounded-xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-zinc-900">
-        <h2 className="mb-3 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+      <div className="mt-10 rounded-sm border border-dq-border bg-dq-surface p-5">
+        <h2 className="mb-3 text-base font-semibold text-dq-text">
           取引DPF消費者保護法に基づく開示請求について
         </h2>
-        <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm leading-relaxed text-dq-text-sub">
           特定商取引法および取引デジタルプラットフォームを利用する消費者の利益の保護に関する法律（取引DPF消費者保護法）に基づき、
           出品者に関する情報の開示を請求される場合は、上記「法的開示請求」窓口までご連絡ください。
           開示請求には本人確認書類のご提出が必要です。法令の定める範囲内で対応いたします。
         </p>
       </div>
 
-      <div className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="mt-6 text-center text-sm text-dq-text-muted">
         <p>
           一般的なご質問については、まず{" "}
           <a
             href="/terms"
-            className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
+            className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
             利用規約
           </a>
           ・
           <a
             href="/privacy"
-            className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
+            className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
             プライバシーポリシー
           </a>
           ・
           <a
             href="/legal"
-            className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
+            className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
             特商法表示
           </a>

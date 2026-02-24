@@ -13,7 +13,7 @@ const SalesChart = dynamic(
   () => import("@/components/dashboard/SalesChart"),
   {
     loading: () => (
-      <div className="flex h-80 items-center justify-center text-zinc-400">
+      <div className="flex h-80 items-center justify-center text-dq-text-muted">
         チャート読み込み中...
       </div>
     ),
@@ -168,7 +168,7 @@ export default function SalesPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-2xl font-bold text-dq-text">
           売上分析
         </h1>
         <div className="flex gap-2" role="group" aria-label="期間選択">
@@ -188,7 +188,7 @@ export default function SalesPage() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-dq-gold border-t-transparent" />
         </div>
       ) : (
         <>
@@ -198,16 +198,16 @@ export default function SalesPage() {
               const r = revenueByToken.find((rv) => rv.token === token);
               return (
                 <Card key={token} padding="md">
-                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  <p className="text-sm font-medium text-dq-text-muted">
                     {token} 収益
                   </p>
-                  <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                  <p className="mt-1 text-xl font-bold text-dq-text">
                     {(r?.total ?? 0).toLocaleString(undefined, {
                       maximumFractionDigits: 4,
                     })}{" "}
                     {token}
                   </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="text-sm text-dq-text-muted">
                     {r?.count ?? 0} 件の取引
                   </p>
                 </Card>
@@ -217,7 +217,7 @@ export default function SalesPage() {
 
           {/* Sales Chart */}
           <Card padding="md" className="mb-6">
-            <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <h2 className="mb-4 text-lg font-semibold text-dq-text">
               日別売上推移
             </h2>
             <SalesChart data={salesData} />
@@ -225,42 +225,42 @@ export default function SalesPage() {
 
           {/* Top Sellers */}
           <Card padding="md">
-            <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <h2 className="mb-4 text-lg font-semibold text-dq-text">
               売上上位アイテム
             </h2>
             {topItems.length === 0 ? (
-              <p className="text-center text-zinc-500 dark:text-zinc-400 py-4">
+              <p className="text-center text-dq-text-muted py-4">
                 データがありません
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="py-2 text-left font-medium text-zinc-500 dark:text-zinc-400">
+                    <tr className="border-b border-dq-border">
+                      <th className="py-2 text-left font-medium text-dq-text-muted">
                         タイトル
                       </th>
-                      <th className="py-2 text-right font-medium text-zinc-500 dark:text-zinc-400">
+                      <th className="py-2 text-right font-medium text-dq-text-muted">
                         販売数
                       </th>
-                      <th className="py-2 text-right font-medium text-zinc-500 dark:text-zinc-400">
+                      <th className="py-2 text-right font-medium text-dq-text-muted">
                         収益
                       </th>
-                      <th className="py-2 text-right font-medium text-zinc-500 dark:text-zinc-400">
+                      <th className="py-2 text-right font-medium text-dq-text-muted">
                         評価
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
+                  <tbody className="divide-y divide-dq-border">
                     {topItems.map((item) => (
                       <tr key={item.id}>
-                        <td className="py-2.5 text-zinc-900 dark:text-zinc-100">
+                        <td className="py-2.5 text-dq-text">
                           {item.title}
                         </td>
-                        <td className="py-2.5 text-right text-zinc-700 dark:text-zinc-300">
+                        <td className="py-2.5 text-right text-dq-text-sub">
                           {item.salesCount}
                         </td>
-                        <td className="py-2.5 text-right text-sm text-zinc-900 dark:text-zinc-100">
+                        <td className="py-2.5 text-right text-sm text-dq-text">
                           {formatRevenue(item.revenueByToken)}
                         </td>
                         <td className="py-2.5 text-right">
@@ -269,7 +269,7 @@ export default function SalesPage() {
                               {item.averageRating.toFixed(1)}
                             </Badge>
                           ) : (
-                            <span className="text-zinc-400">-</span>
+                            <span className="text-dq-text-muted">-</span>
                           )}
                         </td>
                       </tr>

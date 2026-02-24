@@ -8,16 +8,16 @@ export default async function DashboardRankingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-2 text-2xl font-bold text-dq-text">
         出品者ランキング
       </h1>
-      <p className="mb-8 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mb-8 text-sm text-dq-text-muted">
         販売実績の多い出品者をランキング表示しています
       </p>
 
       {topSellers.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-zinc-500 dark:text-zinc-400">
+          <p className="text-dq-text-muted">
             まだランキングデータがありません
           </p>
         </div>

@@ -70,31 +70,31 @@ const LEGAL_ITEMS = [
 export default function LegalPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-2 text-3xl font-bold text-dq-gold">
         特定商取引法に基づく表示
       </h1>
-      <p className="mb-8 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mb-8 text-sm text-dq-text-muted">
         最終更新日: 2026年2月24日
       </p>
 
-      <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
-        <dl className="divide-y divide-zinc-200 dark:divide-zinc-700">
+      <div className="font-legal overflow-hidden rounded-sm border border-dq-border">
+        <dl className="divide-y divide-dq-border">
           {LEGAL_ITEMS.map((item) => (
             <div
               key={item.label}
               className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:gap-4"
             >
-              <dt className="w-full shrink-0 text-sm font-semibold text-zinc-700 dark:text-zinc-300 sm:w-44">
+              <dt className="w-full shrink-0 text-sm font-semibold text-dq-text-sub sm:w-44">
                 {item.label}
               </dt>
-              <dd className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              <dd className="text-sm leading-relaxed text-dq-text-sub">
                 {item.isLink && item.href ? (
                   item.linkText ? (
                     <>
                       {item.value.split(item.linkText)[0]}
                       <a
                         href={item.href}
-                        className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
                       >
                         {item.linkText}
                       </a>
@@ -103,7 +103,7 @@ export default function LegalPage() {
                   ) : (
                     <a
                       href={item.href}
-                      className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
                     >
                       {item.value}
                     </a>
@@ -117,7 +117,7 @@ export default function LegalPage() {
         </dl>
       </div>
 
-      <div className="mt-8 rounded-lg bg-amber-50 p-4 text-sm text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+      <div className="mt-8 rounded-sm bg-dq-yellow/10 p-4 text-sm text-dq-yellow">
         <p className="font-medium">注意事項</p>
         <p className="mt-1 leading-relaxed">
           暗号資産による決済は価格変動リスクを伴います。送金ミスの場合、当社は返金・補償を行いかねますので、

@@ -39,7 +39,7 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
 
   if (submitted) {
     return (
-      <div className="rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+      <div className="rounded-sm border-2 border-dq-green/40 bg-dq-green/10 p-4 text-sm text-dq-green">
         レビューを投稿しました
       </div>
     );
@@ -48,7 +48,7 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label className="mb-1 block text-sm font-medium text-dq-text-sub">
           評価
         </label>
         <div className="flex gap-1">
@@ -59,8 +59,8 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
               onClick={() => setRating(star)}
               className={`text-2xl ${
                 star <= rating
-                  ? "text-yellow-500"
-                  : "text-zinc-300 dark:text-zinc-600"
+                  ? "text-dq-gold"
+                  : "text-dq-text-muted"
               }`}
             >
               ★
@@ -78,7 +78,7 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
       />
 
       {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-sm text-dq-red">{error}</p>
       )}
 
       <Button type="submit" variant="primary" loading={submitting}>

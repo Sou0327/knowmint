@@ -24,8 +24,8 @@ function StarRating({ rating }: { rating: number }) {
           key={i}
           className={
             i < rating
-              ? "text-amber-400"
-              : "text-zinc-300 dark:text-zinc-600"
+              ? "text-dq-gold"
+              : "text-dq-text-muted"
           }
         >
           {i < rating ? "★" : "☆"}
@@ -38,7 +38,7 @@ function StarRating({ rating }: { rating: number }) {
 export default function ReviewList({ reviews }: Props) {
   if (reviews.length === 0) {
     return (
-      <p className="py-4 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="py-4 text-sm text-dq-text-muted">
         まだレビューはありません
       </p>
     );
@@ -47,17 +47,17 @@ export default function ReviewList({ reviews }: Props) {
   return (
     <div className="space-y-4">
       {reviews.map((review) => (
-        <Card key={review.id} padding="md" className="transition-shadow hover:shadow-sm">
+        <Card key={review.id} padding="md">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-zinc-100 to-zinc-200 text-xs font-bold text-zinc-600 dark:from-zinc-700 dark:to-zinc-800 dark:text-zinc-400">
+              <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-dq-surface text-xs font-bold text-dq-cyan border border-dq-border">
                 {(review.reviewer.display_name || "?")[0].toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                <p className="text-sm font-medium text-dq-text">
                   {review.reviewer.display_name || "匿名"}
                 </p>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-dq-text-muted">
                   {new Date(review.created_at).toLocaleDateString("ja-JP")}
                 </p>
               </div>
@@ -65,7 +65,7 @@ export default function ReviewList({ reviews }: Props) {
             <StarRating rating={review.rating} />
           </div>
           {review.comment && (
-            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <p className="mt-2 text-sm leading-relaxed text-dq-text-sub">
               {review.comment}
             </p>
           )}

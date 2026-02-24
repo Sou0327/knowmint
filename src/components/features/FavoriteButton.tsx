@@ -67,12 +67,12 @@ export default function FavoriteButton({
         e.stopPropagation();
         toggle();
       }}
-      className={`rounded-full !px-2 !py-2 ${
+      className={`rounded-sm !px-2 !py-2 ${
         favorited
-          ? "text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-          : "text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:text-zinc-500 dark:hover:text-red-400 dark:hover:bg-red-950/20"
+          ? "text-dq-red hover:brightness-110"
+          : "text-dq-text-muted hover:text-dq-red"
       }`}
-      aria-label={favorited ? "お気に入りから削除" : "お気に入りに追加"}
+      aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
       aria-pressed={favorited}
     >
       <svg

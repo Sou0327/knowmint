@@ -33,7 +33,7 @@ export default async function LibraryPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-6 text-3xl font-bold tracking-tight text-dq-text">
         マイライブラリ
       </h1>
 
@@ -41,7 +41,7 @@ export default async function LibraryPage() {
         <Card padding="lg">
           <div className="text-center py-4">
             <svg
-              className="mx-auto mb-4 h-16 w-16 text-zinc-300 dark:text-zinc-600"
+              className="mx-auto mb-4 h-16 w-16 text-dq-text-muted"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -53,12 +53,12 @@ export default async function LibraryPage() {
                 d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
               />
             </svg>
-            <p className="text-base text-zinc-500 dark:text-zinc-400">
+            <p className="text-base text-dq-text-muted">
               購入した知識はまだありません
             </p>
             <Link
               href="/search"
-              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              className="mt-5 inline-flex items-center gap-2 rounded-sm bg-dq-gold px-4 py-2 text-sm font-medium text-dq-bg transition-colors hover:bg-dq-gold/80"
             >
               マーケットを探す
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -80,18 +80,18 @@ export default async function LibraryPage() {
             if (!item) return null;
             return (
               <Link key={purchase.id} href={`/library/${item.id}`} className="group">
-                <Card hover padding="md" className="h-full transition-all duration-200 group-hover:border-blue-200 dark:group-hover:border-blue-800/50">
+                <Card hover padding="md" className="h-full transition-all duration-200 group-hover:border-dq-gold/50">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-start justify-between">
                       <Badge>{CONTENT_TYPE_LABELS[item.content_type]}</Badge>
                     </div>
-                    <h3 className="font-semibold text-zinc-900 transition-colors group-hover:text-blue-600 dark:text-zinc-100 dark:group-hover:text-blue-400">
+                    <h3 className="font-semibold text-dq-text transition-colors group-hover:text-dq-gold">
                       {item.title}
                     </h3>
-                    <p className="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <p className="line-clamp-2 text-sm text-dq-text-sub">
                       {item.description}
                     </p>
-                    <div className="flex items-center gap-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+                    <div className="flex items-center gap-1.5 text-xs text-dq-text-muted">
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>

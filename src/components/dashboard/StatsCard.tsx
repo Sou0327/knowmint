@@ -11,10 +11,10 @@ export interface StatsCardProps {
 }
 
 const ICON_COLORS = {
-  blue: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
-  green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400",
-  purple: "bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400",
-  amber: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400",
+  blue: "bg-dq-cyan/10 text-dq-cyan",
+  green: "bg-dq-green/10 text-dq-green",
+  purple: "bg-dq-purple/10 text-dq-purple",
+  amber: "bg-dq-gold/10 text-dq-gold",
 };
 
 export default function StatsCard({
@@ -29,14 +29,14 @@ export default function StatsCard({
     <Card padding="md">
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm font-medium text-dq-text-muted">
             {label}
           </p>
-          <p className="mt-1.5 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <p className="mt-1.5 text-2xl font-bold tracking-tight text-dq-gold">
             {value}
           </p>
           {subValue && (
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-sm text-dq-text-muted">
               {subValue}
             </p>
           )}
@@ -44,8 +44,8 @@ export default function StatsCard({
             <p
               className={`mt-1.5 text-sm font-medium ${
                 trend.value >= 0
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-red-600 dark:text-red-400"
+                  ? "text-dq-green"
+                  : "text-dq-red"
               }`}
             >
               {trend.value >= 0 ? "+" : ""}
@@ -54,7 +54,7 @@ export default function StatsCard({
           )}
         </div>
         {icon && (
-          <div className={`ml-4 rounded-xl p-2.5 ${ICON_COLORS[iconColor]}`}>
+          <div className={`ml-4 rounded-sm p-2.5 ${ICON_COLORS[iconColor]}`}>
             {icon}
           </div>
         )}

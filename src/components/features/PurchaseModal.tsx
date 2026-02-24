@@ -60,7 +60,6 @@ export default function PurchaseModal({
     setError(null);
 
     try {
-      // Solana chain
       if (selectedChain === "solana") {
         if (!connected || !publicKey) {
           setVisible(true);
@@ -86,7 +85,6 @@ export default function PurchaseModal({
             const { buildSmartContractPurchaseSpl } = await import("@/lib/solana/program");
             const { resolveUsdcAccounts } = await import("@/lib/solana/token-accounts");
             const { buyerAta, sellerAta, feeVaultAta } = await resolveUsdcAccounts(publicKey, sellerWallet);
-            // amountAtomic: USDC has 6 decimals
             const amountAtomic = BigInt(Math.round(amount * 1_000_000));
             const transaction = await buildSmartContractPurchaseSpl(
               publicKey, buyerAta, sellerAta, feeVaultAta, amountAtomic
@@ -97,9 +95,7 @@ export default function PurchaseModal({
             setError("USDC決済は現在準備中です");
           }
         }
-      }
-      // EVM chains (Base, Ethereum)
-      else {
+      } else {
         if (!evmConnected || !evmAddress) {
           setError("EVMウォレットを接続してください");
           setProcessing(false);
@@ -123,13 +119,13 @@ export default function PurchaseModal({
     <Modal isOpen={isOpen} onClose={onClose} title="購入確認" size="md">
       <div className="space-y-4">
         <div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">購入アイテム</p>
-          <p className="font-medium text-zinc-900 dark:text-zinc-100">{title}</p>
+          <p className="text-sm text-dq-text-muted">購入アイテム</p>
+          <p className="font-medium text-dq-text">{title}</p>
         </div>
 
         {/* Token selection */}
         <div>
-          <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <p className="mb-2 text-sm font-medium text-dq-text-sub">
             支払い通貨
           </p>
           <div className="flex gap-2">
@@ -137,13 +133,13 @@ export default function PurchaseModal({
               <button
                 type="button"
                 onClick={() => setSelectedToken("SOL")}
-                className={`flex-1 rounded-lg border p-3 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`flex-1 rounded-sm border-2 p-3 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-dq-gold ${
                   selectedToken === "SOL"
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-                    : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700"
+                    ? "border-dq-gold bg-dq-gold/10"
+                    : "border-dq-border hover:border-dq-gold/50"
                 }`}
               >
-                <span className="block text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                <span className="block text-lg font-bold text-dq-gold">
                   {priceSol} SOL
                 </span>
               </button>
@@ -152,13 +148,13 @@ export default function PurchaseModal({
               <button
                 type="button"
                 onClick={() => setSelectedToken("USDC")}
-                className={`flex-1 rounded-lg border p-3 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`flex-1 rounded-sm border-2 p-3 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-dq-gold ${
                   selectedToken === "USDC"
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-                    : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700"
+                    ? "border-dq-gold bg-dq-gold/10"
+                    : "border-dq-border hover:border-dq-gold/50"
                 }`}
               >
-                <span className="block text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                <span className="block text-lg font-bold text-dq-gold">
                   {priceUsdc} USDC
                 </span>
               </button>
@@ -167,26 +163,26 @@ export default function PurchaseModal({
         </div>
 
         {selectedChain !== "solana" && (
-          <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+          <div className="rounded-sm border-2 border-dq-yellow/40 bg-dq-yellow/10 p-3 text-sm text-dq-yellow">
             EVM チェーンでの購入は現在準備中です（Solana をご利用ください）
           </div>
         )}
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
+          <div className="rounded-sm border-2 border-dq-red/40 bg-dq-red/10 p-3 text-sm text-dq-red">
             {error}
           </div>
         )}
 
-        {/* 利用規約同意 */}
+        {/* Terms */}
         <label
           htmlFor="terms-agree"
-          className="flex cursor-pointer items-start gap-2.5 text-sm text-zinc-600 dark:text-zinc-400"
+          className="flex cursor-pointer items-start gap-2.5 text-sm text-dq-text-sub"
         >
           <input
             id="terms-agree"
             type="checkbox"
-            className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+            className="mt-0.5 h-4 w-4 rounded-sm border-dq-border accent-dq-gold"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
           />
@@ -195,8 +191,8 @@ export default function PurchaseModal({
               href="/terms"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="利用規約（新しいタブで開きます）"
-              className="text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              aria-label="Terms (opens in new tab)"
+              className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
             >
               利用規約
             </a>

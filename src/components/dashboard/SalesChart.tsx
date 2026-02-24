@@ -44,13 +44,12 @@ export default function SalesChart({ data }: SalesChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center text-zinc-500 dark:text-zinc-400">
+      <div className="flex h-64 items-center justify-center text-dq-text-muted">
         この期間のデータはありません
       </div>
     );
   }
 
-  // Only show bars for tokens that have data
   const hasSOL = chartData.some((d) => d.SOL > 0);
   const hasUSDC = chartData.some((d) => d.USDC > 0);
   const hasETH = chartData.some((d) => d.ETH > 0);
@@ -58,22 +57,22 @@ export default function SalesChart({ data }: SalesChartProps) {
   return (
     <ResponsiveContainer width="100%" height={320}>
       <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-dq-border)" />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 12, fill: "#71717a" }}
+          tick={{ fontSize: 12, fill: "var(--color-dq-text-muted)" }}
           tickFormatter={(v: string) => {
             const parts = v.split("-");
             return `${Number(parts[1])}/${Number(parts[2])}`;
           }}
         />
-        <YAxis tick={{ fontSize: 12, fill: "#71717a" }} />
+        <YAxis tick={{ fontSize: 12, fill: "var(--color-dq-text-muted)" }} />
         <Tooltip
           contentStyle={{
-            backgroundColor: "#18181b",
-            border: "1px solid #3f3f46",
-            borderRadius: 8,
-            color: "#f4f4f5",
+            backgroundColor: "var(--color-dq-window-bg)",
+            border: "2px solid var(--color-dq-border-outer)",
+            borderRadius: 2,
+            color: "var(--color-dq-text)",
           }}
           labelFormatter={(v) => {
             const parts = String(v).split("-");
@@ -81,9 +80,9 @@ export default function SalesChart({ data }: SalesChartProps) {
           }}
         />
         <Legend />
-        {hasSOL && <Bar dataKey="SOL" fill="#9945FF" radius={[4, 4, 0, 0]} />}
-        {hasUSDC && <Bar dataKey="USDC" fill="#2775CA" radius={[4, 4, 0, 0]} />}
-        {hasETH && <Bar dataKey="ETH" fill="#627EEA" radius={[4, 4, 0, 0]} />}
+        {hasSOL && <Bar dataKey="SOL" fill="var(--color-dq-purple)" radius={[2, 2, 0, 0]} />}
+        {hasUSDC && <Bar dataKey="USDC" fill="var(--color-dq-cyan)" radius={[2, 2, 0, 0]} />}
+        {hasETH && <Bar dataKey="ETH" fill="var(--color-dq-gold)" radius={[2, 2, 0, 0]} />}
       </BarChart>
     </ResponsiveContainer>
   );

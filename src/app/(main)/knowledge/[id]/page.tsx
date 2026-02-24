@@ -53,7 +53,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     <div className="mx-auto max-w-4xl">
       <Link
         href="/"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-dq-cyan hover:text-dq-gold"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -73,31 +73,31 @@ export default async function KnowledgeDetailPage({ params }: Props) {
               {item.category && (
                 <Link
                   href={`/category/${(item.category as unknown as { slug: string }).slug}`}
-                  className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                  className="text-sm text-dq-cyan hover:text-dq-gold"
                 >
                   {(item.category as unknown as { name: string }).name}
                 </Link>
               )}
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-dq-text sm:text-4xl">
               {item.title}
             </h1>
-            <div className="mt-2 flex items-center text-sm text-zinc-500 dark:text-zinc-400">
+            <div className="mt-2 flex items-center text-sm text-dq-text-muted">
               {avgRating && <span>★ {avgRating}</span>}
-              <span className="before:content-['·'] before:mx-2 before:text-zinc-300 dark:before:text-zinc-600">
+              <span className="before:content-['·'] before:mx-2 before:text-dq-text-muted">
                 {item.purchase_count} {isRequest ? "反応" : "購入"}
               </span>
-              <span className="before:content-['·'] before:mx-2 before:text-zinc-300 dark:before:text-zinc-600">
+              <span className="before:content-['·'] before:mx-2 before:text-dq-text-muted">
                 {item.view_count} 閲覧
               </span>
             </div>
           </div>
 
           <div>
-            <h2 className="mb-2 border-l-4 border-blue-500 pl-3 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
               説明
             </h2>
-            <p className="whitespace-pre-wrap leading-relaxed text-zinc-700 dark:text-zinc-300">
+            <p className="whitespace-pre-wrap leading-relaxed text-dq-text-sub">
               {item.description}
             </p>
           </div>
@@ -108,7 +108,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
                 <Link
                   key={tag}
                   href={`/search?q=${encodeURIComponent(tag)}`}
-                  className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-blue-950 dark:hover:text-blue-400"
+                  className="rounded-sm bg-dq-surface px-3 py-1 text-sm text-dq-cyan border border-dq-border transition-colors hover:bg-dq-hover hover:text-dq-gold"
                 >
                   {tag}
                 </Link>
@@ -118,7 +118,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
 
           {item.preview_content && (
             <div>
-              <h2 className="mb-2 border-l-4 border-blue-500 pl-3 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
                 プレビュー
               </h2>
               <ContentPreview
@@ -130,7 +130,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
 
           {/* Reviews */}
           <div>
-            <h2 className="mb-4 border-l-4 border-blue-500 pl-3 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="mb-4 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
               レビュー
             </h2>
             <ReviewList reviews={(item.reviews as unknown as Array<{
@@ -151,19 +151,19 @@ export default async function KnowledgeDetailPage({ params }: Props) {
         <div className="space-y-4">
           {/* Price card */}
           <div className="sticky top-24 space-y-4">
-            <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-violet-500" />
+            <div className="overflow-hidden rounded-sm dq-window p-6">
+              <div className="h-1 bg-dq-gold -mx-6 -mt-6 mb-6" />
               <div className="mb-4 space-y-1">
-                <p className="text-xs font-medium tracking-wide text-zinc-500 dark:text-zinc-400">
+                <p className="text-xs font-medium tracking-wide text-dq-text-muted">
                   {isRequest ? "想定報酬" : "価格"}
                 </p>
                 {item.price_sol !== null && (
-                  <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  <p className="text-2xl font-bold text-dq-gold">
                     {item.price_sol} SOL
                   </p>
                 )}
                 {item.price_usdc !== null && (
-                  <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                  <p className="text-lg text-dq-text-sub">
                     {item.price_usdc} USDC
                   </p>
                 )}

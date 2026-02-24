@@ -26,23 +26,23 @@ export default async function HomePage() {
     <div className="space-y-16">
       {/* Hero */}
       <section className="py-8 text-center">
-        <h1 className="bg-gradient-to-r from-zinc-900 via-blue-800 to-violet-800 bg-clip-text text-5xl font-bold leading-tight tracking-tight text-transparent dark:from-zinc-100 dark:via-blue-300 dark:to-violet-300 sm:text-6xl">
+        <h1 className="text-5xl font-bold leading-tight tracking-tight text-dq-gold sm:text-6xl">
           KnowMint
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-xl">
+        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-dq-text-sub sm:text-xl">
           AIエージェントと人間のための知識マーケットプレイス。
           プロンプト、ツール定義、データセット、APIを売買できます。
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <Link
             href="/search"
-            className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-blue-600/25 transition-all duration-300 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30"
+            className="rounded-sm bg-dq-gold px-6 py-3 text-sm font-medium text-dq-bg transition-colors hover:brightness-110"
           >
             マーケットを探す
           </Link>
           <Link
             href="/list"
-            className="rounded-lg border border-zinc-300 px-6 py-3 text-sm font-medium text-zinc-700 transition-all duration-300 hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            className="rounded-sm border-2 border-dq-border px-6 py-3 text-sm font-medium text-dq-text-sub transition-colors hover:bg-dq-surface hover:text-dq-gold"
           >
             出品する
           </Link>
@@ -57,19 +57,19 @@ export default async function HomePage() {
       {/* Categories */}
       <section>
         <div className="mb-4 flex items-center gap-4">
-          <h2 className="shrink-0 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+          <h2 className="shrink-0 text-xl font-bold text-dq-gold">
             カテゴリ
           </h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-zinc-200 to-transparent dark:from-zinc-700" />
+          <div className="h-px flex-1 bg-dq-border" />
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
           {categories.map((cat) => (
             <Link
               key={cat.id}
               href={`/category/${cat.slug}`}
-              className="group rounded-xl border border-zinc-200 p-4 text-center transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-md dark:border-zinc-700 dark:hover:border-blue-600 dark:hover:bg-blue-950"
+              className="group rounded-sm dq-window-sm p-4 text-center transition-all hover:brightness-110"
             >
-              <span className="text-sm font-medium text-zinc-700 transition-colors group-hover:text-blue-600 dark:text-zinc-300 dark:group-hover:text-blue-400">
+              <span className="text-sm font-medium text-dq-text-sub transition-colors group-hover:text-dq-gold">
                 {cat.name}
               </span>
             </Link>
@@ -81,14 +81,14 @@ export default async function HomePage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-1 items-center gap-4">
-            <h2 className="shrink-0 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="shrink-0 text-xl font-bold text-dq-gold">
               新着
             </h2>
-            <div className="h-px flex-1 bg-gradient-to-r from-zinc-200 to-transparent dark:from-zinc-700" />
+            <div className="h-px flex-1 bg-dq-border" />
           </div>
           <Link
             href="/search?sort=newest"
-            className="group ml-4 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+            className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
           >
             すべて見る{" "}
             <span className="inline-block transition-transform group-hover:translate-x-0.5">
@@ -118,7 +118,7 @@ export default async function HomePage() {
         {newest.data.length === 0 && (
           <div className="py-12 text-center">
             <svg
-              className="mx-auto mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-600"
+              className="mx-auto mb-3 h-10 w-10 text-dq-text-muted"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
@@ -130,7 +130,7 @@ export default async function HomePage() {
                 d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25-2.25M12 13.875V7.5M3.75 7.5h16.5"
               />
             </svg>
-            <p className="text-zinc-500 dark:text-zinc-400">
+            <p className="text-dq-text-muted">
               まだアイテムがありません
             </p>
           </div>
@@ -141,14 +141,14 @@ export default async function HomePage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-1 items-center gap-4">
-            <h2 className="shrink-0 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="shrink-0 text-xl font-bold text-dq-gold">
               人気
             </h2>
-            <div className="h-px flex-1 bg-gradient-to-r from-zinc-200 to-transparent dark:from-zinc-700" />
+            <div className="h-px flex-1 bg-dq-border" />
           </div>
           <Link
             href="/search?sort=popular"
-            className="group ml-4 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+            className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
           >
             すべて見る{" "}
             <span className="inline-block transition-transform group-hover:translate-x-0.5">
@@ -182,14 +182,14 @@ export default async function HomePage() {
         <section>
           <div className="mb-4 flex items-center justify-between">
             <div className="flex flex-1 items-center gap-4">
-              <h2 className="shrink-0 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              <h2 className="shrink-0 text-xl font-bold text-dq-gold">
                 人気の出品者
               </h2>
-              <div className="h-px flex-1 bg-gradient-to-r from-zinc-200 to-transparent dark:from-zinc-700" />
+              <div className="h-px flex-1 bg-dq-border" />
             </div>
             <Link
               href="/rankings"
-              className="group ml-4 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
             >
               ランキングを見る{" "}
               <span className="inline-block transition-transform group-hover:translate-x-0.5">

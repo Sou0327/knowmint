@@ -59,14 +59,14 @@ export default async function DashboardFavoritesPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <h1 className="mb-6 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-6 text-2xl font-bold text-dq-text">
         お気に入り
       </h1>
 
       {favorites.length === 0 ? (
         <Card padding="lg" className="mx-auto max-w-md text-center">
           <svg
-            className="mx-auto mb-4 h-12 w-12 text-zinc-300 dark:text-zinc-600"
+            className="mx-auto mb-4 h-12 w-12 text-dq-text-muted"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
@@ -79,15 +79,15 @@ export default async function DashboardFavoritesPage() {
               d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
             />
           </svg>
-          <p className="mb-1 text-base font-medium text-zinc-700 dark:text-zinc-300">
+          <p className="mb-1 text-base font-medium text-dq-text-sub">
             お気に入りがありません
           </p>
-          <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mb-4 text-sm text-dq-text-muted">
             気になるナレッジをお気に入りに追加してみましょう
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+            className="inline-flex items-center gap-1 text-sm font-medium text-dq-cyan transition-colors hover:text-dq-gold"
           >
             マーケットを見る
             <svg

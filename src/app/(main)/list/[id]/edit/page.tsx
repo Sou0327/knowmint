@@ -284,7 +284,7 @@ export default function EditListingPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-dq-gold border-t-transparent" />
       </div>
     );
   }
@@ -292,13 +292,13 @@ export default function EditListingPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-3xl font-bold tracking-tight text-dq-text">
           掲載を編集する
         </h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-dq-text-muted">
           掲載内容を編集して保存できます
         </p>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-xs text-dq-text-muted">
           現在の掲載種別: {LISTING_TYPE_LABELS[form.listing_type]}
         </p>
       </div>
@@ -309,10 +309,10 @@ export default function EditListingPage() {
             <div
               className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-all duration-300 ${
                 i < step
-                  ? "bg-blue-600 text-white"
+                  ? "bg-dq-gold text-dq-bg"
                   : i === step
-                    ? "bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/50"
-                    : "bg-zinc-200 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
+                    ? "bg-dq-gold text-dq-bg ring-4 ring-dq-gold/30"
+                    : "bg-dq-surface text-dq-text-muted"
               }`}
             >
               {i < step ? (
@@ -336,10 +336,10 @@ export default function EditListingPage() {
             <span
               className={`hidden text-sm sm:inline transition-all duration-300 ${
                 i === step
-                  ? "font-medium text-zinc-900 dark:text-zinc-100"
+                  ? "font-medium text-dq-text"
                   : i < step
-                    ? "text-zinc-900 dark:text-zinc-100"
-                    : "text-zinc-400 dark:text-zinc-500"
+                    ? "text-dq-text"
+                    : "text-dq-text-muted"
               }`}
             >
               {label}
@@ -347,7 +347,7 @@ export default function EditListingPage() {
             {i < STEPS.length - 1 && (
               <div
                 className={`h-0.5 w-12 transition-all duration-300 ${
-                  i < step ? "bg-blue-600" : "bg-zinc-200 dark:bg-zinc-700"
+                  i < step ? "bg-dq-gold" : "bg-dq-border"
                 }`}
               />
             )}
@@ -356,12 +356,12 @@ export default function EditListingPage() {
       </div>
 
       {errors.submit && (
-        <div className="mb-4 rounded-lg border-l-4 border-l-red-500 bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
+        <div className="mb-4 rounded-sm border-l-4 border-l-dq-red bg-dq-red/10 p-3 text-sm text-dq-red">
           {errors.submit}
         </div>
       )}
 
-      <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="mb-8 rounded-sm border border-dq-border bg-dq-window-bg p-6">
         {step === 0 && (
           <BasicInfoStep
             data={form}
@@ -403,7 +403,7 @@ export default function EditListingPage() {
         {step === 3 && <PreviewStep data={form} categories={categories} />}
       </div>
 
-      <div className="flex justify-between border-t border-zinc-200 pt-6 dark:border-zinc-700">
+      <div className="flex justify-between border-t border-dq-border pt-6">
         <Button variant="outline" onClick={handleBack} disabled={step === 0}>
           戻る
         </Button>

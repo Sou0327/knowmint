@@ -27,14 +27,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <div className="mb-6">
         <Link
           href="/"
-          className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+          className="text-sm text-dq-cyan hover:text-dq-gold"
         >
           ← トップ
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        <h1 className="mt-2 text-2xl font-bold text-dq-text">
           {result.category.name}
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-dq-text-muted">
           {result.total} 件のアイテム
         </p>
       </div>
@@ -60,7 +60,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           ))}
         </div>
       ) : (
-        <p className="py-12 text-center text-zinc-500 dark:text-zinc-400">
+        <p className="py-12 text-center text-dq-text-muted">
           このカテゴリにはまだアイテムがありません
         </p>
       )}
@@ -71,18 +71,18 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {page > 1 && (
             <Link
               href={`/category/${slug}?page=${page - 1}`}
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+              className="rounded-sm border border-dq-border px-4 py-2 text-sm hover:bg-dq-surface"
             >
               前へ
             </Link>
           )}
-          <span className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="px-4 py-2 text-sm text-dq-text-sub">
             {page} / {result.total_pages}
           </span>
           {page < result.total_pages && (
             <Link
               href={`/category/${slug}?page=${page + 1}`}
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800"
+              className="rounded-sm border border-dq-border px-4 py-2 text-sm hover:bg-dq-surface"
             >
               次へ
             </Link>

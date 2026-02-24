@@ -57,7 +57,7 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="mb-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <h1 className="mb-4 text-3xl font-bold tracking-tight text-dq-text">
           マーケット検索
         </h1>
         <SearchBar defaultValue={q} className="max-w-xl" />
@@ -68,17 +68,17 @@ export default async function SearchPage({ searchParams }: Props) {
         <aside className="hidden w-48 shrink-0 lg:block">
           <div className="sticky top-24 space-y-6">
             <div>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-dq-gold">
                 カテゴリ
               </h3>
               <ul className="space-y-1">
                 <li>
                   <Link
                     href={buildUrl({ category: undefined, page: undefined })}
-                    className={`block rounded-lg px-2 py-1 text-sm ${
+                    className={`block rounded-sm px-2 py-1 text-sm ${
                       !category
-                        ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                        : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        ? "bg-dq-surface font-medium text-dq-gold"
+                        : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                     }`}
                   >
                     すべて
@@ -88,10 +88,10 @@ export default async function SearchPage({ searchParams }: Props) {
                   <li key={cat.id}>
                     <Link
                       href={buildUrl({ category: cat.slug, page: undefined })}
-                      className={`block rounded-lg px-2 py-1 text-sm ${
+                      className={`block rounded-sm px-2 py-1 text-sm ${
                         category === cat.slug
-                          ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                          : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                          ? "bg-dq-surface font-medium text-dq-gold"
+                          : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                       }`}
                     >
                       {cat.name}
@@ -102,17 +102,17 @@ export default async function SearchPage({ searchParams }: Props) {
             </div>
 
             <div>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-dq-gold">
                 コンテンツタイプ
               </h3>
               <ul className="space-y-1">
                 <li>
                   <Link
                     href={buildUrl({ type: undefined, page: undefined })}
-                    className={`block rounded-lg px-2 py-1 text-sm ${
+                    className={`block rounded-sm px-2 py-1 text-sm ${
                       !type
-                        ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                        : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        ? "bg-dq-surface font-medium text-dq-gold"
+                        : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                     }`}
                   >
                     すべて
@@ -122,10 +122,10 @@ export default async function SearchPage({ searchParams }: Props) {
                   <li key={value}>
                     <Link
                       href={buildUrl({ type: value, page: undefined })}
-                      className={`block rounded-lg px-2 py-1 text-sm ${
+                      className={`block rounded-sm px-2 py-1 text-sm ${
                         type === value
-                          ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                          : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                          ? "bg-dq-surface font-medium text-dq-gold"
+                          : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                       }`}
                     >
                       {label}
@@ -141,10 +141,10 @@ export default async function SearchPage({ searchParams }: Props) {
         <div className="flex-1">
           {/* Sort */}
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+            <p className="text-sm font-medium text-dq-text-sub">
               {result.total} 件の結果
               {q && (
-                <span className="font-normal text-zinc-500 dark:text-zinc-400">
+                <span className="font-normal text-dq-text-muted">
                   {" "}
                   - &quot;{q}&quot;
                 </span>
@@ -155,10 +155,10 @@ export default async function SearchPage({ searchParams }: Props) {
                 <Link
                   key={opt.value}
                   href={buildUrl({ sort: opt.value, page: undefined })}
-                  className={`rounded-full px-3 py-1 text-xs transition-all ${
+                  className={`rounded-sm px-3 py-1 text-xs transition-all ${
                     sortBy === opt.value
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                      ? "bg-dq-gold text-dq-bg"
+                      : "bg-dq-surface text-dq-text-sub hover:bg-dq-hover"
                   }`}
                 >
                   {opt.label}
@@ -190,7 +190,7 @@ export default async function SearchPage({ searchParams }: Props) {
           ) : (
             <div className="py-16 text-center">
               <svg
-                className="mx-auto mb-4 h-12 w-12 text-zinc-300 dark:text-zinc-600"
+                className="mx-auto mb-4 h-12 w-12 text-dq-text-muted"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -202,7 +202,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              <p className="text-zinc-500 dark:text-zinc-400">
+              <p className="text-dq-text-muted">
                 結果が見つかりませんでした
               </p>
             </div>
@@ -214,18 +214,18 @@ export default async function SearchPage({ searchParams }: Props) {
               {page > 1 && (
                 <Link
                   href={buildUrl({ page: String(page - 1) })}
-                  className="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-50 hover:shadow-sm transition-all dark:border-zinc-600 dark:hover:bg-zinc-800"
+                  className="rounded-sm border-2 border-dq-border px-4 py-2 text-sm font-medium hover:bg-dq-surface transition-colors"
                 >
                   前へ
                 </Link>
               )}
-              <span className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+              <span className="px-4 py-2 text-sm font-medium text-dq-text-sub">
                 {page} / {result.total_pages}
               </span>
               {page < result.total_pages && (
                 <Link
                   href={buildUrl({ page: String(page + 1) })}
-                  className="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-50 hover:shadow-sm transition-all dark:border-zinc-600 dark:hover:bg-zinc-800"
+                  className="rounded-sm border-2 border-dq-border px-4 py-2 text-sm font-medium hover:bg-dq-surface transition-colors"
                 >
                   次へ
                 </Link>

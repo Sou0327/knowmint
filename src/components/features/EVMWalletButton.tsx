@@ -35,10 +35,10 @@ export default function EVMWalletButton() {
   if (isConnected && address) {
     return (
       <div className="flex items-center gap-2">
-        <span className="rounded-lg bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+        <span className="rounded-sm bg-dq-surface px-2 py-1 text-xs font-medium text-dq-text-sub border border-dq-border">
           {chainLabel}
         </span>
-        <span className="rounded-lg bg-zinc-100 px-3 py-1.5 font-mono text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+        <span className="rounded-sm bg-dq-surface px-3 py-1.5 font-mono text-xs text-dq-text-sub border border-dq-border">
           {address.slice(0, 6)}...{address.slice(-4)}
         </span>
         <Button variant="outline" size="sm" onClick={() => disconnect()}>
@@ -70,7 +70,7 @@ export default function EVMWalletButton() {
       </Button>
 
       {openForChain === activeChain && connectors.length > 1 && (
-        <div className="absolute right-0 z-50 mt-1 w-44 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="absolute right-0 z-50 mt-1 w-44 dq-window-sm py-1">
           {connectors.map((connector) => (
             <button
               key={connector.uid}
@@ -79,7 +79,7 @@ export default function EVMWalletButton() {
                 connect({ connector });
                 setOpenForChain(null);
               }}
-              className="flex w-full items-center px-3 py-2 text-left text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              className="flex w-full items-center px-3 py-2 text-left text-sm text-dq-text-sub transition-colors hover:bg-dq-surface hover:text-dq-gold"
             >
               {connector.name}
             </button>

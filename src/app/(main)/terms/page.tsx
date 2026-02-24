@@ -6,16 +6,16 @@ export const metadata = {
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-2 text-3xl font-bold text-dq-gold">
         利用規約
       </h1>
-      <p className="mb-8 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mb-8 text-sm text-dq-text-muted">
         最終更新日: 2026年2月24日
       </p>
 
-      <div className="space-y-8 text-zinc-700 dark:text-zinc-300">
+      <div className="font-legal space-y-8 text-dq-text-sub">
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第1条（サービス概要）
           </h2>
           <p className="leading-relaxed">
@@ -25,7 +25,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第2条（利用登録）
           </h2>
           <p className="leading-relaxed">
@@ -35,7 +35,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第3条（禁止事項）
           </h2>
           <p className="mb-2 leading-relaxed">以下の行為を禁止します。</p>
@@ -52,7 +52,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第4条（デジタルコンテンツの返金ポリシー）
           </h2>
           <p className="mb-2 leading-relaxed">
@@ -72,7 +72,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第5条（暗号資産決済に関する免責）
           </h2>
           <p className="mb-2 leading-relaxed">
@@ -96,7 +96,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第6条（ノンカストディアル決済）
           </h2>
           <p className="leading-relaxed">
@@ -107,7 +107,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第7条（知的財産権）
           </h2>
           <p className="leading-relaxed">
@@ -117,7 +117,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第8条（免責事項）
           </h2>
           <p className="mb-2 leading-relaxed">
@@ -134,7 +134,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第9条（サービスの変更・終了）
           </h2>
           <p className="leading-relaxed">
@@ -144,7 +144,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第10条（準拠法・管轄裁判所）
           </h2>
           <p className="leading-relaxed">
@@ -153,7 +153,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             第11条（規約の改定）
           </h2>
           <p className="leading-relaxed">

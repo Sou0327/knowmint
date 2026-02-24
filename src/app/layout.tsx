@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, DotGothic16 } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SolanaWalletProvider } from "@/contexts/WalletContext";
+import { EVMWalletProvider } from "@/contexts/EVMWalletContext";
 import { ChainProvider } from "@/contexts/ChainContext";
 import { I18nProvider } from "@/contexts/I18nContext";
 import type { Locale } from "@/lib/i18n/config";
+
+const dotGothic = DotGothic16({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-dotgothic",
+  display: "swap",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,12 +48,14 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${dotGothic.variable} ${geistSans.variable} ${geistMono.variable}`}
       >
         <I18nProvider initialLocale="ja">
           <AuthProvider>
             <SolanaWalletProvider>
-              <ChainProvider>{children}</ChainProvider>
+              <EVMWalletProvider>
+                <ChainProvider>{children}</ChainProvider>
+              </EVMWalletProvider>
             </SolanaWalletProvider>
           </AuthProvider>
         </I18nProvider>

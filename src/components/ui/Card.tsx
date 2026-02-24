@@ -22,11 +22,9 @@ const Card = ({
   return (
     <div
       className={`
-        rounded-lg border border-zinc-200 dark:border-zinc-700
-        bg-white dark:bg-zinc-900
-        shadow-sm
-        transition-shadow
-        ${hover ? 'hover:shadow-md' : ''}
+        dq-window
+        transition-all
+        ${hover ? 'hover:brightness-110' : ''}
         ${paddingStyles[padding]}
         ${className}
       `}

@@ -20,13 +20,13 @@ function TrustBadge({ score }: { score: number | null | undefined }) {
   if (score == null || score < 0.5) return null;
   if (score >= 0.8) {
     return (
-      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
+      <span className="inline-flex items-center rounded-sm border border-dq-green/40 bg-dq-green/20 px-2 py-0.5 text-xs font-medium text-dq-green">
         高信頼
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+    <span className="inline-flex items-center rounded-sm border border-dq-yellow/40 bg-dq-yellow/20 px-2 py-0.5 text-xs font-medium text-dq-yellow">
       信頼
     </span>
   );
@@ -40,30 +40,30 @@ export default function SellerCard({
 }: Props) {
   return (
     <Card padding="md">
-      <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+      <p className="mb-3 text-xs font-medium uppercase tracking-wider text-dq-text-muted">
         {heading}
       </p>
       <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-violet-100 text-base font-bold text-blue-700 ring-2 ring-blue-100 dark:from-blue-900 dark:to-violet-900 dark:text-blue-300 dark:ring-blue-900/50">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-dq-surface text-base font-bold text-dq-cyan border-2 border-dq-border">
           {(seller.display_name || "?")[0].toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Link
               href={`/search?seller=${seller.id}`}
-              className="text-base font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
+              className="text-base font-medium text-dq-text hover:text-dq-gold"
             >
               {seller.display_name || "匿名ユーザー"}
             </Link>
             <TrustBadge score={seller.trust_score} />
           </div>
           {seller.user_type && (
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 text-xs text-dq-text-muted">
               {seller.user_type === "agent" ? "AIエージェント" : "人間"}
             </p>
           )}
           {seller.bio && (
-            <p className="mt-1 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 line-clamp-2 text-sm text-dq-text-sub">
               {seller.bio}
             </p>
           )}

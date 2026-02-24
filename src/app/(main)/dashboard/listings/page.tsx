@@ -72,7 +72,7 @@ export default function DashboardListingsPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-dq-gold border-t-transparent" />
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function DashboardListingsPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-2xl font-bold text-dq-text">
           出品管理
         </h1>
         <Link href="/list">
@@ -91,7 +91,7 @@ export default function DashboardListingsPage() {
       {listings.length === 0 ? (
         <Card padding="lg">
           <div className="text-center">
-            <p className="text-zinc-500 dark:text-zinc-400">
+            <p className="text-dq-text-muted">
               まだ出品がありません
             </p>
             <Link href="/list" className="mt-4 inline-block">
@@ -106,7 +106,7 @@ export default function DashboardListingsPage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                    <h2 className="text-lg font-semibold text-dq-text">
                       {item.title}
                     </h2>
                     <Badge variant={STATUS_VARIANT[item.status]}>
@@ -117,10 +117,10 @@ export default function DashboardListingsPage() {
                       {LISTING_TYPE_LABELS[item.listing_type]}
                     </Badge>
                   </div>
-                  <p className="mt-1 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="mt-1 line-clamp-2 text-sm text-dq-text-sub">
                     {item.description}
                   </p>
-                  <div className="mt-2 flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                  <div className="mt-2 flex items-center gap-4 text-sm text-dq-text-muted">
                     {item.price_sol && <span>{item.price_sol} SOL</span>}
                     {item.price_usdc && <span>{item.price_usdc} USDC</span>}
                     <span>{item.view_count} 閲覧</span>

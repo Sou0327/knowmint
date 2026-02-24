@@ -27,11 +27,9 @@ const Modal = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Body scroll lock
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Escape key handler
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -55,19 +53,18 @@ const Modal = ({
       aria-modal="true"
       aria-labelledby={title ? 'modal-title' : undefined}
     >
-      {/* Backdrop */}
+      {/* DQ-style dark backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
+        className="fixed inset-0 bg-black/70 transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal content */}
+      {/* DQ Window modal */}
       <div
         className={`
           relative w-full ${sizeStyles[size]}
-          bg-white dark:bg-zinc-900
-          rounded-lg shadow-xl
+          dq-window
           max-h-[90vh] overflow-y-auto
           transform transition-all
         `}
@@ -75,31 +72,19 @@ const Modal = ({
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-700">
+          <div className="flex items-center justify-between p-6 border-b-2 border-dq-border">
             <h2
               id="modal-title"
-              className="text-xl font-semibold text-zinc-900 dark:text-zinc-100"
+              className="text-xl font-semibold text-dq-gold"
             >
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-              aria-label="モーダルを閉じる"
+              className="text-dq-text-muted hover:text-dq-text transition-colors"
+              aria-label="Close modal"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <span className="text-xl">✕</span>
             </button>
           </div>
         )}

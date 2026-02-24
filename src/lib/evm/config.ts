@@ -5,7 +5,7 @@ import { metaMask, coinbaseWallet } from "wagmi/connectors";
 export const wagmiConfig = createConfig({
   chains: [base, mainnet],
   connectors: [
-    metaMask(),
+    metaMask({ enableAnalytics: false }),
     coinbaseWallet({ appName: "KnowMint" }),
   ],
   transports: {

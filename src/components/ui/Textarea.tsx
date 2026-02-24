@@ -19,7 +19,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={textareaId}
-            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
+            className="block text-sm font-medium text-dq-text-sub mb-1.5"
           >
             {label}
           </label>
@@ -28,19 +28,19 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           className={`
-            w-full px-3 py-2 text-base rounded-lg border
-            bg-white dark:bg-zinc-900
-            text-zinc-900 dark:text-zinc-100
-            placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-            focus:outline-none focus:ring-2 focus:ring-offset-0
+            w-full px-3 py-2 text-base rounded-sm border-2
+            bg-dq-surface
+            text-dq-text
+            placeholder:text-dq-text-muted
+            focus:outline-none focus:ring-2 focus:ring-dq-gold focus:ring-offset-0
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-colors
             resize-vertical
             min-h-[100px]
             ${
               error
-                ? 'border-red-600 focus:ring-red-500 focus:border-red-600'
-                : 'border-zinc-300 dark:border-zinc-600 focus:ring-blue-500 focus:border-blue-500'
+                ? 'border-dq-red focus:ring-dq-red'
+                : 'border-dq-border focus:border-dq-gold'
             }
             ${className}
           `}
@@ -57,7 +57,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {hint && !error && (
           <p
             id={`${textareaId}-hint`}
-            className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400"
+            className="mt-1.5 text-sm text-dq-text-muted"
           >
             {hint}
           </p>
@@ -65,7 +65,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {error && (
           <p
             id={`${textareaId}-error`}
-            className="mt-1.5 text-sm text-red-600 dark:text-red-500"
+            className="mt-1.5 text-sm text-dq-red"
             role="alert"
           >
             {error}

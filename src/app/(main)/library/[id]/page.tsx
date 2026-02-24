@@ -48,15 +48,15 @@ export default async function LibraryItemPage({ params }: Props) {
   if (!canAccess) {
     return (
       <div className="mx-auto max-w-2xl text-center">
-        <h1 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        <h1 className="mb-4 text-2xl font-bold text-dq-text">
           アクセス権限がありません
         </h1>
-        <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+        <p className="mb-4 text-dq-text-sub">
           このコンテンツを閲覧するには購入が必要です。
         </p>
         <Link
           href={`/knowledge/${id}`}
-          className="text-blue-600 hover:text-blue-500 dark:text-blue-400"
+          className="text-dq-cyan hover:text-dq-gold"
         >
           詳細ページへ →
         </Link>
@@ -89,7 +89,7 @@ export default async function LibraryItemPage({ params }: Props) {
     <div className="mx-auto max-w-3xl">
       <Link
         href="/library"
-        className="mb-4 inline-block text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+        className="mb-4 inline-block text-sm text-dq-cyan hover:text-dq-gold"
       >
         ← ライブラリに戻る
       </Link>
@@ -98,18 +98,18 @@ export default async function LibraryItemPage({ params }: Props) {
         <Badge>{CONTENT_TYPE_LABELS[item.content_type as ContentType]}</Badge>
       </div>
 
-      <h1 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+      <h1 className="mb-4 text-2xl font-bold text-dq-text">
         {item.title}
       </h1>
 
       <div className="mb-6">
-        <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+        <p className="whitespace-pre-wrap text-dq-text-sub">
           {item.description}
         </p>
       </div>
 
-      <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      <div className="rounded-sm border border-dq-border bg-dq-window-bg p-6">
+        <h2 className="mb-4 text-lg font-semibold text-dq-text">
           コンテンツ
         </h2>
         {content?.full_content ? (
@@ -122,12 +122,12 @@ export default async function LibraryItemPage({ params }: Props) {
             href={downloadUrl || content?.file_url || ""}
             download
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-sm bg-dq-gold px-4 py-2 text-sm text-dq-bg hover:bg-dq-gold/80"
           >
             ファイルをダウンロード
           </a>
         ) : (
-          <p className="text-zinc-500 dark:text-zinc-400">
+          <p className="text-dq-text-muted">
             コンテンツがありません
           </p>
         )}

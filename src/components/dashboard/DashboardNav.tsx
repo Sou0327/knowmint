@@ -100,8 +100,8 @@ function NavLink({
         aria-current={isActive ? "page" : undefined}
         className={`flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
           isActive
-            ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+            ? "border-dq-gold text-dq-gold"
+            : "border-transparent text-dq-text-muted hover:text-dq-text-sub"
         }`}
       >
         {item.icon}
@@ -114,17 +114,20 @@ function NavLink({
     <Link
       href={item.href}
       aria-current={isActive ? "page" : undefined}
-      className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+      className={`group flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
         isActive
-          ? "bg-blue-50 text-blue-700 shadow-sm dark:bg-blue-950/60 dark:text-blue-400"
-          : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
+          ? "bg-dq-surface text-dq-gold"
+          : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
       }`}
     >
+      {isActive && (
+        <span className="dq-cursor text-dq-gold">▶</span>
+      )}
       <span
         className={`transition-colors ${
           isActive
-            ? "text-blue-600 dark:text-blue-400"
-            : "text-zinc-400 group-hover:text-zinc-600 dark:text-zinc-500 dark:group-hover:text-zinc-300"
+            ? "text-dq-gold"
+            : "text-dq-text-muted group-hover:text-dq-text-sub"
         }`}
       >
         {item.icon}
@@ -160,7 +163,7 @@ export default function DashboardNav() {
             ))}
           </ul>
 
-          <div className="border-t border-zinc-200 dark:border-zinc-700/50" />
+          <div className="border-t-2 border-dq-border" />
 
           <ul className="space-y-0.5">
             {SECONDARY_NAV.map((item) => (
@@ -177,7 +180,7 @@ export default function DashboardNav() {
       </nav>
 
       {/* Mobile horizontal scroll tabs */}
-      <nav className="lg:hidden -mx-4 mb-6 overflow-x-auto border-b border-zinc-200 dark:border-zinc-700">
+      <nav className="lg:hidden -mx-4 mb-6 overflow-x-auto border-b-2 border-dq-border">
         <ul className="flex min-w-max px-4">
           {ALL_NAV.map((item) => (
             <li key={item.href}>

@@ -1,26 +1,178 @@
 @import "tailwindcss";
 
+/* ===== DQ Theme: Dark Mode (Native DQ) ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a2e;
+  --foreground: #f0f0f0;
+
+  --dq-bg: #0a0a2e;
+  --dq-window-bg: #10103a;
+  --dq-surface: #181850;
+  --dq-hover: #1e1e5c;
+
+  --dq-text: #f0f0f0;
+  --dq-text-sub: #a0a0c0;
+  --dq-text-muted: #606080;
+
+  --dq-gold: #f5c542;
+  --dq-cyan: #40c0e0;
+  --dq-red: #e04040;
+  --dq-green: #40c040;
+  --dq-yellow: #e0c040;
+  --dq-purple: #a040e0;
+
+  --dq-border-outer: #e0e0e0;
+  --dq-border: #404060;
+
+  color-scheme: dark;
+}
+
+/* ===== DQ Theme: Light Mode (DQ Field) ===== */
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #e8e0d0;
+    --foreground: #1a1a2e;
+
+    --dq-bg: #e8e0d0;
+    --dq-window-bg: #f5f0e5;
+    --dq-surface: #ffffff;
+    --dq-hover: #ede8dc;
+
+    --dq-text: #1a1a2e;
+    --dq-text-sub: #404060;
+    --dq-text-muted: #808090;
+
+    --dq-gold: #8a6508;
+    --dq-cyan: #0a7ca8;
+    --dq-red: #c03030;
+    --dq-green: #2a8a2a;
+    --dq-yellow: #8a7a08;
+    --dq-purple: #7030a0;
+
+    --dq-border-outer: #1a1a2e;
+    --dq-border: #c0b8a0;
+
+    color-scheme: light;
+  }
+}
+
+.dark {
+  --background: #0a0a2e;
+  --foreground: #f0f0f0;
+
+  --dq-bg: #0a0a2e;
+  --dq-window-bg: #10103a;
+  --dq-surface: #181850;
+  --dq-hover: #1e1e5c;
+
+  --dq-text: #f0f0f0;
+  --dq-text-sub: #a0a0c0;
+  --dq-text-muted: #606080;
+
+  --dq-gold: #f5c542;
+  --dq-cyan: #40c0e0;
+  --dq-red: #e04040;
+  --dq-green: #40c040;
+  --dq-yellow: #e0c040;
+  --dq-purple: #a040e0;
+
+  --dq-border-outer: #e0e0e0;
+  --dq-border: #404060;
+}
+
+.light {
+  --background: #e8e0d0;
+  --foreground: #1a1a2e;
+
+  --dq-bg: #e8e0d0;
+  --dq-window-bg: #f5f0e5;
+  --dq-surface: #ffffff;
+  --dq-hover: #ede8dc;
+
+  --dq-text: #1a1a2e;
+  --dq-text-sub: #404060;
+  --dq-text-muted: #808090;
+
+  --dq-gold: #8a6508;
+  --dq-cyan: #0a7ca8;
+  --dq-red: #c03030;
+  --dq-green: #2a8a2a;
+  --dq-yellow: #8a7a08;
+  --dq-purple: #7030a0;
+
+  --dq-border-outer: #1a1a2e;
+  --dq-border: #c0b8a0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-dq-bg: var(--dq-bg);
+  --color-dq-window-bg: var(--dq-window-bg);
+  --color-dq-surface: var(--dq-surface);
+  --color-dq-hover: var(--dq-hover);
+
+  --color-dq-text: var(--dq-text);
+  --color-dq-text-sub: var(--dq-text-sub);
+  --color-dq-text-muted: var(--dq-text-muted);
+
+  --color-dq-gold: var(--dq-gold);
+  --color-dq-cyan: var(--dq-cyan);
+  --color-dq-red: var(--dq-red);
+  --color-dq-green: var(--dq-green);
+  --color-dq-yellow: var(--dq-yellow);
+  --color-dq-purple: var(--dq-purple);
+
+  --color-dq-border-outer: var(--dq-border-outer);
+  --color-dq-border: var(--dq-border);
+
+  --font-sans: var(--font-dotgothic), var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===== DQ Window Utility ===== */
+@utility dq-window {
+  border: 3px solid var(--dq-border-outer);
+  outline: 3px solid var(--dq-border-outer);
+  outline-offset: 3px;
+  border-radius: 2px;
+  background-color: var(--dq-window-bg);
+  box-shadow: none;
 }
 
+@utility dq-window-sm {
+  border: 2px solid var(--dq-border-outer);
+  outline: 2px solid var(--dq-border-outer);
+  outline-offset: 2px;
+  border-radius: 2px;
+  background-color: var(--dq-window-bg);
+  box-shadow: none;
+}
+
+/* ===== DQ Cursor Blink Animation ===== */
+@keyframes dq-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@utility dq-cursor {
+  animation: dq-blink 1s step-end infinite;
+}
+
+/* ===== Base Styles ===== */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-dotgothic), var(--font-geist-sans), sans-serif;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  font-smooth: never;
+}
+
+/* Legal pages use Geist for readability */
+.font-legal {
+  font-family: var(--font-geist-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

@@ -27,10 +27,10 @@ export default function SearchBar({ defaultValue = "", className = "" }: SearchB
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="知識を検索..."
-          className="peer h-11 w-full rounded-xl border border-zinc-300 bg-white py-2 pl-10 pr-4 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:shadow-sm transition-all duration-200 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+          className="peer h-11 w-full rounded-sm border-2 border-dq-border bg-dq-surface py-2 pl-10 pr-4 text-sm text-dq-text placeholder:text-dq-text-muted focus:border-dq-gold focus:outline-none focus:ring-2 focus:ring-dq-gold/30 transition-colors"
         />
         <svg
-          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 transition-colors peer-focus:text-blue-500"
+          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dq-text-muted transition-colors peer-focus:text-dq-gold"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

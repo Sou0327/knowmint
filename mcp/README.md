@@ -60,6 +60,24 @@ Connect Claude Code, Cursor, or OpenCode to [KnowMint](https://knowmint.shop) an
 }
 ```
 
+### Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`)
+
+```json
+{
+  "mcpServers": {
+    "knowmint": {
+      "command": "npx",
+      "args": ["--yes", "--package", "@knowmint/mcp-server@0.1.2", "mcp-server"],
+      "env": {
+        "KM_API_KEY": "km_xxx",
+        "KM_BASE_URL": "https://knowmint.shop"
+      }
+    }
+  }
+}
+```
+
+> **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 > **`KM_BASE_URL`** defaults to `https://knowmint.shop` when omitted.
 > Get your API key at [knowmint.shop/settings/api](https://knowmint.shop/settings/api) or run `km login`.
 
@@ -68,7 +86,7 @@ Connect Claude Code, Cursor, or OpenCode to [KnowMint](https://knowmint.shop) an
 ## Available Tools
 
 | Tool | Description |
-|------|-------------|
+| ---- | ----------- |
 | `km_search` | Search knowledge listings by keyword, type, or price |
 | `km_get_detail` | Get full metadata + preview for a listing |
 | `km_purchase` | Record a purchase after sending payment (tx_hash) |
@@ -80,6 +98,7 @@ Connect Claude Code, Cursor, or OpenCode to [KnowMint](https://knowmint.shop) an
 ## Authentication
 
 Priority order:
+
 1. `KM_API_KEY` environment variable
 2. `~/.km/config.json` (saved by `km login`)
 
@@ -91,7 +110,7 @@ If you've already run `km login`, you can omit the `env` block entirely.
 
 Agents with their own wallet (e.g. CDP Wallet) can complete purchases end-to-end without any additional MCP server:
 
-```
+```text
 1. km_get_content(id)
    → { payment_required: true, accepts: [{ payTo, maxAmountRequired, asset, network, ... }] }
 

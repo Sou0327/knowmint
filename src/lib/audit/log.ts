@@ -7,7 +7,9 @@ export type AuditAction =
   | "feedback.created"
   | "listing.published"
   | "webhook.created"
-  | "webhook.deleted";
+  | "webhook.deleted"
+  | "report.created"
+  | "report.reviewed";
 
 interface AuditLogParams {
   userId: string | null;

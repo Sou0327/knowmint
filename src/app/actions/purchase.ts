@@ -8,6 +8,8 @@ import {
   isValidSolanaTxHash,
   verifySolanaPurchaseTransaction,
 } from "@/lib/solana/verify-transaction";
+import { sendEmail } from "@/lib/email/send";
+import { purchaseCompletedEmailHtml } from "@/lib/email/templates";
 
 function isValidSolanaPublicKey(addr: string): boolean {
   try { new PublicKey(addr); return true; } catch { return false; }
@@ -99,7 +101,7 @@ export async function recordPurchase(
   // アイテムの存在・ステータス・seller_id・価格チェック
   const { data: item, error: itemError } = await admin
     .from("knowledge_items")
-    .select("id, seller_id, status, listing_type, price_sol, price_usdc")
+    .select("id, seller_id, status, listing_type, price_sol, price_usdc, title")
     .eq("id", knowledgeId)
     .single();
 
@@ -122,7 +124,7 @@ export async function recordPurchase(
   // オンチェーン検証: buyer/seller ウォレットアドレスを取得
   const { data: walletProfiles, error: walletError } = await admin
     .from("profiles")
-    .select("id, wallet_address")
+    .select("id, wallet_address, display_name")
     .in("id", [item.seller_id, user.id]);
 
   if (walletError || !walletProfiles || walletProfiles.length < 2) {
@@ -219,6 +221,24 @@ export async function recordPurchase(
     console.error("[recordPurchase] confirm_transaction rpc failed", { userId: user.id, knowledgeId, error: confirmError });
     return { success: false, error: "Transaction confirmation failed" };
   }
+
+  // 売り手へ購入完了メール送信 (fire-and-forget)
+  const sellerProfile = walletProfiles.find((p) => p.id === item.seller_id);
+  admin.auth.admin.getUserById(item.seller_id).then(
+    ({ data: sellerAuth }) => {
+      const sellerEmail = sellerAuth?.user?.email;
+      if (!sellerEmail) return;
+      const content = purchaseCompletedEmailHtml({
+        sellerName: (sellerProfile as { display_name?: string | null } | undefined)?.display_name ?? "seller",
+        itemTitle: (item as { title?: string | null }).title ?? knowledgeId,
+        amount,
+        token,
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://knowmint.shop",
+      });
+      sendEmail({ to: sellerEmail, ...content }).catch(() => {});
+    },
+    () => {}
+  );
 
   return { success: true };
 }

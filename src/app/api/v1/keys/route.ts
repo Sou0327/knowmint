@@ -6,12 +6,15 @@ import { ALLOWED_PERMISSIONS } from "@/lib/api/permissions";
 import { logAuditEvent } from "@/lib/audit/log";
 import { validateExpiresAt } from "@/lib/api/validation";
 import { checkPreAuthRateLimit } from "@/lib/api/rate-limit";
+import { sendEmail } from "@/lib/email/send";
+import { apiKeyCreatedEmailHtml, apiKeyDeletedEmailHtml } from "@/lib/email/templates";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface ResolvedAuth {
   userId: string;
   currentKeyId: string | null;
+  email?: string;
 }
 
 async function resolveKeysAuth(request: Request): Promise<ResolvedAuth | Response> {
@@ -36,7 +39,7 @@ async function resolveKeysAuth(request: Request): Promise<ResolvedAuth | Respons
     return apiError(API_ERRORS.UNAUTHORIZED);
   }
 
-  return { userId: user.id, currentKeyId: null };
+  return { userId: user.id, currentKeyId: null, email: user.email };
 }
 
 /**
@@ -158,6 +161,21 @@ export const POST = async (request: Request) => {
     metadata: { name: newKey.name, permissions: newKey.permissions },
   });
 
+  // APIキー作成メール送信 (fire-and-forget)
+  // セッション認証時は auth.email が既に取得済みのため getUserById を省略
+  const sendCreatedEmail = (email: string) => {
+    const content = apiKeyCreatedEmailHtml({ keyName: newKey.name, permissions: newKey.permissions as string[] });
+    sendEmail({ to: email, ...content }).catch(() => {});
+  };
+  if (auth.email) {
+    sendCreatedEmail(auth.email);
+  } else {
+    admin.auth.admin.getUserById(auth.userId).then(
+      ({ data: authData }) => { if (authData?.user?.email) sendCreatedEmail(authData.user.email); },
+      () => {}
+    );
+  }
+
   return apiSuccess({
     id: newKey.id,
     name: newKey.name,
@@ -212,7 +230,7 @@ export const DELETE = async (request: Request) => {
     .delete()
     .eq("id", keyId)
     .eq("user_id", auth.userId)
-    .select("id");
+    .select("id, name");
 
   if (error) {
     console.error("Failed to delete API key:", error);
@@ -230,6 +248,21 @@ export const DELETE = async (request: Request) => {
     resourceId: keyId,
     metadata: {},
   });
+
+  // APIキー削除メール送信 (fire-and-forget)
+  const deletedKeyName = (deleted[0] as { name?: string } | undefined)?.name ?? keyId;
+  const sendDeletedEmail = (email: string) => {
+    const content = apiKeyDeletedEmailHtml({ keyName: deletedKeyName });
+    sendEmail({ to: email, ...content }).catch(() => {});
+  };
+  if (auth.email) {
+    sendDeletedEmail(auth.email);
+  } else {
+    admin.auth.admin.getUserById(auth.userId).then(
+      ({ data: authData }) => { if (authData?.user?.email) sendDeletedEmail(authData.user.email); },
+      () => {}
+    );
+  }
 
   return apiSuccess({ deleted: true });
 };

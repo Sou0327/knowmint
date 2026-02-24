@@ -1,4 +1,37 @@
 import { dispatchWebhook, WebhookSub, WebhookPayload } from "./dispatch";
+import { getAdminClient } from "@/lib/supabase/admin";
+
+function recordDeliveryLog(
+  sub: WebhookSub,
+  payload: WebhookPayload,
+  attempt: number,
+  status: "failed" | "dead",
+  statusCode?: number,
+  errorMessage?: string
+): void {
+  // JSONB 肥大化防止: 4KB 超の場合はイベント名のみ保持
+  const rawPayload = { ...payload, data: "[logged]" };
+  const safePayload =
+    JSON.stringify(rawPayload).length <= 4096
+      ? rawPayload
+      : { event: payload.event, data: "[logged]", _truncated: true };
+  try {
+    getAdminClient()
+      .from("webhook_delivery_logs")
+      .insert({
+        subscription_id: sub.id,
+        event: payload.event,
+        attempt,
+        status,
+        status_code: statusCode ?? null,
+        error_message: errorMessage ?? null,
+        payload: safePayload,
+      })
+      .then(() => {}, (err: unknown) => console.error("[webhook] failed to record delivery log:", err));
+  } catch (err) {
+    console.error("[webhook] admin client unavailable for delivery log:", err);
+  }
+}
 
 /**
  * Permanent errors that should not be retried.
@@ -38,6 +71,7 @@ export async function dispatchWithRetry(
       console.warn(
         `[webhook:${sub.id}] Permanent failure: ${result.error}, skipping retries`
       );
+      recordDeliveryLog(sub, payload, attempt, "dead", result.statusCode, result.error);
       return;
     }
 
@@ -45,6 +79,7 @@ export async function dispatchWithRetry(
       console.warn(
         `[webhook:${sub.id}] Permanent HTTP ${result.statusCode}, skipping retries`
       );
+      recordDeliveryLog(sub, payload, attempt, "dead", result.statusCode, result.error);
       return;
     }
 
@@ -57,12 +92,14 @@ export async function dispatchWithRetry(
         `[webhook:${sub.id}] Attempt ${attempt}/${maxRetries} failed ` +
           `(${result.error ?? result.statusCode}), retrying in ${delayMs}ms`
       );
+      recordDeliveryLog(sub, payload, attempt, "failed", result.statusCode, result.error);
       await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
     } else {
       console.error(
         `[webhook:${sub.id}] All ${maxRetries} attempts failed. ` +
           `Last error: ${result.error ?? result.statusCode}`
       );
+      recordDeliveryLog(sub, payload, attempt, "dead", result.statusCode, result.error);
     }
   }
 }

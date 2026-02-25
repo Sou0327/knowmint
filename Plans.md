@@ -123,6 +123,35 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34 すべて `cc:DONE`
 
 ---
 
+## Phase 35: ブランド画像アセット整備 [P1]
+
+> favicon がデフォルト、OG 画像が自動生成の簡素版。SNS シェア・ブラウザタブの印象を大幅改善。
+
+### 35.1 favicon / アプリアイコン
+
+- [ ] `src/app/icon.png` — 32x32 favicon (DQ テーマのドット絵風ロゴ)
+- [ ] `src/app/icon-192.png` — 192x192 PWA アイコン
+- [ ] `src/app/icon-512.png` — 512x512 PWA アイコン
+- [ ] `src/app/apple-icon.png` — 180x180 iOS ホーム画面用
+- [ ] `public/` の Next.js テンプレート残骸 SVG を削除 (file.svg, globe.svg, next.svg, vercel.svg, window.svg)
+
+### 35.2 OG デフォルト画像リデザイン
+
+- [ ] `public/og-default.png` を高品質版に差し替え (1200x630)
+  - DotGothic16 フォント使用、KnowMint ロゴ、DQ テーマ配色
+  - Figma / Canva / スクリプト生成いずれか
+
+### 35.3 (将来) 動的 OG 画像 — Phase 34.6 から引き継ぎ `cc:DEFERRED`
+
+> CF Workers 3MiB 制限のため `@vercel/og` 使用不可。
+> 案A: Cloudflare Images 別エンドポイント / 案B: 外部 OG 画像サービス
+
+- [ ] 方式決定・実装
+
+**成果物**: favicon セット, apple-icon, 高品質 OG デフォルト画像
+
+---
+
 ## 将来フェーズ (未スケジュール)
 
 - Request Listing 復活・強化, pgvector セマンティック検索, LangChain/AutoGen/CrewAI プラグイン対応

@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+export const dynamic = "force-dynamic";
+
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: "https://knowmint.shop", changeFrequency: "daily", priority: 1.0 },
   { url: "https://knowmint.shop/rankings", changeFrequency: "daily", priority: 0.7 },

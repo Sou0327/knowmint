@@ -254,10 +254,19 @@ describe("verifySolanaPurchaseTransaction() — オンチェーン状態チェ�
     assert.ok(!result.valid);
   });
 
-  it("blockTime が現在から 3601 秒以上前 → { valid:false }", async () => {
+  it("blockTime が現在から 86401 秒以上前 (24h超) → { valid:false }", async () => {
     mockTx = {
       ...(buildDefaultTx()),
-      blockTime: Math.floor(Date.now() / 1000) - 3601,
+      blockTime: Math.floor(Date.now() / 1000) - 86401,
+    };
+    const result = await getVerify()(defaultInput);
+    assert.ok(!result.valid);
+  });
+
+  it("blockTime が未来 (61秒以上先) → { valid:false }", async () => {
+    mockTx = {
+      ...(buildDefaultTx()),
+      blockTime: Math.floor(Date.now() / 1000) + 120,
     };
     const result = await getVerify()(defaultInput);
     assert.ok(!result.valid);

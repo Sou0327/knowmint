@@ -121,6 +121,15 @@ export const POST = async (request: Request) => {
     );
   }
 
+  // セッション認証ユーザーは admin パーミッションを付与できない
+  // (既存 admin キー経由でのみ admin キー作成可能)
+  if (!auth.currentKeyId && permissions.includes("admin")) {
+    return apiError(
+      API_ERRORS.FORBIDDEN,
+      "Admin permission can only be granted via an existing admin API key"
+    );
+  }
+
   const expiresResult = validateExpiresAt(expires_at);
   if (!expiresResult.valid) {
     return apiError(API_ERRORS.BAD_REQUEST, expiresResult.reason);

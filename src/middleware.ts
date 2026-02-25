@@ -6,20 +6,26 @@ const PROTECTED_ROUTES = ["/list", "/library", "/dashboard", "/profile"];
 export async function middleware(request: NextRequest) {
   // API v1 routes use their own API key auth — add CORS headers and skip session handling
   if (request.nextUrl.pathname.startsWith("/api/v1")) {
+    const allowedOrigin = process.env.ALLOWED_ORIGIN || (
+      process.env.NODE_ENV === "production" ? undefined : "*"
+    );
+
     // Preflight
     if (request.method === "OPTIONS") {
-      return new NextResponse(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN ?? "*",
-          "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT",
-          "Access-Control-Max-Age": "86400",
-        },
-      });
+      const headers: Record<string, string> = {
+        "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT",
+        "Access-Control-Max-Age": "86400",
+      };
+      if (allowedOrigin) {
+        headers["Access-Control-Allow-Origin"] = allowedOrigin;
+      }
+      return new NextResponse(null, { status: 204, headers });
     }
     const response = NextResponse.next();
-    response.headers.set("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN ?? "*");
+    if (allowedOrigin) {
+      response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+    }
     response.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     response.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
     return response;

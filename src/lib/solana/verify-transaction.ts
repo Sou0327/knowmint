@@ -13,8 +13,12 @@ interface VerifySolanaPurchaseInput {
   programId?: string;        // スマコンモード: Program 実行を検証
 }
 
-/** tx の blockTime が現在から何秒以内かを要求する上限 */
-const MAX_TX_AGE_SECONDS = 3600; // 1 hour
+/** tx の blockTime が現在から何秒以内かを要求する上限
+ * P2P モードでは「送金」と「購入記録」が非原子的なため、
+ * mainnet 障害時に正当な支払いが回収不能にならないよう 24h に設定する。
+ * リプレイ保護は DB 側の tx_hash 冪等性チェックが主防衛となる。
+ */
+const MAX_TX_AGE_SECONDS = 86400; // 24 hours
 
 interface VerifyResult {
   valid: boolean;
@@ -99,14 +103,15 @@ function verifySolTransfer(
   // 送信者 (payer = accountKeys[0]) の残高が expectedAmount 以上減少していること
   const senderPre = tx.meta.preBalances[0];
   const senderPost = tx.meta.postBalances[0];
-  if (senderPre !== undefined && senderPost !== undefined) {
-    const senderDecrease = BigInt(senderPre) - BigInt(senderPost);
-    if (senderDecrease < expectedLamports) {
-      return {
-        valid: false,
-        error: `SOL amount mismatch: sender balance did not decrease by expected amount`,
-      };
-    }
+  if (senderPre === undefined || senderPost === undefined) {
+    return { valid: false, error: "Unable to inspect sender SOL balance changes" };
+  }
+  const senderDecrease = BigInt(senderPre) - BigInt(senderPost);
+  if (senderDecrease < expectedLamports) {
+    return {
+      valid: false,
+      error: `SOL amount mismatch: sender balance did not decrease by expected amount`,
+    };
   }
 
   const recipientIdx = accountKeys.findIndex((key) => key === expectedRecipient);
@@ -158,14 +163,15 @@ function verifySolSplitTransfer(
   // 送信者 (payer = accountKeys[0]) の残高が expectedAmount 以上減少していること
   const senderSplitPre = tx.meta.preBalances[0];
   const senderSplitPost = tx.meta.postBalances[0];
-  if (senderSplitPre !== undefined && senderSplitPost !== undefined) {
-    const senderDecrease = BigInt(senderSplitPre) - BigInt(senderSplitPost);
-    if (senderDecrease < expectedLamports) {
-      return {
-        valid: false,
-        error: `SOL amount mismatch: sender balance did not decrease by expected amount`,
-      };
-    }
+  if (senderSplitPre === undefined || senderSplitPost === undefined) {
+    return { valid: false, error: "Unable to inspect sender SOL balance changes" };
+  }
+  const senderDecrease = BigInt(senderSplitPre) - BigInt(senderSplitPost);
+  if (senderDecrease < expectedLamports) {
+    return {
+      valid: false,
+      error: `SOL amount mismatch: sender balance did not decrease by expected amount`,
+    };
   }
 
   // seller は 95% 以上受け取っていればOK
@@ -398,6 +404,9 @@ export async function verifySolanaPurchaseTransaction(
       return { valid: false, error: "Transaction block time is unavailable" };
     }
     const ageSecs = Math.floor(Date.now() / 1000) - tx.blockTime;
+    if (ageSecs < -60) {
+      return { valid: false, error: "Transaction block time is in the future" };
+    }
     if (ageSecs > MAX_TX_AGE_SECONDS) {
       return { valid: false, error: "Transaction is too old" };
     }

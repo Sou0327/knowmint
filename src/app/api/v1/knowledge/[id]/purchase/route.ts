@@ -139,8 +139,33 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
       existingByHash.buyer_id === user.userId &&
       existingByHash.knowledge_item_id === id
     ) {
-      // select() で全フィールド取得済みなので再クエリ不要（N+1 解消）
-      return apiSuccess(existingByHash);
+      if (existingByHash.status === "confirmed") {
+        return apiSuccess(existingByHash);
+      }
+      // pending: 再 confirm を試行
+      if (existingByHash.status === "pending") {
+        const { error: retryError } = await admin.rpc("confirm_transaction", {
+          tx_id: existingByHash.id,
+        });
+        if (retryError) {
+          console.error("[purchase] retry confirm failed:", { txId: existingByHash.id, error: retryError });
+          return apiError(API_ERRORS.BAD_REQUEST, "Transaction confirmation retry failed");
+        }
+        // RPC は 0 件更新でもエラーにならないため、再読込で status を検証
+        const { data: retriedTx, error: recheckError } = await admin
+          .from("transactions")
+          .select()
+          .eq("id", existingByHash.id)
+          .single();
+        if (recheckError) {
+          console.error("[purchase] retry recheck failed:", { txId: existingByHash.id, error: recheckError });
+          return apiError(API_ERRORS.INTERNAL_ERROR);
+        }
+        if (retriedTx?.status === "confirmed") {
+          return apiSuccess(retriedTx);
+        }
+        return apiError(API_ERRORS.BAD_REQUEST, "Transaction confirmation retry failed");
+      }
     }
 
     return apiError(API_ERRORS.CONFLICT, "Transaction hash is already used");

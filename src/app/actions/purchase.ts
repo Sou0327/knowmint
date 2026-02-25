@@ -76,15 +76,38 @@ export async function recordPurchase(
   }
 
   if (existing) {
-    // 同一 buyer + 同一アイテム + confirmed → 冪等成功
     if (
       existing.buyer_id === user.id &&
-      existing.knowledge_item_id === knowledgeId &&
-      existing.status === "confirmed"
+      existing.knowledge_item_id === knowledgeId
     ) {
-      return { success: true };
+      if (existing.status === "confirmed") {
+        return { success: true };
+      }
+      // pending: 再 confirm を試行
+      if (existing.status === "pending") {
+        const { error: retryError } = await admin.rpc("confirm_transaction", {
+          tx_id: existing.id,
+        });
+        if (retryError) {
+          console.error("[recordPurchase] retry confirm failed", { txId: existing.id, error: retryError });
+          return { success: false, error: "Transaction confirmation retry failed" };
+        }
+        // RPC は 0 件更新でもエラーにならないため、再読込で status を検証
+        const { data: recheckTx, error: recheckError } = await admin
+          .from("transactions")
+          .select("status")
+          .eq("id", existing.id)
+          .single();
+        if (recheckError) {
+          console.error("[recordPurchase] retry recheck failed", { txId: existing.id, error: recheckError });
+          return { success: false, error: "Database error" };
+        }
+        if (recheckTx?.status === "confirmed") {
+          return { success: true };
+        }
+        return { success: false, error: "Transaction confirmation retry failed" };
+      }
     }
-    // pending (処理中) または別 buyer/アイテムへの再利用は拒否
     return { success: false, error: "Transaction hash already used" };
   }
 

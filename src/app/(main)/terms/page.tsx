@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "利用規約 | KnowMint",
+  title: "利用規約",
   description: "KnowMint の利用規約",
+  openGraph: { title: "利用規約 | KnowMint", type: "website" },
 };
 
 export default function TermsPage() {

@@ -37,7 +37,26 @@ const METADATA_BY_LOCALE: Record<Locale, { title: string; description: string }>
 };
 
 export function generateMetadata(): Metadata {
-  return METADATA_BY_LOCALE.ja;
+  const m = METADATA_BY_LOCALE.ja;
+  return {
+    ...m,
+    metadataBase: new URL("https://knowmint.shop"),
+    title: { default: m.title, template: "%s | KnowMint" },
+    openGraph: {
+      type: "website",
+      siteName: "KnowMint",
+      locale: "ja_JP",
+      title: m.title,
+      description: m.description,
+      images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "KnowMint" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: m.title,
+      description: m.description,
+      images: ["/og-default.png"],
+    },
+  };
 }
 
 export default function RootLayout({

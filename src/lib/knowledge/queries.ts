@@ -120,6 +120,17 @@ export async function getPublishedKnowledge(params: KnowledgeSearchParams = {}) 
   };
 }
 
+export async function getKnowledgeForMetadata(id: string) {
+  const { getAdminClient } = await import("@/lib/supabase/admin");
+  const { data } = await getAdminClient()
+    .from("knowledge_items")
+    .select("id, title, description, tags, content_type, price_sol, category:categories(name, slug), seller:profiles!seller_id(display_name)")
+    .eq("id", id)
+    .eq("status", "published")
+    .maybeSingle();
+  return data;
+}
+
 export async function getKnowledgeById(id: string) {
   const supabase = await createClient();
 

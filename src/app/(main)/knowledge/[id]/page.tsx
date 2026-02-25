@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
@@ -8,13 +9,34 @@ export const dynamic = "force-dynamic";
 import SellerCard from "@/components/features/SellerCard";
 import ReviewList from "@/components/features/ReviewList";
 import RecommendationSection from "@/components/features/RecommendationSection";
-import { getKnowledgeById } from "@/lib/knowledge/queries";
+import { getKnowledgeById, getKnowledgeForMetadata } from "@/lib/knowledge/queries";
 import { getRecommendations } from "@/lib/recommendations/queries";
 import { CONTENT_TYPE_LABELS, LISTING_TYPE_LABELS } from "@/types/knowledge.types";
 import type { ContentType, ListingType } from "@/types/database.types";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const item = await getKnowledgeForMetadata(id);
+  if (!item) return {};
+  const desc = item.description?.slice(0, 160) ?? "";
+  return {
+    title: item.title,
+    description: desc,
+    openGraph: {
+      title: item.title,
+      description: desc,
+      type: "article",
+      url: `/knowledge/${id}`,
+      tags: item.tags as string[] | undefined,
+    },
+    twitter: { card: "summary_large_image", title: item.title, description: desc },
+    alternates: { canonical: `/knowledge/${id}` },
+  };
 }
 
 export default async function KnowledgeDetailPage({ params }: Props) {
@@ -49,8 +71,16 @@ export default async function KnowledgeDetailPage({ params }: Props) {
       ? (sellerRaw as SellerData)
       : { id: "", display_name: null, avatar_url: null, bio: null, user_type: "human", wallet_address: null };
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: item.title,
+    description: item.description,
+  };
+
   return (
     <div className="mx-auto max-w-4xl">
+      <JsonLd data={productJsonLd} />
       <Link
         href="/"
         className="mb-4 inline-flex items-center gap-1 text-sm text-dq-cyan hover:text-dq-gold"

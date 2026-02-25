@@ -7,6 +7,7 @@ import { getTopSellers } from "@/lib/rankings/queries";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
 import { createClient } from "@/lib/supabase/server";
 import type { ListingType } from "@/types/database.types";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,21 @@ export default async function HomePage() {
     getTopSellers(5),
   ]);
 
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "KnowMint",
+    url: "https://knowmint.shop",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: "https://knowmint.shop/search?q={search_term_string}" },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <div className="space-y-16">
+      <JsonLd data={websiteJsonLd} />
       {/* Hero */}
       <section className="py-8 text-center">
         <h1 className="text-5xl font-bold leading-tight tracking-tight text-dq-gold sm:text-6xl">

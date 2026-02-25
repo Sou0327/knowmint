@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
@@ -9,6 +10,25 @@ export const dynamic = "force-dynamic";
 interface Props {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data: category } = await supabase
+    .from("categories")
+    .select("name")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!category) return {};
+  const title = `${category.name}の知識`;
+  return {
+    title,
+    description: `${category.name}カテゴリの知識一覧`,
+    openGraph: { title, type: "website" },
+    alternates: { canonical: `/category/${slug}` },
+  };
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {

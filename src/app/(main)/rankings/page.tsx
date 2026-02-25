@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { getTopSellers } from "@/lib/rankings/queries";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "出品者ランキング",
+  description: "KnowMint で販売実績の多い出品者をランキング表示",
+  openGraph: { title: "出品者ランキング | KnowMint", type: "website" },
+};
 
 export default async function RankingsPage() {
   const topSellers = await getTopSellers(20);

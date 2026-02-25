@@ -9,40 +9,8 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15 (全タスク完了), 15.6, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 29, 30, 31 すべて `cc:DONE`
-詳細は `plans/archive-*.md` 参照。
-
-**Maestro E2E テスト**: 18フロー整備済み・通過確認済み (21/22 ページカバー, 95%) `cc:DONE`
-- フロー 01-14: 全通過済み (KnowMint リブランド対応済み)
-- フロー 15-18: `/dashboard/rankings`, `/library`, `/list/[id]/edit`, `/category/[slug]` 追加・通過確認済み
-- 未カバー: `/library/[id]` のみ (実購入必要のためスキップ継続)
-
----
-
-## Phase 24: Coinbase AgentKit Action Provider `cc:DONE`
-
-> AgentKit エージェントが KnowMint を「ウォレット付きツール」として使えるプラグイン。
-
-- [x] `packages/agentkit-plugin/` — `ActionProvider<WalletProvider>` + `@CreateAction` で 5 アクション実装
-- [x] Codex 11 ラウンドレビュー → ISSUES_FOUND: 0
-- [x] モックテスト 50/50 PASS + ローカル実通信テスト 7/7 PASS
-- [x] `npm publish` → `@knowmint/agentkit-plugin@0.1.0` 公開済み
-
-**成果物**: `packages/agentkit-plugin/` ([npm](https://www.npmjs.com/package/@knowmint/agentkit-plugin))
-
----
-
-## Phase 25: Eliza (ElizaOS) プラグイン `cc:DONE`
-
-> ai16z Eliza フレームワーク向けプラグイン。Plugin Registry 登録で公式エコシステム入り。
-
-- [x] `packages/eliza-plugin/` — Actions (SEARCH/PURCHASE/GET_CONTENT) + Provider (人気5件注入)
-- [x] Codex 5 ラウンドレビュー → ISSUES_FOUND: 0
-- [x] ユニットテスト 53/53 PASS + ライブ API 統合テスト 8/8 PASS (計 61/61)
-- [x] `npm publish` → `@knowmint/eliza-plugin@0.1.0` 公開済み
-- [x] ElizaOS Plugin Registry 登録申請 → [PR #273](https://github.com/elizaos-plugins/registry/pull/273)
-
-**成果物**: `packages/eliza-plugin/` ([npm](https://www.npmjs.com/package/@knowmint/eliza-plugin))
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34 すべて `cc:DONE`
+詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
 
 ---
 
@@ -84,53 +52,11 @@ Phase 1-14, 15 (全タスク完了), 15.6, 16, 17, 18, 19, 20, 21, 22, 23, 24, 2
 
 ---
 
-## Phase 32: mainnet 移行 (P2P モード) [P1]
+## Phase 32.3 (後回し) スマコン mainnet デプロイ `cc:DEFERRED`
 
-> 会話ログ (2026-02-24) の方針決定:
-> - **Step 1**: P2P モード (`NEXT_PUBLIC_KM_PROGRAM_ID=""`) で mainnet 移行 → コスト ¥0
-> - **Step 2**: デモ動画 (Phase 26) を mainnet P2P で撮影・拡散
-> - **Step 3**: 反響確認後にスマコン mainnet デプロイ (~1.5 SOL / ¥18,000 相当、一回限り)
+> Phase 26 デモ・拡散の反響を見てから着手。P2P モードで十分運用可能。
 
-### 32.1 環境変数変更 (P2P mainnet)
-
-- [ ] 本番環境変数を更新
-  - `NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta`
-  - `NEXT_PUBLIC_SOLANA_RPC_URL=<Helius mainnet RPC URL>` (無料枠で十分)
-  - `NEXT_PUBLIC_KM_PROGRAM_ID=""` (P2P 直接送金モード)
-  - `X402_NETWORK=solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d` (mainnet CAIP-2)
-- [ ] Cloudflare Workers の環境変数 (wrangler secrets) に反映
-- [ ] `npm run deploy:cf` でデプロイ確認
-
-### 32.2 動作確認
-
-- [ ] ウォレット接続 → mainnet SOL 残高表示を確認
-- [ ] 0.001 SOL の P2P テスト送金 → tx-hash を purchase API に送信 → 成功を確認
-- [ ] MCP `km_purchase` を devnet → mainnet に切り替えて動作確認
-
-### 32.3 (後回し可) スマコン mainnet デプロイ
-
-> Phase 26 デモ・拡散の反響を見てから着手する。
-> コスト: ~1.5 SOL ($120 / ¥18,000 相当、一回限り・維持費ゼロ)
-
-- [ ] `anchor build` → `target/deploy/knowledge_market.so` (212KB) を確認
-- [ ] `anchor deploy --provider.cluster mainnet` で mainnet にデプロイ
-- [ ] 新 Program ID / Fee Vault を環境変数に設定
-- [ ] 5% フィー着金をテストトランザクションで確認
-
-**成果物**: mainnet P2P モードで動作する KnowMint 本番環境
-
----
-
-## 完了済みフェーズ詳細 `cc:DONE`
-
-- **Phase 15.6** (CLI E2E テスト): P2P・スマコン両モード PASS。Codex 4ラウンド → ISSUES_FOUND: 0
-- **Phase 17** (Webhook DLQ + メール通知): `webhook_delivery_logs` テーブル、Resend REST fetch メール送信、購入完了/APIキー作成削除メール。Codex 3ラウンド → ISSUES_FOUND: 0
-- **Phase 18** (MCP Server 本番公開): `/api/health` ヘルスチェック、Claude Desktop 設定例追記
-- **Phase 19** (コンテンツモデレーション): `knowledge_item_reports` + `admin_review_report` RPC、報告/管理者API。Codex 3ラウンド → ISSUES_FOUND: 0
-- **Phase 30** (特商法対応): `/terms` `/privacy` `/legal` `/contact` 4件、利用規約同意、`seller_disclosure`
-- **Phase 31** (README 現状反映): Codex 4ラウンド → ISSUES_FOUND: 0
-- **Phase 24** (AgentKit プラグイン): `ActionProvider` + 5 `@CreateAction`。Codex 11ラウンド → ISSUES_FOUND: 0。テスト 57/57 PASS (モック 50 + ローカル実通信 7)
-- **Phase 25** (ElizaOS プラグイン): Actions 3 + Provider 1。Codex 5ラウンド → ISSUES_FOUND: 0
+- [ ] `anchor deploy --provider.cluster mainnet` → Program ID / Fee Vault 設定
 
 ---
 
@@ -179,6 +105,21 @@ Phase 1-14, 15 (全タスク完了), 15.6, 16, 17, 18, 19, 20, 21, 22, 23, 24, 2
 - [ ] 認定済み知識を検索上位表示
 
 **成果物**: 証拠フィールド・ティア型プレビューを備えた品質担保出品フロー
+
+---
+
+## Phase 34: SEO / OGP 基盤 `cc:DONE`
+
+> 全公開ページの OGP・メタタグ・sitemap・robots・JSON-LD を整備。Codex 3ラウンド → ISSUES_FOUND: 0
+
+- [x] 34.1 `layout.tsx` に `metadataBase` + OGP + Twitter Card + `og-default.png` (1200x630 DQ テーマ)
+- [x] 34.2 `getKnowledgeForMetadata()` (Admin client, view_count 汚染なし) + `/knowledge/[id]` に `generateMetadata()` + canonical
+- [x] 34.3 `sitemap.ts` (静的6ページ + published 動的、50,000 URL 上限準拠) + `robots.ts` (dashboard/profile/api/list/library disallow)
+- [x] 34.4 `JsonLd` コンポーネント (`<` → `\u003c` XSS 対策) + Product JSON-LD (`/knowledge/[id]`) + WebSite+SearchAction (`/`)
+- [x] 34.5 rankings/category/search/dashboard/terms/privacy/legal/contact の metadata 補完 (noindex, openGraph, canonical)
+- [x] 34.6 (将来) 動的 OG 画像 — CF Workers 3MiB 制限のため据え置き
+
+**成果物**: 全公開ページの OGP・メタタグ・sitemap・robots・JSON-LD
 
 ---
 

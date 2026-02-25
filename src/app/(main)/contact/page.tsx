@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "お問い合わせ | KnowMint",
+  title: "お問い合わせ",
   description: "KnowMint へのお問い合わせ",
+  openGraph: { title: "お問い合わせ | KnowMint", type: "website" },
 };
 
 const CATEGORIES = [

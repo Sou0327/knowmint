@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "特定商取引法に基づく表示 | KnowMint",
+  title: "特定商取引法に基づく表示",
   description: "KnowMint の特定商取引法に基づく表示",
+  openGraph: { title: "特定商取引法に基づく表示 | KnowMint", type: "website" },
 };
 
 const LEGAL_ITEMS = [

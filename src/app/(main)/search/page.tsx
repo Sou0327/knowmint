@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import SearchBar from "@/components/features/SearchBar";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
@@ -16,6 +17,15 @@ interface Props {
     sort?: string;
     page?: string;
   }>;
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { q } = await searchParams;
+  const title = q ? `「${q}」の検索結果` : "知識を検索";
+  return {
+    title,
+    robots: { index: false, follow: true },
+  };
 }
 
 const SORT_OPTIONS = [

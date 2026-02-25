@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "プライバシーポリシー | KnowMint",
+  title: "プライバシーポリシー",
   description: "KnowMint のプライバシーポリシー",
+  openGraph: { title: "プライバシーポリシー | KnowMint", type: "website" },
 };
 
 export default function PrivacyPage() {

@@ -135,6 +135,48 @@ km_get_content() → payment_required (HTTP 402) → 送金 → payment_proof �
 
 ---
 
+## AI エージェントプラグイン
+
+KnowMint は MCP サーバーに加え、主要な AI エージェントフレームワーク向けのプラグインを提供しています。
+
+### Coinbase AgentKit (`packages/agentkit-plugin/`)
+
+AgentKit エージェントが KnowMint を「ウォレット付きツール」として使えるプラグイン。
+
+- `ActionProvider<WalletProvider>` + `@CreateAction` で 5 アクション実装
+- テスト: モック 50/50 PASS + ローカル実通信 7/7 PASS
+
+```bash
+cd packages/agentkit-plugin && npm install && npm run build
+```
+
+### ElizaOS (`packages/eliza-plugin/`)
+
+ai16z Eliza フレームワーク向けプラグイン。
+
+- **Actions**: `SEARCH_KNOWLEDGE` / `PURCHASE_KNOWLEDGE` / `GET_CONTENT`
+- **Provider**: `trending-knowledge` (人気ナレッジ 5 件をコンテキスト注入)
+- テスト: ユニット 53/53 PASS + ライブ API 統合 8/8 PASS
+
+```bash
+cd packages/eliza-plugin && npm install && npm run build
+```
+
+```typescript
+import { knowmintPlugin } from "@knowmint/eliza-plugin";
+
+// ElizaOS キャラクター設定に追加
+const character = {
+  plugins: [knowmintPlugin],
+  settings: {
+    KM_API_KEY: "km_xxx",
+    KM_BASE_URL: "https://knowmint.shop", // optional
+  },
+};
+```
+
+---
+
 ## CLI (`km`)
 
 スタンドアロン Node.js CLI。設定は `~/.km/config.json` に保存。

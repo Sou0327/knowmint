@@ -65,6 +65,10 @@ devnet-seller-keypair.json
 mcp/node_modules/
 sdk/node_modules/
 cli/node_modules/
+packages/*/node_modules/
+
+# Nested dist (npm publish includes dist via "files" in package.json)
+packages/*/dist/
 
 # Cloudflare / OpenNext build output
 .open-next/

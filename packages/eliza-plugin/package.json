@@ -1,0 +1,56 @@
+{
+  "name": "@knowmint/eliza-plugin",
+  "version": "0.1.0",
+  "description": "ElizaOS plugin for KnowMint — lets AI agents discover and purchase human tacit knowledge",
+  "keywords": [
+    "elizaos",
+    "eliza",
+    "plugin",
+    "knowmint",
+    "ai-agent",
+    "solana",
+    "knowledge-marketplace"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sou0327/knowledge_market.git",
+    "directory": "packages/eliza-plugin"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "@elizaos/core": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@elizaos/core": "^1.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
 export default function LoginPage() {
+  const t = useTranslations("Auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -45,10 +47,10 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-dq-gold">
-            ログイン
+            {t("logIn")}
           </h1>
           <p className="mt-2 text-sm text-dq-text-sub">
-            KnowMint にログイン
+            {t("loginToKnowMint")}
           </p>
         </div>
 
@@ -60,7 +62,7 @@ export default function LoginPage() {
           )}
 
           <Input
-            label="メールアドレス"
+            label={t("email")}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -69,7 +71,7 @@ export default function LoginPage() {
           />
 
           <Input
-            label="パスワード"
+            label={t("password")}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -84,18 +86,18 @@ export default function LoginPage() {
             loading={loading}
             className="w-full"
           >
-            ログイン
+            {t("logIn")}
           </Button>
         </form>
 
         <div className="border-t border-dq-border pt-6">
           <p className="text-center text-sm text-dq-text-muted">
-            アカウントをお持ちでない方は{" "}
+            {t("noAccount")}{" "}
             <Link
               href="/signup"
               className="font-semibold text-dq-cyan hover:text-dq-gold"
             >
-              新規登録
+              {t("signUp")}
             </Link>
           </p>
         </div>

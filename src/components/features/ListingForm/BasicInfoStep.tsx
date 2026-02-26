@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
@@ -35,53 +36,54 @@ const contentTypeOptions = Object.entries(CONTENT_TYPE_LABELS).map(
   ([value, label]) => ({ value, label })
 );
 
-const domainOptions = [
-  { value: "", label: "選択してください" },
-  { value: "finance", label: "金融・ファイナンス" },
-  { value: "engineering", label: "エンジニアリング" },
-  { value: "marketing", label: "マーケティング" },
-  { value: "legal", label: "法務・コンプライアンス" },
-  { value: "medical", label: "医療・ヘルスケア" },
-  { value: "education", label: "教育・研修" },
-  { value: "other", label: "その他" },
-];
-
-const experienceTypeOptions = [
-  { value: "", label: "選択してください" },
-  { value: "case_study", label: "事例・ケーススタディ" },
-  { value: "how_to", label: "ハウツー・手順" },
-  { value: "template", label: "テンプレート" },
-  { value: "checklist", label: "チェックリスト" },
-  { value: "reference", label: "リファレンス" },
-  { value: "other", label: "その他" },
-];
-
-const sourceTypeOptions = [
-  { value: "", label: "選択してください" },
-  { value: "personal_experience", label: "個人経験・実務知識" },
-  { value: "research", label: "調査・研究" },
-  { value: "industry_standard", label: "業界標準・ベストプラクティス" },
-  { value: "other", label: "その他" },
-];
-
-const APPLICABLE_TO_OPTIONS = [
-  { value: "GPT-4", label: "GPT-4" },
-  { value: "Claude", label: "Claude" },
-  { value: "Gemini", label: "Gemini" },
-  { value: "any", label: "すべてのAI" },
-];
-
 export default function BasicInfoStep({
   data,
   categories,
   onChange,
   errors,
 }: Props) {
+  const t = useTranslations("Listing");
   const [metadataOpen, setMetadataOpen] = useState(false);
 
   const categoryOptions = [
-    { value: "", label: "カテゴリを選択" },
+    { value: "", label: t("selectCategory") },
     ...categories.map((c) => ({ value: c.id, label: c.name })),
+  ];
+
+  const domainOptions = [
+    { value: "", label: t("selectOption") },
+    { value: "finance", label: t("domain.finance") },
+    { value: "engineering", label: t("domain.engineering") },
+    { value: "marketing", label: t("domain.marketing") },
+    { value: "legal", label: t("domain.legal") },
+    { value: "medical", label: t("domain.medical") },
+    { value: "education", label: t("domain.education") },
+    { value: "other", label: t("domain.other") },
+  ];
+
+  const experienceTypeOptions = [
+    { value: "", label: t("selectOption") },
+    { value: "case_study", label: t("experienceType.caseStudy") },
+    { value: "how_to", label: t("experienceType.howTo") },
+    { value: "template", label: t("experienceType.template") },
+    { value: "checklist", label: t("experienceType.checklist") },
+    { value: "reference", label: t("experienceType.reference") },
+    { value: "other", label: t("experienceType.other") },
+  ];
+
+  const sourceTypeOptions = [
+    { value: "", label: t("selectOption") },
+    { value: "personal_experience", label: t("sourceType.personalExperience") },
+    { value: "research", label: t("sourceType.research") },
+    { value: "industry_standard", label: t("sourceType.industryStandard") },
+    { value: "other", label: t("sourceType.other") },
+  ];
+
+  const APPLICABLE_TO_OPTIONS = [
+    { value: "GPT-4", label: "GPT-4" },
+    { value: "Claude", label: "Claude" },
+    { value: "Gemini", label: "Gemini" },
+    { value: "any", label: t("allAI") },
   ];
 
   const handleMetadataChange = (partial: Partial<KnowledgeMetadataForm>) => {
@@ -99,26 +101,26 @@ export default function BasicInfoStep({
   return (
     <div className="space-y-5">
       <Input
-        label="タイトル"
+        label={t("titleLabel")}
         value={data.title}
         onChange={(e) => onChange({ title: e.target.value })}
         error={errors.title}
         required
-        placeholder="知識のタイトルを入力"
+        placeholder={t("enterTitle")}
       />
 
       <Textarea
-        label="説明"
+        label={t("descriptionLabel")}
         value={data.description}
         onChange={(e) => onChange({ description: e.target.value })}
         error={errors.description}
         required
         rows={4}
-        placeholder="この知識の概要を説明してください"
+        placeholder={t("enterDescription")}
       />
 
       <Select
-        label="コンテンツタイプ"
+        label={t("contentTypeLabel")}
         value={data.content_type}
         onChange={(e) =>
           onChange({ content_type: e.target.value as ContentType })
@@ -128,7 +130,7 @@ export default function BasicInfoStep({
       />
 
       <Select
-        label="カテゴリ"
+        label={t("categoryLabel")}
         value={data.category_id}
         onChange={(e) => onChange({ category_id: e.target.value })}
         options={categoryOptions}
@@ -136,27 +138,27 @@ export default function BasicInfoStep({
       />
 
       <Input
-        label="タグ"
+        label={t("tags")}
         value={data.tags.join(", ")}
         onChange={(e) =>
           onChange({
             tags: e.target.value
               .split(",")
-              .map((t) => t.trim())
+              .map((tag) => tag.trim())
               .filter(Boolean),
           })
         }
-        hint="カンマ区切りで入力（例: 業務改善, テンプレート, 初心者向け）"
+        hint={t("tagsHint")}
       />
 
-      {/* 詳細メタデータ（折りたたみ） */}
+      {/* Detailed metadata (collapsible) */}
       <div className="rounded-lg border border-zinc-200 dark:border-zinc-700">
         <button
           type="button"
           className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
           onClick={() => setMetadataOpen((prev) => !prev)}
         >
-          <span>詳細メタデータ（任意）</span>
+          <span>{t("detailedMetadata")}</span>
           <svg
             className={`h-4 w-4 transition-transform ${metadataOpen ? "rotate-180" : ""}`}
             fill="none"
@@ -171,25 +173,25 @@ export default function BasicInfoStep({
         {metadataOpen && (
           <div className="space-y-4 border-t border-zinc-200 px-4 py-4 dark:border-zinc-700">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              メタデータを設定するとAIエージェントがこの知識を発見・評価しやすくなります。
+              {t("metadataHint")}
             </p>
 
             <Select
-              label="ドメイン"
+              label={t("domainLabel")}
               value={data.metadata.domain}
               onChange={(e) => handleMetadataChange({ domain: e.target.value })}
               options={domainOptions}
             />
 
             <Select
-              label="経験タイプ"
+              label={t("experienceTypeLabel")}
               value={data.metadata.experience_type}
               onChange={(e) => handleMetadataChange({ experience_type: e.target.value })}
               options={experienceTypeOptions}
             />
 
             <Select
-              label="情報ソース"
+              label={t("sourceTypeLabel")}
               value={data.metadata.source_type}
               onChange={(e) => handleMetadataChange({ source_type: e.target.value })}
               options={sourceTypeOptions}
@@ -197,7 +199,7 @@ export default function BasicInfoStep({
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                対応AIモデル
+                {t("applicableAI")}
               </label>
               <div className="flex flex-wrap gap-3">
                 {APPLICABLE_TO_OPTIONS.map((opt) => (
@@ -219,7 +221,7 @@ export default function BasicInfoStep({
                 htmlFor="seller-disclosure"
                 className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
               >
-                販売者情報（任意）
+                {t("sellerDisclosure")}
               </label>
               <textarea
                 id="seller-disclosure"
@@ -228,10 +230,10 @@ export default function BasicInfoStep({
                 maxLength={500}
                 value={data.seller_disclosure ?? ""}
                 onChange={(e) => onChange({ seller_disclosure: e.target.value })}
-                placeholder="個人・法人名、連絡先等（任意、特商法上の任意開示）"
+                placeholder={t("sellerDisclosurePlaceholder")}
               />
               <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                最大500文字。特定商取引法に基づき出品者情報を任意で開示できます。
+                {t("sellerDisclosureHint")}
               </p>
             </div>
           </div>

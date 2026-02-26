@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import BasicInfoStep from "@/components/features/ListingForm/BasicInfoStep";
 import ContentEditor from "@/components/features/ListingForm/ContentEditor";
@@ -13,8 +14,6 @@ import type { ContentType, ListingType } from "@/types/database.types";
 import { LISTING_TYPE_LABELS } from "@/types/knowledge.types";
 import type { RequestContentInput } from "@/lib/knowledge/requestContent";
 import { parseRequestFullContent } from "@/lib/knowledge/requestContent";
-
-const STEPS = ["基本情報", "コンテンツ", "価格設定", "確認・更新"];
 
 interface FormData {
   listing_type: ListingType;
@@ -66,6 +65,11 @@ const initialForm: FormData = {
 };
 
 export default function EditListingPage() {
+  const t = useTranslations("Listing");
+  const tCommon = useTranslations("Common");
+
+  const STEPS = [t("basicInfo"), t("content"), t("pricing"), t("confirmUpdate")];
+
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const listingId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -112,7 +116,7 @@ export default function EditListingPage() {
 
         if (!active) return;
         if (itemError || !item || item.seller_id !== user.id) {
-          setErrors({ submit: "編集対象の掲載が見つかりません" });
+          setErrors({ submit: t("listingNotFound") });
           return;
         }
 
@@ -163,7 +167,7 @@ export default function EditListingPage() {
       } catch (error) {
         if (!active) return;
         const message =
-          error instanceof Error ? error.message : "読み込みに失敗しました";
+          error instanceof Error ? error.message : t("loadFailed");
         setErrors({ submit: message });
       } finally {
         if (active) setLoading(false);
@@ -174,7 +178,7 @@ export default function EditListingPage() {
     return () => {
       active = false;
     };
-  }, [listingId, router]);
+  }, [listingId, router, t]);
 
   const updateForm = (updates: Partial<FormData>) => {
     setForm((prev) => ({ ...prev, ...updates }));
@@ -199,16 +203,16 @@ export default function EditListingPage() {
     const newErrors: Record<string, string> = {};
 
     if (step === 0) {
-      if (!form.title.trim()) newErrors.title = "タイトルは必須です";
-      if (!form.description.trim()) newErrors.description = "説明は必須です";
+      if (!form.title.trim()) newErrors.title = t("titleRequired");
+      if (!form.description.trim()) newErrors.description = t("descriptionRequired");
     }
 
     if (step === 1 && form.listing_type === "request") {
       if (!form.request_content.needed_info.trim()) {
-        newErrors.request_needed_info = "必要な情報は必須です";
+        newErrors.request_needed_info = t("neededInfoRequired");
       }
       if (!form.request_content.background.trim()) {
-        newErrors.request_background = "用途・背景は必須です";
+        newErrors.request_background = t("backgroundRequired");
       }
     }
 
@@ -216,8 +220,8 @@ export default function EditListingPage() {
       if (!form.price_sol && !form.price_usdc) {
         newErrors.price_sol =
           form.listing_type === "request"
-            ? "少なくとも1つの希望報酬を設定してください"
-            : "少なくとも1つの価格を設定してください";
+            ? t("rewardSetRequired")
+            : t("priceSetRequired");
       }
     }
 
@@ -274,7 +278,7 @@ export default function EditListingPage() {
       router.push("/dashboard/listings");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "更新処理に失敗しました";
+        error instanceof Error ? error.message : t("updateFailed");
       setErrors({ submit: message });
     } finally {
       setSubmitting(false);
@@ -293,13 +297,13 @@ export default function EditListingPage() {
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-dq-text">
-          掲載を編集する
+          {t("editListing")}
         </h1>
         <p className="mt-2 text-sm text-dq-text-muted">
-          掲載内容を編集して保存できます
+          {t("editDesc")}
         </p>
         <p className="mt-1 text-xs text-dq-text-muted">
-          現在の掲載種別: {LISTING_TYPE_LABELS[form.listing_type]}
+          {t("currentType", { type: LISTING_TYPE_LABELS[form.listing_type] })}
         </p>
       </div>
 
@@ -405,17 +409,17 @@ export default function EditListingPage() {
 
       <div className="flex justify-between border-t border-dq-border pt-6">
         <Button variant="outline" onClick={handleBack} disabled={step === 0}>
-          戻る
+          {tCommon("back")}
         </Button>
 
         <div className="flex gap-4">
           {step === STEPS.length - 1 ? (
             <Button variant="primary" onClick={handleSave} loading={submitting}>
-              更新する
+              {t("updateItem")}
             </Button>
           ) : (
             <Button variant="primary" onClick={handleNext}>
-              次へ
+              {tCommon("next")}
             </Button>
           )}
         </div>

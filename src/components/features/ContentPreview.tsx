@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { ContentType } from "@/types/database.types";
 
 interface Props {
@@ -5,11 +6,13 @@ interface Props {
   content: string;
 }
 
-export default function ContentPreview({ contentType, content }: Props) {
+export default async function ContentPreview({ contentType, content }: Props) {
+  const t = await getTranslations("Knowledge");
+
   if (!content) {
     return (
       <p className="text-sm text-dq-text-muted">
-        プレビューはありません
+        {t("noPreview")}
       </p>
     );
   }

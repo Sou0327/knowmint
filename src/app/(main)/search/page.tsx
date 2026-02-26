@@ -4,6 +4,7 @@ import SearchBar from "@/components/features/SearchBar";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
 import Link from "next/link";
 import type { ContentType, ListingType } from "@/types/database.types";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 import { CONTENT_TYPE_LABELS } from "@/types/knowledge.types";
@@ -21,22 +22,27 @@ interface Props {
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q } = await searchParams;
-  const title = q ? `「${q}」の検索結果` : "知識を検索";
+  const t = await getTranslations("Search");
+  const title = q ? `「${q}」` : t("title");
   return {
     title,
     robots: { index: false, follow: true },
   };
 }
 
-const SORT_OPTIONS = [
-  { value: "newest", label: "新着順" },
-  { value: "popular", label: "人気順" },
-  { value: "price_low", label: "価格: 低い順" },
-  { value: "price_high", label: "価格: 高い順" },
-  { value: "rating", label: "評価順" },
-];
+const SORT_OPTION_KEYS = [
+  { value: "newest", key: "sortNewest" },
+  { value: "popular", key: "sortPopular" },
+  { value: "price_low", key: "sortPriceLow" },
+  { value: "price_high", key: "sortPriceHigh" },
+  { value: "rating", key: "sortTopRated" },
+] as const;
 
 export default async function SearchPage({ searchParams }: Props) {
+  const [t] = await Promise.all([
+    getTranslations("Search"),
+  ]);
+
   const { q, category, type, listing_type, sort, page: pageStr } = await searchParams;
   const parsedPage = parseInt(pageStr || "1", 10);
   const page = Number.isFinite(parsedPage) && parsedPage >= 1 ? Math.min(parsedPage, 1000) : 1;
@@ -68,7 +74,7 @@ export default async function SearchPage({ searchParams }: Props) {
     <div>
       <div className="mb-6">
         <h1 className="mb-4 text-3xl font-bold tracking-tight text-dq-text">
-          マーケット検索
+          {q ? t("resultCount", { count: result.total }) : t("title")}
         </h1>
         <SearchBar defaultValue={q} className="max-w-xl" />
       </div>
@@ -91,7 +97,7 @@ export default async function SearchPage({ searchParams }: Props) {
                         : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                     }`}
                   >
-                    すべて
+                    {t("all")}
                   </Link>
                 </li>
                 {categories.map((cat) => (
@@ -113,7 +119,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
             <div>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-dq-gold">
-                コンテンツタイプ
+                {t("contentType")}
               </h3>
               <ul className="space-y-1">
                 <li>
@@ -125,7 +131,7 @@ export default async function SearchPage({ searchParams }: Props) {
                         : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                     }`}
                   >
-                    すべて
+                    {t("all")}
                   </Link>
                 </li>
                 {Object.entries(CONTENT_TYPE_LABELS).map(([value, label]) => (
@@ -152,7 +158,7 @@ export default async function SearchPage({ searchParams }: Props) {
           {/* Sort */}
           <div className="mb-4 flex items-center justify-between">
             <p className="text-sm font-medium text-dq-text-sub">
-              {result.total} 件の結果
+              {t("resultCount", { count: result.total })}
               {q && (
                 <span className="font-normal text-dq-text-muted">
                   {" "}
@@ -161,7 +167,7 @@ export default async function SearchPage({ searchParams }: Props) {
               )}
             </p>
             <div className="flex gap-2">
-              {SORT_OPTIONS.map((opt) => (
+              {SORT_OPTION_KEYS.map((opt) => (
                 <Link
                   key={opt.value}
                   href={buildUrl({ sort: opt.value, page: undefined })}
@@ -171,7 +177,7 @@ export default async function SearchPage({ searchParams }: Props) {
                       : "bg-dq-surface text-dq-text-sub hover:bg-dq-hover"
                   }`}
                 >
-                  {opt.label}
+                  {t(opt.key)}
                 </Link>
               ))}
             </div>
@@ -213,7 +219,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 />
               </svg>
               <p className="text-dq-text-muted">
-                結果が見つかりませんでした
+                {t("noResults")}
               </p>
             </div>
           )}
@@ -226,7 +232,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   href={buildUrl({ page: String(page - 1) })}
                   className="rounded-sm border-2 border-dq-border px-4 py-2 text-sm font-medium hover:bg-dq-surface transition-colors"
                 >
-                  前へ
+                  {t("previous")}
                 </Link>
               )}
               <span className="px-4 py-2 text-sm font-medium text-dq-text-sub">
@@ -237,7 +243,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   href={buildUrl({ page: String(page + 1) })}
                   className="rounded-sm border-2 border-dq-border px-4 py-2 text-sm font-medium hover:bg-dq-surface transition-colors"
                 >
-                  次へ
+                  {t("next")}
                 </Link>
               )}
             </div>

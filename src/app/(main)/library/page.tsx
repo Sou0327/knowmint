@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth/session";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 import Card from "@/components/ui/Card";
@@ -12,6 +13,10 @@ import type { ContentType } from "@/types/database.types";
 export default async function LibraryPage() {
   const user = await getUser();
   if (!user) redirect("/login");
+
+  const t = await getTranslations("Library");
+  const tCommon = await getTranslations("Common");
+  const locale = await getLocale();
 
   const supabase = await createClient();
 
@@ -34,7 +39,7 @@ export default async function LibraryPage() {
   return (
     <div>
       <h1 className="mb-6 text-3xl font-bold tracking-tight text-dq-text">
-        マイライブラリ
+        {t("title")}
       </h1>
 
       {!purchases || purchases.length === 0 ? (
@@ -54,13 +59,13 @@ export default async function LibraryPage() {
               />
             </svg>
             <p className="text-base text-dq-text-muted">
-              購入した知識はまだありません
+              {t("noItems")}
             </p>
             <Link
               href="/search"
               className="mt-5 inline-flex items-center gap-2 rounded-sm bg-dq-gold px-4 py-2 text-sm font-medium text-dq-bg transition-colors hover:bg-dq-gold/80"
             >
-              マーケットを探す
+              {t("exploreMarket")}
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
@@ -96,8 +101,8 @@ export default async function LibraryPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span>
-                        {item.seller?.display_name || "匿名"} ・{" "}
-                        {new Date(purchase.created_at).toLocaleDateString("ja-JP")}
+                        {item.seller?.display_name || tCommon("anonymous")} ・{" "}
+                        {new Date(purchase.created_at).toLocaleDateString(locale === "ja" ? "ja-JP" : "en-US")}
                       </span>
                     </div>
                   </div>

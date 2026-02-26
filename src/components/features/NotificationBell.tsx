@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 
 interface NotificationItem {
   id: string;
@@ -15,6 +16,9 @@ interface NotificationItem {
 }
 
 export default function NotificationBell() {
+  const t = useTranslations("Notifications");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -108,13 +112,13 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-80 dq-window-sm">
           <div className="flex items-center justify-between border-b-2 border-dq-border px-4 py-3">
-            <h3 className="text-sm font-semibold text-dq-gold">通知</h3>
+            <h3 className="text-sm font-semibold text-dq-gold">{t("title")}</h3>
             <Link
               href="/notifications"
               className="text-xs text-dq-cyan hover:text-dq-gold"
               onClick={() => setOpen(false)}
             >
-              すべて見る
+              {tCommon("viewAll")}
             </Link>
           </div>
 
@@ -122,7 +126,7 @@ export default function NotificationBell() {
             {loading ? (
               <div className="py-8 text-center text-sm text-dq-text-muted">Loading...</div>
             ) : notifications.length === 0 ? (
-              <div className="py-8 text-center text-sm text-dq-text-muted">通知はありません</div>
+              <div className="py-8 text-center text-sm text-dq-text-muted">{t("empty")}</div>
             ) : (
               notifications.map((n) => (
                 <div
@@ -147,7 +151,7 @@ export default function NotificationBell() {
                       )}
                       <p className="mt-0.5 text-xs text-dq-text-muted line-clamp-2">{n.message}</p>
                       <p className="mt-1 text-[10px] text-dq-text-muted">
-                        {new Date(n.created_at).toLocaleDateString("ja-JP")}
+                        {new Date(n.created_at).toLocaleDateString(locale === "ja" ? "ja-JP" : "en-US")}
                       </p>
                     </div>
                     {!n.read && (
@@ -155,7 +159,7 @@ export default function NotificationBell() {
                         type="button"
                         onClick={() => markAsRead(n.id)}
                         className="mt-1 h-2 w-2 shrink-0 rounded-full bg-dq-cyan"
-                        aria-label="Mark as read"
+                        aria-label={t("markAsRead")}
                       />
                     )}
                   </div>

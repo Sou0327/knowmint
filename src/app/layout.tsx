@@ -5,8 +5,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SolanaWalletProvider } from "@/contexts/WalletContext";
 import { EVMWalletProvider } from "@/contexts/EVMWalletContext";
 import { ChainProvider } from "@/contexts/ChainContext";
-import { I18nProvider } from "@/contexts/I18nContext";
-import type { Locale } from "@/lib/i18n/config";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+import type { Locale } from "@/i18n/request";
 
 const dotGothic = DotGothic16({
   weight: "400",
@@ -37,7 +38,7 @@ const METADATA_BY_LOCALE: Record<Locale, { title: string; description: string }>
 };
 
 export function generateMetadata(): Metadata {
-  const m = METADATA_BY_LOCALE.ja;
+  const m = METADATA_BY_LOCALE.en;
   return {
     ...m,
     metadataBase: new URL("https://knowmint.shop"),
@@ -45,7 +46,7 @@ export function generateMetadata(): Metadata {
     openGraph: {
       type: "website",
       siteName: "KnowMint",
-      locale: "ja_JP",
+      locale: "en_US",
       title: m.title,
       description: m.description,
       images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "KnowMint" }],
@@ -59,17 +60,20 @@ export function generateMetadata(): Metadata {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="ja">
+    <html lang={locale}>
       <body
         className={`${dotGothic.variable} ${geistSans.variable} ${geistMono.variable}`}
       >
-        <I18nProvider initialLocale="ja">
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <AuthProvider>
             <SolanaWalletProvider>
               <EVMWalletProvider>
@@ -77,7 +81,7 @@ export default function RootLayout({
               </EVMWalletProvider>
             </SolanaWalletProvider>
           </AuthProvider>
-        </I18nProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

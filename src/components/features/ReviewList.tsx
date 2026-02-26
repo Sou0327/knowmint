@@ -1,4 +1,5 @@
 import Card from "@/components/ui/Card";
+import { getTranslations, getLocale } from "next-intl/server";
 
 interface ReviewItem {
   id: string;
@@ -35,11 +36,18 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function ReviewList({ reviews }: Props) {
+export default async function ReviewList({ reviews }: Props) {
+  const [t, tCommon, locale] = await Promise.all([
+    getTranslations("Knowledge"),
+    getTranslations("Common"),
+    getLocale(),
+  ]);
+  const dateLocale = locale === "ja" ? "ja-JP" : "en-US";
+
   if (reviews.length === 0) {
     return (
       <p className="py-4 text-sm text-dq-text-muted">
-        まだレビューはありません
+        {t("noReviews")}
       </p>
     );
   }
@@ -55,10 +63,10 @@ export default function ReviewList({ reviews }: Props) {
               </div>
               <div>
                 <p className="text-sm font-medium text-dq-text">
-                  {review.reviewer.display_name || "匿名"}
+                  {review.reviewer.display_name || tCommon("anonymous")}
                 </p>
                 <p className="text-xs text-dq-text-muted">
-                  {new Date(review.created_at).toLocaleDateString("ja-JP")}
+                  {new Date(review.created_at).toLocaleDateString(dateLocale)}
                 </p>
               </div>
             </div>

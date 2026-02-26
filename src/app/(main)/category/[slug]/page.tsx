@@ -4,6 +4,7 @@ import Link from "next/link";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import { getKnowledgeByCategory } from "@/lib/knowledge/queries";
 import type { ListingType } from "@/types/database.types";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
+  const t = await getTranslations("Search");
+
   const { slug } = await params;
   const { page: pageStr } = await searchParams;
   const page = parseInt(pageStr || "1", 10);
@@ -81,7 +84,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </div>
       ) : (
         <p className="py-12 text-center text-dq-text-muted">
-          このカテゴリにはまだアイテムがありません
+          {t("noCategoryItems")}
         </p>
       )}
 
@@ -93,7 +96,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               href={`/category/${slug}?page=${page - 1}`}
               className="rounded-sm border border-dq-border px-4 py-2 text-sm hover:bg-dq-surface"
             >
-              前へ
+              {t("previous")}
             </Link>
           )}
           <span className="px-4 py-2 text-sm text-dq-text-sub">
@@ -104,7 +107,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               href={`/category/${slug}?page=${page + 1}`}
               className="rounded-sm border border-dq-border px-4 py-2 text-sm hover:bg-dq-surface"
             >
-              次へ
+              {t("next")}
             </Link>
           )}
         </div>

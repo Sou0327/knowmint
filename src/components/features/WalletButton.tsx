@@ -8,12 +8,14 @@ import { useChain } from "@/contexts/ChainContext";
 import { useAuth } from "@/contexts/AuthContext";
 import EVMWalletButton from "./EVMWalletButton";
 import { requestWalletChallenge, verifyWalletSignature } from "@/app/actions/wallet";
+import { useTranslations } from "next-intl";
 
 interface WalletButtonProps {
   showTabs?: boolean;
 }
 
 export default function WalletButton({ showTabs = false }: WalletButtonProps) {
+  const t = useTranslations("Wallet");
   const { connected, publicKey, disconnect, connecting, signMessage } = useWallet();
   const { setVisible } = useWalletModal();
   const { selectedChain, setSelectedChain } = useChain();
@@ -54,7 +56,7 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
         try {
           signatureBytes = await signMessage(messageBytes);
         } catch {
-          setSiwsError("署名がキャンセルされました");
+          setSiwsError(t("signCancelled"));
           return;
         }
 
@@ -78,7 +80,7 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
 
     runSiws().catch((err: unknown) => {
       console.error("[WalletButton] SIWS flow failed:", err);
-      setSiwsError("ウォレット登録中にエラーが発生しました");
+      setSiwsError(t("registrationError"));
       setSiwsPending(false);
       siwsRunning.current = false;
     });
@@ -98,10 +100,10 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
           {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
         </span>
         {siwsPending && (
-          <span className="text-xs text-dq-cyan">署名確認中...</span>
+          <span className="text-xs text-dq-cyan">{t("signingPending")}</span>
         )}
         <Button variant="outline" size="sm" onClick={() => disconnect()}>
-          切断
+          {t("disconnect")}
         </Button>
       </div>
       {siwsError && (
@@ -115,7 +117,7 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
       onClick={() => setVisible(true)}
       loading={connecting}
     >
-      ウォレット接続
+      {t("connect")}
     </Button>
   );
 

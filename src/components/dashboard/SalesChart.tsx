@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   BarChart,
   Bar,
@@ -25,6 +26,7 @@ interface ChartDataPoint {
 }
 
 export default function SalesChart({ data }: SalesChartProps) {
+  const t = useTranslations("Dashboard");
   const chartData = useMemo(() => {
     const merged = new Map<string, ChartDataPoint>();
     data.forEach(({ date, amount, token }) => {
@@ -45,7 +47,7 @@ export default function SalesChart({ data }: SalesChartProps) {
   if (chartData.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-dq-text-muted">
-        この期間のデータはありません
+        {t("noPeriodData")}
       </div>
     );
   }

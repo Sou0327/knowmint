@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import NotificationBell from '@/components/features/NotificationBell';
 import WalletButton from '@/components/features/WalletButton';
+import LanguageToggle from '@/components/i18n/LanguageToggle';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
@@ -13,6 +15,7 @@ export function Header() {
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, profile, signOut, loading } = useAuth();
+  const t = useTranslations('Nav');
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -53,28 +56,28 @@ export function Header() {
               className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
-              マーケット
+              {t('market')}
             </Link>
             <Link
               href="/list"
               className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
-              出品する
+              {t('listItem')}
             </Link>
             <Link
               href="/library"
               className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
-              マイライブラリ
+              {t('myLibrary')}
             </Link>
             <Link
               href="/dashboard"
               className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
-              ダッシュボード
+              {t('dashboard')}
             </Link>
           </nav>
 
@@ -95,7 +98,7 @@ export function Header() {
                 <input
                   type="text"
                   name="q"
-                  placeholder="検索..."
+                  placeholder={t('search')}
                   className="w-full px-4 py-2 pl-10 text-sm border-2 border-dq-border rounded-sm bg-dq-surface text-dq-text placeholder:text-dq-text-muted focus:outline-none focus:ring-2 focus:ring-dq-gold focus:border-dq-gold transition-colors"
                 />
                 <svg
@@ -118,6 +121,7 @@ export function Header() {
 
           {/* Right side: Wallet & User Menu */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageToggle compact />
             <WalletButton />
             <NotificationBell />
 
@@ -126,7 +130,7 @@ export function Header() {
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-2 text-dq-text-sub hover:text-dq-gold transition-colors"
-                aria-label="User menu"
+                aria-label={t('userMenu')}
                 aria-expanded={userMenuOpen}
               >
                 <svg
@@ -168,7 +172,7 @@ export function Header() {
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
-                        プロフィール
+                        {t('profile')}
                       </Link>
                       <button
                         type="button"
@@ -176,7 +180,7 @@ export function Header() {
                         onClick={handleSignOut}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
-                        ログアウト
+                        {t('logout')}
                       </button>
                     </>
                   ) : (
@@ -187,7 +191,7 @@ export function Header() {
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
-                        ログイン
+                        {t('login')}
                       </Link>
                       <Link
                         href="/signup"
@@ -195,7 +199,7 @@ export function Header() {
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
-                        サインアップ
+                        {t('signup')}
                       </Link>
                     </>
                   )}
@@ -209,7 +213,7 @@ export function Header() {
             type="button"
             className="md:hidden p-2 text-dq-text-sub hover:text-dq-gold"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={mobileMenuOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={mobileMenuOpen}
           >
             <svg
@@ -257,7 +261,7 @@ export function Header() {
                 <input
                   type="text"
                   name="q"
-                  placeholder="検索..."
+                  placeholder={t('search')}
                   className="w-full px-4 py-2 text-sm border-2 border-dq-border rounded-sm bg-dq-surface text-dq-text placeholder:text-dq-text-muted focus:outline-none focus:ring-2 focus:ring-dq-gold focus:border-dq-gold transition-colors"
                 />
               </form>
@@ -271,7 +275,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                マーケット
+                {t('market')}
               </Link>
               <Link
                 href="/list"
@@ -279,7 +283,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                出品する
+                {t('listItem')}
               </Link>
               <Link
                 href="/library"
@@ -287,7 +291,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                マイライブラリ
+                {t('myLibrary')}
               </Link>
               <Link
                 href="/dashboard"
@@ -295,7 +299,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                ダッシュボード
+                {t('dashboard')}
               </Link>
               <div className="border-t-2 border-dq-border my-2" />
               {loading ? (
@@ -310,7 +314,7 @@ export function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                    プロフィール
+                    {t('profile')}
                   </Link>
                   <button
                     type="button"
@@ -318,7 +322,7 @@ export function Header() {
                     onClick={handleSignOut}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                    ログアウト
+                    {t('logout')}
                   </button>
                 </>
               ) : (
@@ -329,7 +333,7 @@ export function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                    ログイン
+                    {t('login')}
                   </Link>
                   <Link
                     href="/signup"
@@ -337,12 +341,13 @@ export function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
-                    サインアップ
+                    {t('signup')}
                   </Link>
                 </>
               )}
-              <div className="mt-2">
+              <div className="mt-2 flex items-center gap-3">
                 <WalletButton />
+                <LanguageToggle compact />
               </div>
             </nav>
           </div>

@@ -1,9 +1,12 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 const linkClass =
   "text-sm text-dq-cyan hover:text-dq-gold hover:underline underline-offset-4 transition-colors duration-200";
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations('Footer');
+  const tNav = await getTranslations('Nav');
   return (
     <footer className="border-t-3 border-dq-border-outer bg-dq-window-bg">
       <div className="container mx-auto px-4 py-16">
@@ -16,29 +19,29 @@ export function Footer() {
               </span>
             </h3>
             <p className="mt-2 text-sm text-dq-text-sub">
-              AIと人間のための知識マーケットプレイス
+              {t('tagline')}
             </p>
           </div>
 
           {/* Platform Links */}
           <div>
             <h4 className="text-sm font-semibold text-dq-gold">
-              プラットフォーム
+              {t('platform')}
             </h4>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link href="/" className={linkClass}>
-                  マーケット
+                  {tNav('market')}
                 </Link>
               </li>
               <li>
                 <Link href="/search" className={linkClass}>
-                  カテゴリ
+                  {t('categories')}
                 </Link>
               </li>
               <li>
                 <Link href="/list" className={linkClass}>
-                  出品する
+                  {tNav('listItem')}
                 </Link>
               </li>
             </ul>
@@ -47,17 +50,17 @@ export function Footer() {
           {/* Support Links */}
           <div>
             <h4 className="text-sm font-semibold text-dq-gold">
-              サポート
+              {t('support')}
             </h4>
             <ul className="mt-4 space-y-2">
               <li>
                 <span className="cursor-default text-sm text-dq-text-muted">
-                  ヘルプ（準備中）
+                  {t('helpComingSoon')}
                 </span>
               </li>
               <li>
                 <Link href="/contact" className={linkClass}>
-                  お問い合わせ
+                  {t('contact')}
                 </Link>
               </li>
             </ul>
@@ -66,22 +69,22 @@ export function Footer() {
           {/* Legal Links */}
           <div>
             <h4 className="text-sm font-semibold text-dq-gold">
-              法的情報
+              {t('legal')}
             </h4>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link href="/terms" className={linkClass}>
-                  利用規約
+                  {t('terms')}
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className={linkClass}>
-                  プライバシーポリシー
+                  {t('privacy')}
                 </Link>
               </li>
               <li>
                 <Link href="/legal" className={linkClass}>
-                  特定商取引法表示
+                  {t('commercialLaw')}
                 </Link>
               </li>
             </ul>

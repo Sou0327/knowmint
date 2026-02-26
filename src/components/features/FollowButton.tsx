@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 
@@ -15,6 +16,7 @@ export default function FollowButton({
   initialFollowing,
   followerCount: initialCount,
 }: FollowButtonProps) {
+  const t = useTranslations("Wallet");
   const [following, setFollowing] = useState(initialFollowing);
   const [count, setCount] = useState(initialCount ?? 0);
   const [isPending, startTransition] = useTransition();
@@ -57,14 +59,14 @@ export default function FollowButton({
         size="sm"
         loading={isPending}
         onClick={toggle}
-        aria-label={following ? "フォローを解除" : "フォローする"}
+        aria-label={following ? t("unfollow") : t("follow")}
         aria-pressed={following}
       >
-        {following ? "フォロー中" : "フォローする"}
+        {following ? t("following") : t("follow")}
       </Button>
       {count > 0 && (
         <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
-          {count.toLocaleString()} フォロワー
+          {t("followerCount", { count: count.toLocaleString() })}
         </span>
       )}
     </div>

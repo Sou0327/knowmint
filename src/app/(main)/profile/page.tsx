@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import type { UserType } from "@/types/database.types";
 
-const USER_TYPE_LABELS: Record<UserType, string> = {
-  human: "人間",
-  agent: "AIエージェント",
-};
-
 export default function ProfilePage() {
+  const t = useTranslations("Profile");
+  const tCommon = useTranslations("Common");
+  const USER_TYPE_LABELS: Record<UserType, string> = {
+    human: t("userTypeHuman"),
+    agent: t("userTypeAgent"),
+  };
   const { profile, updateProfile, loading: authLoading } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -43,7 +45,7 @@ export default function ProfilePage() {
     if (error) {
       setMessage({ type: "error", text: error });
     } else {
-      setMessage({ type: "success", text: "プロフィールを更新しました" });
+      setMessage({ type: "success", text: t("updated") });
     }
     setSaving(false);
   };
@@ -59,7 +61,7 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="mb-6 text-3xl font-bold tracking-tight text-dq-text">
-        プロフィール設定
+        {t("title")}
       </h1>
 
       <div className="rounded-sm border border-dq-border bg-dq-window-bg p-6">
@@ -69,7 +71,7 @@ export default function ProfilePage() {
             {(displayName || "?")[0].toUpperCase()}
           </div>
           <p className="mt-3 text-sm text-dq-text-muted">
-            プロフィール写真
+            {t("photo")}
           </p>
         </div>
 
@@ -87,30 +89,29 @@ export default function ProfilePage() {
           )}
 
           <Input
-            label="表示名"
+            label={t("displayName")}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             required
           />
 
           <Input
-            label="アカウント種別"
+            label={t("accountType")}
             value={profile ? USER_TYPE_LABELS[profile.user_type ?? "human"] : ""}
             disabled
           />
 
           <Textarea
-            label="自己紹介"
+            label={t("bio")}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={4}
-            hint="マークダウンが使えます"
+            hint={t("markdownSupported")}
           />
 
-          {/* ウォレットアドレスは SIWS 経由のみ更新可 (読み取り専用表示) */}
           <div>
             <label className="mb-1 block text-sm font-medium text-dq-text-sub">
-              ウォレットアドレス (Solana)
+              {t("walletAddress")}
             </label>
             {profile?.wallet_address ? (
               <p className="font-mono text-sm text-dq-text-sub">
@@ -118,13 +119,13 @@ export default function ProfilePage() {
               </p>
             ) : (
               <p className="text-sm text-dq-text-muted">
-                未設定 — ウォレット接続ボタンから設定できます
+                {t("walletNotSet")}
               </p>
             )}
           </div>
 
           <Button type="submit" variant="primary" loading={saving} className="mt-2 w-full sm:w-auto">
-            保存
+            {tCommon("save")}
           </Button>
         </form>
       </div>

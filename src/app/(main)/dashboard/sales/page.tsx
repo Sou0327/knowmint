@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -9,26 +10,24 @@ import { createClient } from "@/lib/supabase/client";
 import type { SalesByDate, TopSellingItem, RevenueByToken } from "@/types/dashboard.types";
 import type { Token } from "@/types/database.types";
 
+function ChartLoadingFallback() {
+  const t = useTranslations("Dashboard");
+  return (
+    <div className="flex h-80 items-center justify-center text-dq-text-muted">
+      {t("chartLoading")}
+    </div>
+  );
+}
+
 const SalesChart = dynamic(
   () => import("@/components/dashboard/SalesChart"),
   {
-    loading: () => (
-      <div className="flex h-80 items-center justify-center text-dq-text-muted">
-        チャート読み込み中...
-      </div>
-    ),
+    loading: () => <ChartLoadingFallback />,
     ssr: false,
   }
 );
 
 type Period = "7d" | "30d" | "90d" | "all";
-
-const PERIOD_LABELS: Record<Period, string> = {
-  "7d": "7日",
-  "30d": "30日",
-  "90d": "90日",
-  all: "全期間",
-};
 
 function getStartDate(period: Period): Date | null {
   if (period === "all") return null;
@@ -47,6 +46,15 @@ function formatRevenue(revenueByToken: Partial<Record<Token, number>>): string {
 }
 
 export default function SalesPage() {
+  const t = useTranslations("Dashboard");
+
+  const PERIOD_LABELS: Record<Period, string> = {
+    "7d": t("period7d"),
+    "30d": t("period30d"),
+    "90d": t("period90d"),
+    all: t("periodAll"),
+  };
+
   const [period, setPeriod] = useState<Period>("30d");
   const [salesData, setSalesData] = useState<SalesByDate[]>([]);
   const [topItems, setTopItems] = useState<TopSellingItem[]>([]);
@@ -169,9 +177,9 @@ export default function SalesPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-dq-text">
-          売上分析
+          {t("salesAnalytics")}
         </h1>
-        <div className="flex gap-2" role="group" aria-label="期間選択">
+        <div className="flex gap-2" role="group" aria-label={t("periodSelect")}>
           {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
             <Button
               key={p}
@@ -199,7 +207,7 @@ export default function SalesPage() {
               return (
                 <Card key={token} padding="md">
                   <p className="text-sm font-medium text-dq-text-muted">
-                    {token} 収益
+                    {token} {t("revenue")}
                   </p>
                   <p className="mt-1 text-xl font-bold text-dq-text">
                     {(r?.total ?? 0).toLocaleString(undefined, {
@@ -208,7 +216,7 @@ export default function SalesPage() {
                     {token}
                   </p>
                   <p className="text-sm text-dq-text-muted">
-                    {r?.count ?? 0} 件の取引
+                    {t("transactionCount", { count: r?.count ?? 0 })}
                   </p>
                 </Card>
               );
@@ -218,7 +226,7 @@ export default function SalesPage() {
           {/* Sales Chart */}
           <Card padding="md" className="mb-6">
             <h2 className="mb-4 text-lg font-semibold text-dq-text">
-              日別売上推移
+              {t("dailySalesTrend")}
             </h2>
             <SalesChart data={salesData} />
           </Card>
@@ -226,11 +234,11 @@ export default function SalesPage() {
           {/* Top Sellers */}
           <Card padding="md">
             <h2 className="mb-4 text-lg font-semibold text-dq-text">
-              売上上位アイテム
+              {t("topSellingItems")}
             </h2>
             {topItems.length === 0 ? (
               <p className="text-center text-dq-text-muted py-4">
-                データがありません
+                {t("noPeriodData")}
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -238,16 +246,16 @@ export default function SalesPage() {
                   <thead>
                     <tr className="border-b border-dq-border">
                       <th className="py-2 text-left font-medium text-dq-text-muted">
-                        タイトル
+                        {t("title")}
                       </th>
                       <th className="py-2 text-right font-medium text-dq-text-muted">
-                        販売数
+                        {t("sales")}
                       </th>
                       <th className="py-2 text-right font-medium text-dq-text-muted">
-                        収益
+                        {t("revenue")}
                       </th>
                       <th className="py-2 text-right font-medium text-dq-text-muted">
-                        評価
+                        {t("rating")}
                       </th>
                     </tr>
                   </thead>

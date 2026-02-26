@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useAccount, useSendTransaction } from "wagmi";
@@ -32,6 +33,8 @@ export default function PurchaseModal({
   sellerWallet,
   onPurchaseComplete,
 }: Props) {
+  const t = useTranslations("Purchase");
+  const tCommon = useTranslations("Common");
   const { connected, publicKey, sendTransaction } = useWallet();
   const { setVisible } = useWalletModal();
   const { address: evmAddress, isConnected: evmConnected } = useAccount();
@@ -48,11 +51,11 @@ export default function PurchaseModal({
 
   const handlePurchase = async () => {
     if (!agreed) {
-      setError("利用規約に同意してください");
+      setError(t("agreeToTerms"));
       return;
     }
     if (!amount || !sellerWallet) {
-      setError("価格情報または出品者のウォレットアドレスが不足しています");
+      setError(t("priceMissing"));
       return;
     }
 
@@ -92,12 +95,12 @@ export default function PurchaseModal({
             const signature = await sendTransaction(transaction, connection);
             await onPurchaseComplete(signature, "solana", "USDC");
           } else {
-            setError("USDC決済は現在準備中です");
+            setError(t("usdcNotReady"));
           }
         }
       } else {
         if (!evmConnected || !evmAddress) {
-          setError("EVMウォレットを接続してください");
+          setError(t("evmWalletRequired"));
           setProcessing(false);
           return;
         }
@@ -109,24 +112,24 @@ export default function PurchaseModal({
         await onPurchaseComplete(hash, selectedChain as "base" | "ethereum", "ETH");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "決済に失敗しました");
+      setError(err instanceof Error ? err.message : t("paymentFailed"));
     } finally {
       setProcessing(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="購入確認" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t("confirmTitle")} size="md">
       <div className="space-y-4">
         <div>
-          <p className="text-sm text-dq-text-muted">購入アイテム</p>
+          <p className="text-sm text-dq-text-muted">{t("item")}</p>
           <p className="font-medium text-dq-text">{title}</p>
         </div>
 
         {/* Token selection */}
         <div>
           <p className="mb-2 text-sm font-medium text-dq-text-sub">
-            支払い通貨
+            {t("paymentToken")}
           </p>
           <div className="flex gap-2">
             {priceSol !== null && (
@@ -164,7 +167,7 @@ export default function PurchaseModal({
 
         {selectedChain !== "solana" && (
           <div className="rounded-sm border-2 border-dq-yellow/40 bg-dq-yellow/10 p-3 text-sm text-dq-yellow">
-            EVM チェーンでの購入は現在準備中です（Solana をご利用ください）
+            {t("evmNotReady")}
           </div>
         )}
 
@@ -194,15 +197,15 @@ export default function PurchaseModal({
               aria-label="Terms (opens in new tab)"
               className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
             >
-              利用規約
+              {t("termsLink")}
             </a>
-            に同意します
+            {t("agreeTermsSuffix")}
           </span>
         </label>
 
         <div className="flex gap-3 pt-2">
           <Button variant="outline" onClick={onClose} className="flex-1">
-            キャンセル
+            {tCommon("cancel")}
           </Button>
           <Button
             variant="primary"
@@ -212,8 +215,8 @@ export default function PurchaseModal({
             className="flex-1"
           >
             {connected
-              ? `${amount} ${selectedToken} で購入`
-              : "ウォレットを接続"}
+              ? t("buyFor", { amount: amount ?? 0, token: selectedToken })
+              : t("connectWallet")}
           </Button>
         </div>
       </div>

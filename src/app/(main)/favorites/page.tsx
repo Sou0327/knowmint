@@ -4,6 +4,7 @@ import { getFavorites } from "@/lib/favorites/queries";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { ContentType, ListingType } from "@/types/database.types";
 
 interface FavoriteKnowledgeItem {
@@ -49,6 +50,8 @@ function normalizeCategory(
 export const dynamic = "force-dynamic";
 
 export default async function FavoritesPage() {
+  const t = await getTranslations("Favorites");
+  const tCommon = await getTranslations("Common");
   const supabase = await createClient();
   const {
     data: { user },
@@ -60,7 +63,7 @@ export default async function FavoritesPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <h1 className="mb-6 text-2xl font-bold text-dq-text">
-        お気に入り
+        {t("title")}
       </h1>
 
       {favorites.length === 0 ? (
@@ -80,16 +83,16 @@ export default async function FavoritesPage() {
             />
           </svg>
           <p className="mb-1 text-base font-medium text-dq-text-sub">
-            お気に入りがありません
+            {t("empty")}
           </p>
           <p className="mb-4 text-sm text-dq-text-muted">
-            気になるナレッジをお気に入りに追加してみましょう
+            {t("emptyDesc")}
           </p>
           <Link
             href="/"
             className="inline-flex items-center gap-1 text-sm font-medium text-dq-cyan transition-colors hover:text-dq-gold"
           >
-            マーケットを見る
+            {tCommon("viewMarket")}
             <svg
               className="h-4 w-4"
               fill="none"

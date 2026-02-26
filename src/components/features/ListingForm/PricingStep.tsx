@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Input from "@/components/ui/Input";
 import type { ListingType } from "@/types/database.types";
 
@@ -20,18 +21,17 @@ export default function PricingStep({
   onPriceUsdcChange,
   errors,
 }: Props) {
+  const t = useTranslations("Listing");
   const isRequest = listingType === "request";
 
   return (
     <div className="space-y-6">
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        {isRequest
-          ? "SOLまたはUSDC（もしくは両方）の希望報酬を設定してください。少なくとも1つは必須です。"
-          : "SOLまたはUSDC（もしくは両方）の価格を設定してください。少なくとも1つは必須です。"}
+        {isRequest ? t("rewardNote") : t("priceNote")}
       </p>
 
       <Input
-        label={isRequest ? "希望報酬 (SOL)" : "価格 (SOL)"}
+        label={isRequest ? t("rewardSol") : t("priceSol")}
         type="number"
         value={priceSol}
         onChange={(e) => onPriceSolChange(e.target.value)}
@@ -39,11 +39,11 @@ export default function PricingStep({
         min="0"
         step="0.001"
         error={errors.price_sol}
-        hint={isRequest ? "Solana (SOL) での希望報酬" : "Solana (SOL) での価格"}
+        hint={isRequest ? t("rewardSolDesc") : t("priceSolDesc")}
       />
 
       <Input
-        label={isRequest ? "希望報酬 (USDC)" : "価格 (USDC)"}
+        label={isRequest ? t("rewardUsdc") : t("priceUsdc")}
         type="number"
         value={priceUsdc}
         onChange={(e) => onPriceUsdcChange(e.target.value)}
@@ -51,14 +51,12 @@ export default function PricingStep({
         min="0"
         step="0.01"
         error={errors.price_usdc}
-        hint={isRequest ? "USDC での希望報酬" : "USDC での価格"}
+        hint={isRequest ? t("rewardUsdcDesc") : t("priceUsdcDesc")}
       />
 
       {!priceSol && !priceUsdc && (
         <p className="text-sm text-yellow-600 dark:text-yellow-400">
-          {isRequest
-            ? "少なくとも1つの希望報酬を設定してください"
-            : "少なくとも1つの価格を設定してください"}
+          {isRequest ? t("rewardSetRequired") : t("priceSetRequired")}
         </p>
       )}
     </div>

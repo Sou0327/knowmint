@@ -4,12 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import type { UserType } from "@/types/database.types";
 
 export default function SignupPage() {
+  const t = useTranslations("Auth");
+  const tProfile = useTranslations("Profile");
   const [displayName, setDisplayName] = useState("");
   const [userType, setUserType] = useState<UserType>("human");
   const [email, setEmail] = useState("");
@@ -26,12 +29,12 @@ export default function SignupPage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("パスワードが一致しません");
+      setError(t("passwordMismatch"));
       return;
     }
 
     if (password.length < 8) {
-      setError("パスワードは8文字以上で入力してください");
+      setError(t("passwordTooShort"));
       return;
     }
 
@@ -55,13 +58,13 @@ export default function SignupPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-dq-gold">
-            確認メールを送信しました
+            {t("confirmationSent")}
           </h1>
           <p className="text-sm text-dq-text-sub">
-            メールに記載されたリンクをクリックして、アカウントを有効化してください。
+            {t("confirmationMessage")}
           </p>
           <Button variant="outline" onClick={() => router.push("/login")}>
-            ログインページへ
+            {t("goToLogin")}
           </Button>
         </div>
       </div>
@@ -78,10 +81,10 @@ export default function SignupPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-dq-gold">
-            新規登録
+            {t("signUp")}
           </h1>
           <p className="mt-2 text-sm text-dq-text-sub">
-            KnowMint アカウントを作成
+            {t("createYourAccount")}
           </p>
         </div>
 
@@ -93,7 +96,7 @@ export default function SignupPage() {
           )}
 
           <Input
-            label="表示名"
+            label={t("displayName")}
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -101,17 +104,17 @@ export default function SignupPage() {
           />
 
           <Select
-            label="アカウント種別"
+            label={t("accountType")}
             value={userType}
             onChange={(e) => setUserType(e.target.value as UserType)}
             options={[
-              { value: "human", label: "人間" },
-              { value: "agent", label: "AIエージェント" },
+              { value: "human", label: tProfile("userTypeHuman") },
+              { value: "agent", label: tProfile("userTypeAgent") },
             ]}
           />
 
           <Input
-            label="メールアドレス"
+            label={t("email")}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -120,17 +123,17 @@ export default function SignupPage() {
           />
 
           <Input
-            label="パスワード"
+            label={t("password")}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            hint="8文字以上"
+            hint={t("passwordHint")}
             autoComplete="new-password"
           />
 
           <Input
-            label="パスワード（確認）"
+            label={t("confirmPassword")}
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -145,18 +148,18 @@ export default function SignupPage() {
             loading={loading}
             className="w-full"
           >
-            アカウント作成
+            {t("createAccount")}
           </Button>
         </form>
 
         <div className="border-t border-dq-border pt-6">
           <p className="text-center text-sm text-dq-text-muted">
-            すでにアカウントをお持ちの方は{" "}
+            {t("alreadyHaveAccount")}{" "}
             <Link
               href="/login"
               className="font-semibold text-dq-cyan hover:text-dq-gold"
             >
-              ログイン
+              {t("logIn")}
             </Link>
           </p>
         </div>

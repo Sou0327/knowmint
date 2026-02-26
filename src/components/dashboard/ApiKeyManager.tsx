@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
@@ -18,6 +19,11 @@ interface ApiResponse<T> {
 }
 
 export default function ApiKeyManager() {
+  const t = useTranslations("ApiKey");
+  const tCommon = useTranslations("Common");
+  const tTypes = useTranslations("Types");
+  const locale = useLocale();
+
   const [keys, setKeys] = useState<ApiKeyListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -28,6 +34,8 @@ export default function ApiKeyManager() {
   const [deleteTarget, setDeleteTarget] = useState<ApiKeyListItem | null>(null);
   const [copied, setCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const dateLocale = locale === "ja" ? "ja-JP" : "en-US";
 
   const fetchKeys = useCallback(async () => {
     try {
@@ -40,18 +48,18 @@ export default function ApiKeyManager() {
       const json = (await res.json()) as ApiResponse<ApiKeyListItem[]>;
       if (!res.ok || !json.success) {
         setKeys([]);
-        setErrorMessage(json.error?.message || "APIキーの取得に失敗しました");
+        setErrorMessage(json.error?.message || t("fetchFailed"));
         return;
       }
 
       setKeys(json.data ?? []);
     } catch {
       setKeys([]);
-      setErrorMessage("APIキーの取得に失敗しました");
+      setErrorMessage(t("fetchFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchKeys();
@@ -86,7 +94,7 @@ export default function ApiKeyManager() {
       }>;
 
       if (!res.ok || !json.success || !json.data) {
-        setErrorMessage(json.error?.message || "APIキーの作成に失敗しました");
+        setErrorMessage(json.error?.message || t("createFailed"));
         return;
       }
 
@@ -96,7 +104,7 @@ export default function ApiKeyManager() {
       setShowCreate(false);
       await fetchKeys();
     } catch {
-      setErrorMessage("APIキーの作成に失敗しました");
+      setErrorMessage(t("createFailed"));
     } finally {
       setCreating(false);
     }
@@ -118,14 +126,14 @@ export default function ApiKeyManager() {
 
       const json = (await res.json()) as ApiResponse<{ deleted: boolean }>;
       if (!res.ok || !json.success) {
-        setErrorMessage(json.error?.message || "APIキーの削除に失敗しました");
+        setErrorMessage(json.error?.message || t("deleteFailed"));
         return;
       }
 
       setDeleteTarget(null);
       await fetchKeys();
     } catch {
-      setErrorMessage("APIキーの削除に失敗しました");
+      setErrorMessage(t("deleteFailed"));
     }
   };
 
@@ -167,7 +175,7 @@ export default function ApiKeyManager() {
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-dq-green">
-                APIキーが作成されました。このキーは一度だけ表示されます。
+                {t("keyCreated")}
               </p>
               <code className="mt-2 block break-all rounded-sm bg-dq-surface px-3 py-2.5 font-mono text-sm text-dq-cyan border border-dq-border">
                 {createdKey}
@@ -179,14 +187,14 @@ export default function ApiKeyManager() {
                 size="sm"
                 onClick={() => copyToClipboard(createdKey)}
               >
-                {copied ? "コピー済み" : "コピー"}
+                {copied ? tCommon("copied") : tCommon("copy")}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setCreatedKey(null)}
               >
-                閉じる
+                {tCommon("close")}
               </Button>
             </div>
           </div>
@@ -197,18 +205,18 @@ export default function ApiKeyManager() {
       {showCreate ? (
         <Card padding="md" className="mb-6">
           <h3 className="mb-4 text-lg font-semibold text-dq-gold">
-            新しいAPIキーを作成
+            {t("createNew")}
           </h3>
           <div className="space-y-4">
             <Input
-              label="キー名"
-              placeholder="例: 本番環境用"
+              label={t("keyName")}
+              placeholder={t("keyNamePlaceholder")}
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
             />
             <div>
               <p className="mb-2 text-sm font-medium text-dq-text-sub">
-                権限
+                {t("permissions")}
               </p>
               <div className="space-y-2">
                 {PERMISSION_OPTIONS.map((opt) => (
@@ -224,10 +232,10 @@ export default function ApiKeyManager() {
                     />
                     <div>
                       <p className="text-sm font-medium text-dq-text">
-                        {opt.label}
+                        {tTypes(`permission.${opt.value}`)}
                       </p>
                       <p className="text-xs text-dq-text-muted">
-                        {opt.description}
+                        {tTypes(`permission.${opt.value}Desc`)}
                       </p>
                     </div>
                   </label>
@@ -241,10 +249,10 @@ export default function ApiKeyManager() {
                 loading={creating}
                 disabled={!newKeyName.trim() || newKeyPermissions.length === 0}
               >
-                作成
+                {tCommon("create")}
               </Button>
               <Button variant="ghost" onClick={() => setShowCreate(false)}>
-                キャンセル
+                {tCommon("cancel")}
               </Button>
             </div>
           </div>
@@ -255,7 +263,7 @@ export default function ApiKeyManager() {
           onClick={() => setShowCreate(true)}
           className="mb-6"
         >
-          新しいAPIキーを作成
+          {t("createNew")}
         </Button>
       )}
 
@@ -263,7 +271,7 @@ export default function ApiKeyManager() {
       {keys.length === 0 ? (
         <Card padding="lg">
           <p className="text-center text-dq-text-muted">
-            APIキーがありません
+            {t("noKeys")}
           </p>
         </Card>
       ) : (
@@ -284,16 +292,16 @@ export default function ApiKeyManager() {
                   </div>
                   <div className="mt-1 flex items-center gap-4 text-xs text-dq-text-muted">
                     <span>
-                      作成: {new Date(key.created_at).toLocaleDateString("ja-JP")}
+                      {t("created")} {new Date(key.created_at).toLocaleDateString(dateLocale)}
                     </span>
                     {key.last_used_at && (
                       <span>
-                        最終使用: {new Date(key.last_used_at).toLocaleDateString("ja-JP")}
+                        {t("lastUsed")} {new Date(key.last_used_at).toLocaleDateString(dateLocale)}
                       </span>
                     )}
                     {key.expires_at && (
                       <span>
-                        有効期限: {new Date(key.expires_at).toLocaleDateString("ja-JP")}
+                        {t("expires")} {new Date(key.expires_at).toLocaleDateString(dateLocale)}
                       </span>
                     )}
                   </div>
@@ -303,7 +311,7 @@ export default function ApiKeyManager() {
                   size="sm"
                   onClick={() => setDeleteTarget(key)}
                 >
-                  削除
+                  {tCommon("delete")}
                 </Button>
               </div>
             </Card>
@@ -314,11 +322,11 @@ export default function ApiKeyManager() {
       {/* Usage Guide */}
       <Card padding="md" className="mt-8">
         <h3 className="mb-3 text-lg font-semibold text-dq-gold">
-          APIキーの使い方
+          {t("howToUse")}
         </h3>
         <div className="space-y-2 text-sm text-dq-text-sub">
           <p>
-            APIキーを使用して、KnowMint API にプログラムからアクセスできます。
+            {t("howToUseDesc")}
           </p>
           <code className="block rounded-sm bg-dq-surface px-3 py-2.5 font-mono text-xs leading-relaxed text-dq-cyan border border-dq-border">
             {`curl -H "Authorization: Bearer km_your_key_here" \\`}
@@ -326,7 +334,7 @@ export default function ApiKeyManager() {
             {`  ${typeof window !== "undefined" ? window.location.origin : "https://your-domain.com"}/api/v1/knowledge`}
           </code>
           <p className="text-xs text-dq-text-muted">
-            APIキーは安全に管理してください。キーが漏洩した場合は直ちに削除し、新しいキーを作成してください。
+            {t("securityNote")}
           </p>
         </div>
       </Card>
@@ -335,21 +343,21 @@ export default function ApiKeyManager() {
       <Modal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="APIキーの削除"
+        title={t("deleteTitle")}
         size="sm"
       >
         <p className="mb-4 text-dq-text-sub">
           <strong className="text-dq-text">
             {deleteTarget?.name}
           </strong>{" "}
-          を削除しますか？この操作は取り消せません。
+          {t("deleteConfirm")}
         </p>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
-            キャンセル
+            {tCommon("cancel")}
           </Button>
           <Button variant="danger" onClick={handleDelete}>
-            削除する
+            {tCommon("delete")}
           </Button>
         </div>
       </Modal>

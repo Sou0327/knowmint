@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Card from "@/components/ui/Card";
+import { getTranslations } from "next-intl/server";
 import FollowButton from "./FollowButton";
 
 interface Props {
@@ -32,16 +33,22 @@ function TrustBadge({ score }: { score: number | null | undefined }) {
   );
 }
 
-export default function SellerCard({
+export default async function SellerCard({
   seller,
   isFollowing,
   followerCount,
-  heading = "出品者",
+  heading,
 }: Props) {
+  const [t, tCommon] = await Promise.all([
+    getTranslations("Knowledge"),
+    getTranslations("Common"),
+  ]);
+  const resolvedHeading = heading ?? t("seller");
+
   return (
     <Card padding="md">
       <p className="mb-3 text-xs font-medium uppercase tracking-wider text-dq-text-muted">
-        {heading}
+        {resolvedHeading}
       </p>
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-dq-surface text-base font-bold text-dq-cyan border-2 border-dq-border">
@@ -53,7 +60,7 @@ export default function SellerCard({
               href={`/search?seller=${seller.id}`}
               className="text-base font-medium text-dq-text hover:text-dq-gold"
             >
-              {seller.display_name || "匿名ユーザー"}
+              {seller.display_name || tCommon("anonymousUser")}
             </Link>
             <TrustBadge score={seller.trust_score} />
           </div>

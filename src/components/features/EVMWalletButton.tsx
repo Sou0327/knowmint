@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import Button from "@/components/ui/Button";
 import { useChain } from "@/contexts/ChainContext";
+import { useTranslations } from "next-intl";
 
 const EVM_CHAIN_LABEL: Record<"base" | "ethereum", string> = {
   base: "Base",
@@ -11,6 +12,7 @@ const EVM_CHAIN_LABEL: Record<"base" | "ethereum", string> = {
 };
 
 export default function EVMWalletButton() {
+  const t = useTranslations("Wallet");
   const { selectedChain } = useChain();
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
@@ -42,7 +44,7 @@ export default function EVMWalletButton() {
           {address.slice(0, 6)}...{address.slice(-4)}
         </span>
         <Button variant="outline" size="sm" onClick={() => disconnect()}>
-          切断
+          {t("disconnect")}
         </Button>
       </div>
     );
@@ -66,7 +68,7 @@ export default function EVMWalletButton() {
         onClick={handleConnectClick}
         loading={isPending}
       >
-        {chainLabel}に接続
+        {t("connectTo", { chain: chainLabel })}
       </Button>
 
       {openForChain === activeChain && connectors.length > 1 && (

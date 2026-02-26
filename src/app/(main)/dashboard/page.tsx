@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { requireAuth } from "@/lib/auth/session";
 import { getDashboardStats, getRecentTransactions } from "@/lib/dashboard/queries";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -11,43 +12,45 @@ function formatToken(amount: number, token: Token): string {
   return `${amount.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${token}`;
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string, values?: Record<string, string | number | Date>) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 60) return `${minutes}分前`;
+  if (minutes < 60) return t("minutesAgo", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}時間前`;
+  if (hours < 24) return t("hoursAgo", { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days}日前`;
+  return t("daysAgo", { count: days });
 }
 
 export default async function DashboardPage() {
   const user = await requireAuth();
-  const [stats, recentTx] = await Promise.all([
+  const [stats, recentTx, t, tCommon] = await Promise.all([
     getDashboardStats(user.id),
     getRecentTransactions(user.id, 5),
+    getTranslations("Dashboard"),
+    getTranslations("Common"),
   ]);
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-dq-text">
-          ダッシュボード
+          {t("overview")}
         </h1>
         <Link
           href="/list"
           className="inline-flex items-center justify-center font-medium rounded-sm transition-colors px-4 py-2 text-base bg-dq-gold text-dq-bg hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dq-gold"
         >
-          新規出品
+          {t("newListing")}
         </Link>
       </div>
 
       {/* Stats Grid */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          label="出品数"
+          label={t("listingCount")}
           value={stats.totalListings}
-          subValue={`公開中: ${stats.publishedCount}`}
+          subValue={t("publishedCount", { count: stats.publishedCount })}
           iconColor="blue"
           icon={
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,9 +59,9 @@ export default async function DashboardPage() {
           }
         />
         <StatsCard
-          label="公開中"
+          label={t("salesAnalytics")}
           value={stats.publishedCount}
-          subValue={`下書き: ${stats.draftCount}`}
+          subValue={t("draftCount", { count: stats.draftCount })}
           iconColor="green"
           icon={
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,9 +70,9 @@ export default async function DashboardPage() {
           }
         />
         <StatsCard
-          label="売上 (SOL)"
+          label={t("salesSol")}
           value={formatToken(stats.totalRevenue.SOL, "SOL")}
-          subValue="過去30日"
+          subValue={t("last30Days")}
           iconColor="purple"
           icon={
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -78,9 +81,9 @@ export default async function DashboardPage() {
           }
         />
         <StatsCard
-          label="売上 (USDC)"
+          label={t("salesUsdc")}
           value={formatToken(stats.totalRevenue.USDC, "USDC")}
-          subValue="過去30日"
+          subValue={t("last30Days")}
           iconColor="amber"
           icon={
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,20 +97,20 @@ export default async function DashboardPage() {
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-dq-text">
-            最近の取引
+            {t("recentTransactions")}
           </h2>
           <Link
             href="/dashboard/sales"
             className="text-sm text-dq-cyan hover:text-dq-gold"
           >
-            すべて見る
+            {tCommon("viewAll")}
           </Link>
         </div>
 
         {recentTx.length === 0 ? (
           <Card padding="lg">
             <p className="text-center text-dq-text-muted">
-              まだ取引がありません
+              {t("noTransactions")}
             </p>
           </Card>
         ) : (
@@ -120,7 +123,7 @@ export default async function DashboardPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-dq-text">
-                      {tx.knowledge_item?.title ?? "不明なアイテム"}
+                      {tx.knowledge_item?.title ?? t("unknownItem")}
                     </p>
                     <div className="mt-0.5 flex items-center gap-2">
                       {tx.knowledge_item?.content_type && (
@@ -129,7 +132,7 @@ export default async function DashboardPage() {
                         </Badge>
                       )}
                       <span className="text-xs text-dq-text-muted">
-                        {timeAgo(tx.created_at)}
+                        {timeAgo(tx.created_at, t)}
                       </span>
                     </div>
                   </div>
@@ -146,7 +149,7 @@ export default async function DashboardPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-dq-text">
-          クイックアクション
+          {t("quickActions")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <Link href="/list">
@@ -158,7 +161,7 @@ export default async function DashboardPage() {
                   </svg>
                 </div>
                 <span className="text-sm font-medium text-dq-text">
-                  新規出品
+                  {t("newListing")}
                 </span>
               </div>
             </Card>
@@ -172,7 +175,7 @@ export default async function DashboardPage() {
                   </svg>
                 </div>
                 <span className="text-sm font-medium text-dq-text">
-                  売上分析
+                  {t("salesAnalytics")}
                 </span>
               </div>
             </Card>
@@ -186,7 +189,7 @@ export default async function DashboardPage() {
                   </svg>
                 </div>
                 <span className="text-sm font-medium text-dq-text">
-                  APIキー管理
+                  {t("apiKeys")}
                 </span>
               </div>
             </Card>

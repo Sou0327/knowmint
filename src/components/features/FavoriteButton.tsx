@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useTransition, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 
@@ -15,6 +16,7 @@ export default function FavoriteButton({
   initialFavorited,
   size = "md",
 }: FavoriteButtonProps) {
+  const t = useTranslations("Wallet");
   const [favorited, setFavorited] = useState(initialFavorited);
   const [animating, setAnimating] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -72,7 +74,7 @@ export default function FavoriteButton({
           ? "text-dq-red hover:brightness-110"
           : "text-dq-text-muted hover:text-dq-red"
       }`}
-      aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+      aria-label={favorited ? t("removeFavorite") : t("addFavorite")}
       aria-pressed={favorited}
     >
       <svg

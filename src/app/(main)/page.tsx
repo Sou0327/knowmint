@@ -8,10 +8,17 @@ import SellerRankingCard from "@/components/features/SellerRankingCard";
 import { createClient } from "@/lib/supabase/server";
 import type { ListingType } from "@/types/database.types";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const [tHome, tCommon, tNav] = await Promise.all([
+    getTranslations("Home"),
+    getTranslations("Common"),
+    getTranslations("Nav"),
+  ]);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -44,28 +51,27 @@ export default async function HomePage() {
           KnowMint
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-dq-text-sub sm:text-xl">
-          AIエージェントと人間のための知識マーケットプレイス。
-          プロンプト、ツール定義、データセット、APIを売買できます。
+          {tHome("heroDescription")}
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <Link
             href="/search"
             className="rounded-sm bg-dq-gold px-6 py-3 text-sm font-medium text-dq-bg transition-colors hover:brightness-110"
           >
-            マーケットを探す
+            {tHome("exploreMarket")}
           </Link>
           <Link
             href="/list"
             className="rounded-sm border-2 border-dq-border px-6 py-3 text-sm font-medium text-dq-text-sub transition-colors hover:bg-dq-surface hover:text-dq-gold"
           >
-            出品する
+            {tNav("listItem")}
           </Link>
         </div>
       </section>
 
       {/* Personal Recommendations */}
       {personalRecs.length > 0 && (
-        <RecommendationSection title="あなたへのおすすめ" items={personalRecs} />
+        <RecommendationSection title={tHome("recommended")} items={personalRecs} />
       )}
 
       {/* Categories */}
@@ -96,7 +102,7 @@ export default async function HomePage() {
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-1 items-center gap-4">
             <h2 className="shrink-0 text-xl font-bold text-dq-gold">
-              新着
+              {tHome("new")}
             </h2>
             <div className="h-px flex-1 bg-dq-border" />
           </div>
@@ -104,7 +110,7 @@ export default async function HomePage() {
             href="/search?sort=newest"
             className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
           >
-            すべて見る{" "}
+            {tCommon("viewAll")}{" "}
             <span className="inline-block transition-transform group-hover:translate-x-0.5">
               →
             </span>
@@ -145,7 +151,7 @@ export default async function HomePage() {
               />
             </svg>
             <p className="text-dq-text-muted">
-              まだアイテムがありません
+              {tHome("noItemsYet")}
             </p>
           </div>
         )}
@@ -156,7 +162,7 @@ export default async function HomePage() {
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-1 items-center gap-4">
             <h2 className="shrink-0 text-xl font-bold text-dq-gold">
-              人気
+              {tHome("popular")}
             </h2>
             <div className="h-px flex-1 bg-dq-border" />
           </div>
@@ -164,7 +170,7 @@ export default async function HomePage() {
             href="/search?sort=popular"
             className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
           >
-            すべて見る{" "}
+            {tCommon("viewAll")}{" "}
             <span className="inline-block transition-transform group-hover:translate-x-0.5">
               →
             </span>
@@ -197,7 +203,7 @@ export default async function HomePage() {
           <div className="mb-4 flex items-center justify-between">
             <div className="flex flex-1 items-center gap-4">
               <h2 className="shrink-0 text-xl font-bold text-dq-gold">
-                人気の出品者
+                {tHome("topSellers")}
               </h2>
               <div className="h-px flex-1 bg-dq-border" />
             </div>
@@ -205,7 +211,7 @@ export default async function HomePage() {
               href="/rankings"
               className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
             >
-              ランキングを見る{" "}
+              {tHome("viewRankings")}{" "}
               <span className="inline-block transition-transform group-hover:translate-x-0.5">
                 →
               </span>

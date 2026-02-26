@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import BasicInfoStep from "@/components/features/ListingForm/BasicInfoStep";
 import ContentEditor from "@/components/features/ListingForm/ContentEditor";
@@ -12,8 +13,6 @@ import { createClient } from "@/lib/supabase/client";
 import type { ContentType, ListingType } from "@/types/database.types";
 import { LISTING_TYPE_LABELS } from "@/types/knowledge.types";
 import type { RequestContentInput } from "@/lib/knowledge/requestContent";
-
-const STEPS = ["基本情報", "コンテンツ", "価格設定", "確認・公開"];
 
 interface FormData {
   listing_type: ListingType;
@@ -63,6 +62,16 @@ const initialForm: FormData = {
 };
 
 export default function ListPage() {
+  const t = useTranslations("Listing");
+  const tCommon = useTranslations("Common");
+
+  const STEPS = [
+    t("basicInfo"),
+    t("content"),
+    t("pricing"),
+    t("reviewAndPublish"),
+  ];
+
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialForm);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
@@ -106,25 +115,25 @@ export default function ListPage() {
     const newErrors: Record<string, string> = {};
 
     if (step === 0) {
-      if (!form.title.trim()) newErrors.title = "タイトルは必須です";
-      if (!form.description.trim()) newErrors.description = "説明は必須です";
+      if (!form.title.trim()) newErrors.title = t("titleRequired");
+      if (!form.description.trim()) newErrors.description = t("descriptionRequired");
     }
 
     if (step === 2) {
       if (!form.price_sol && !form.price_usdc) {
         newErrors.price_sol =
           form.listing_type === "request"
-            ? "少なくとも1つの希望報酬を設定してください"
-            : "少なくとも1つの価格を設定してください";
+            ? t("rewardSetRequired")
+            : t("priceSetRequired");
       }
     }
 
     if (step === 1 && form.listing_type === "request") {
       if (!form.request_content.needed_info.trim()) {
-        newErrors.request_needed_info = "必要な情報は必須です";
+        newErrors.request_needed_info = t("neededInfoRequired");
       }
       if (!form.request_content.background.trim()) {
-        newErrors.request_background = "用途・背景は必須です";
+        newErrors.request_background = t("backgroundRequired");
       }
     }
 
@@ -187,7 +196,7 @@ export default function ListPage() {
       router.push("/dashboard/listings");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "作成処理に失敗しました";
+        error instanceof Error ? error.message : t("createFailed");
       setErrors({ submit: message });
     } finally {
       setSubmitting(false);
@@ -198,13 +207,13 @@ export default function ListPage() {
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-dq-text">
-          知識を掲載する
+          {t("listKnowledge")}
         </h1>
         <p className="mt-2 text-sm text-dq-text-muted">
-          出品または募集を作成して、必要な相手とつながりましょう
+          {t("listKnowledgeDesc")}
         </p>
         <p className="mt-1 text-xs text-dq-text-muted">
-          現在の掲載種別: {LISTING_TYPE_LABELS[form.listing_type]}
+          {t("currentType", { type: LISTING_TYPE_LABELS[form.listing_type] })}
         </p>
       </div>
 
@@ -311,7 +320,7 @@ export default function ListPage() {
           onClick={handleBack}
           disabled={step === 0}
         >
-          戻る
+          {tCommon("back")}
         </Button>
 
         <div className="flex gap-4">
@@ -322,19 +331,19 @@ export default function ListPage() {
                 onClick={() => handleSubmit(true)}
                 loading={submitting}
               >
-                下書き保存
+                {t("saveDraft")}
               </Button>
               <Button
                 variant="primary"
                 onClick={() => handleSubmit(false)}
                 loading={submitting}
               >
-                公開する
+                {t("publishItem")}
               </Button>
             </>
           ) : (
             <Button variant="primary" onClick={handleNext}>
-              次へ
+              {tCommon("next")}
             </Button>
           )}
         </div>

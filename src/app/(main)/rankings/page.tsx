@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTopSellers } from "@/lib/rankings/queries";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,18 +12,19 @@ export const metadata: Metadata = {
 };
 
 export default async function RankingsPage() {
+  const t = await getTranslations("Rankings");
   const topSellers = await getTopSellers(20);
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-2 text-2xl font-bold text-dq-text">出品者ランキング</h1>
+      <h1 className="mb-2 text-2xl font-bold text-dq-text">{t("title")}</h1>
       <p className="mb-8 text-sm text-dq-text-muted">
-        販売実績の多い出品者をランキング表示しています
+        {t("description")}
       </p>
 
       {topSellers.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-dq-text-muted">まだランキングデータがありません</p>
+          <p className="text-dq-text-muted">{t("noData")}</p>
         </div>
       ) : (
         <div className="space-y-3">

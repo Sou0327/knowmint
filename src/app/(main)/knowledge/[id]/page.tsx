@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import Badge from "@/components/ui/Badge";
 import ContentPreview from "@/components/features/ContentPreview";
 import { PurchaseSection } from "@/components/features/PurchaseSection";
@@ -41,9 +42,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function KnowledgeDetailPage({ params }: Props) {
   const { id } = await params;
-  const [item, recommendations] = await Promise.all([
+  const [item, recommendations, t] = await Promise.all([
     getKnowledgeById(id),
     getRecommendations(id),
+    getTranslations("Knowledge"),
   ]);
 
   if (!item) {
@@ -88,7 +90,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        マーケットに戻る
+        {t("backToMarket")}
       </Link>
 
       <div className="grid gap-8 lg:grid-cols-3">
@@ -115,17 +117,17 @@ export default async function KnowledgeDetailPage({ params }: Props) {
             <div className="mt-2 flex items-center text-sm text-dq-text-muted">
               {avgRating && <span>★ {avgRating}</span>}
               <span className="before:content-['·'] before:mx-2 before:text-dq-text-muted">
-                {item.purchase_count} {isRequest ? "反応" : "購入"}
+                {isRequest ? t("reactionCount", { count: item.purchase_count }) : t("purchaseCount", { count: item.purchase_count })}
               </span>
               <span className="before:content-['·'] before:mx-2 before:text-dq-text-muted">
-                {item.view_count} 閲覧
+                {t("viewCount", { count: item.view_count })}
               </span>
             </div>
           </div>
 
           <div>
             <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
-              説明
+              {t("description")}
             </h2>
             <p className="whitespace-pre-wrap leading-relaxed text-dq-text-sub">
               {item.description}
@@ -149,7 +151,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
           {item.preview_content && (
             <div>
               <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
-                プレビュー
+                {t("preview")}
               </h2>
               <ContentPreview
                 contentType={item.content_type as ContentType}
@@ -161,7 +163,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
           {/* Reviews */}
           <div>
             <h2 className="mb-4 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
-              レビュー
+              {t("reviews")}
             </h2>
             <ReviewList reviews={(item.reviews as unknown as Array<{
               id: string;
@@ -185,7 +187,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
               <div className="h-1 bg-dq-gold -mx-6 -mt-6 mb-6" />
               <div className="mb-4 space-y-1">
                 <p className="text-xs font-medium tracking-wide text-dq-text-muted">
-                  {isRequest ? "想定報酬" : "価格"}
+                  {isRequest ? t("rewardEstimate") : t("price")}
                 </p>
                 {item.price_sol !== null && (
                   <p className="text-2xl font-bold text-dq-gold">
@@ -209,13 +211,13 @@ export default async function KnowledgeDetailPage({ params }: Props) {
             </div>
 
             {/* Seller */}
-            <SellerCard seller={seller} heading={isRequest ? "依頼者" : "出品者"} />
+            <SellerCard seller={seller} heading={isRequest ? t("requester") : t("seller")} />
           </div>
         </div>
       </div>
 
       {/* Recommendations */}
-      <RecommendationSection title="関連アイテム" items={recommendations} />
+      <RecommendationSection title={t("relatedItems")} items={recommendations} />
     </div>
   );
 }

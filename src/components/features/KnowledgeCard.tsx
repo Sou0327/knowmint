@@ -2,6 +2,7 @@ import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import type { BadgeProps } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 import { CONTENT_TYPE_LABELS, LISTING_TYPE_LABELS } from "@/types/knowledge.types";
 import type { ContentType, ListingType } from "@/types/database.types";
 
@@ -28,7 +29,7 @@ interface KnowledgeCardProps {
   purchase_count: number;
 }
 
-export default function KnowledgeCard({
+export default async function KnowledgeCard({
   id,
   listing_type,
   title,
@@ -42,6 +43,8 @@ export default function KnowledgeCard({
   average_rating,
   purchase_count,
 }: KnowledgeCardProps) {
+  const t = await getTranslations("Knowledge");
+  const tCommon = await getTranslations("Common");
   const listingType = listing_type || "offer";
 
   return (
@@ -91,7 +94,7 @@ export default function KnowledgeCard({
           <div className="mt-auto flex items-end justify-between border-t-2 border-dq-border pt-3">
             <div>
               <span className="mr-2 text-xs text-dq-text-muted">
-                {listingType === "request" ? "報酬" : "価格"}
+                {listingType === "request" ? t("reward") : t("price")}
               </span>
               {price_sol !== null && (
                 <span className="text-lg font-bold tracking-tight text-dq-gold">
@@ -112,13 +115,13 @@ export default function KnowledgeCard({
                 <span><span className="font-semibold text-dq-gold">★</span> {average_rating.toFixed(1)}</span>
               )}
               <span>
-                {purchase_count} {listingType === "request" ? "反応" : "購入"}
+                {listingType === "request" ? t("reactionCount", { count: purchase_count }) : t("purchaseCount", { count: purchase_count })}
               </span>
             </div>
           </div>
 
           <p className="mt-2 text-xs text-dq-text-muted">
-            {seller.display_name || "匿名"}
+            {seller.display_name || tCommon("anonymous")}
           </p>
         </div>
       </Card>

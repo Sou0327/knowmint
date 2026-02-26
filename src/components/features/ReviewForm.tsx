@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Textarea from "@/components/ui/Textarea";
 import { submitReview } from "@/app/(main)/knowledge/[id]/actions";
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props) {
+  const t = useTranslations("Review");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +42,7 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
   if (submitted) {
     return (
       <div className="rounded-sm border-2 border-dq-green/40 bg-dq-green/10 p-4 text-sm text-dq-green">
-        レビューを投稿しました
+        {t("reviewSubmitted")}
       </div>
     );
   }
@@ -70,11 +72,11 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
       </div>
 
       <Textarea
-        label="コメント（任意）"
+        label={t("comment")}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={3}
-        placeholder="この知識についてのコメント..."
+        placeholder={t("commentPlaceholder")}
       />
 
       {error && (
@@ -82,7 +84,7 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
       )}
 
       <Button type="submit" variant="primary" loading={submitting}>
-        レビューを投稿
+        {t("submitReview")}
       </Button>
     </form>
   );

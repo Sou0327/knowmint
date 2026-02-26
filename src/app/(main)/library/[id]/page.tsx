@@ -6,6 +6,7 @@ import { getKnowledgeById } from "@/lib/knowledge/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { createDatasetSignedDownloadUrl } from "@/lib/storage/datasets";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 import Badge from "@/components/ui/Badge";
@@ -38,6 +39,9 @@ export default async function LibraryItemPage({ params }: Props) {
   const user = await getUser();
   if (!user) redirect("/login");
 
+  const tLibrary = await getTranslations("Library");
+  const tKnowledge = await getTranslations("Knowledge");
+
   const { id } = await params;
   const item = await getKnowledgeById(id);
 
@@ -49,16 +53,16 @@ export default async function LibraryItemPage({ params }: Props) {
     return (
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="mb-4 text-2xl font-bold text-dq-text">
-          アクセス権限がありません
+          {tKnowledge("accessDenied")}
         </h1>
         <p className="mb-4 text-dq-text-sub">
-          このコンテンツを閲覧するには購入が必要です。
+          {tKnowledge("purchaseRequired")}
         </p>
         <Link
           href={`/knowledge/${id}`}
           className="text-dq-cyan hover:text-dq-gold"
         >
-          詳細ページへ →
+          {tKnowledge("goToDetails")} →
         </Link>
       </div>
     );
@@ -91,7 +95,7 @@ export default async function LibraryItemPage({ params }: Props) {
         href="/library"
         className="mb-4 inline-block text-sm text-dq-cyan hover:text-dq-gold"
       >
-        ← ライブラリに戻る
+        ← {tLibrary("backToLibrary")}
       </Link>
 
       <div className="mb-4 flex items-center gap-2">
@@ -110,7 +114,7 @@ export default async function LibraryItemPage({ params }: Props) {
 
       <div className="rounded-sm border border-dq-border bg-dq-window-bg p-6">
         <h2 className="mb-4 text-lg font-semibold text-dq-text">
-          コンテンツ
+          {tKnowledge("contentSection")}
         </h2>
         {content?.full_content ? (
           <ContentPreview
@@ -124,11 +128,11 @@ export default async function LibraryItemPage({ params }: Props) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-sm bg-dq-gold px-4 py-2 text-sm text-dq-bg hover:bg-dq-gold/80"
           >
-            ファイルをダウンロード
+            {tKnowledge("downloadFile")}
           </a>
         ) : (
           <p className="text-dq-text-muted">
-            コンテンツがありません
+            {tKnowledge("noContent")}
           </p>
         )}
       </div>

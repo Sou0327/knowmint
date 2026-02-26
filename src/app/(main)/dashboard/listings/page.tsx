@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
@@ -29,6 +30,10 @@ const STATUS_VARIANT: Record<
 };
 
 export default function DashboardListingsPage() {
+  const t = useTranslations("Dashboard");
+  const tCommon = useTranslations("Common");
+  const tListing = useTranslations("Listing");
+  const tKnowledge = useTranslations("Knowledge");
   const [listings, setListings] = useState<ListingWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +60,7 @@ export default function DashboardListingsPage() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("この出品を削除しますか？")) return;
+    if (!confirm(tListing("deleteConfirm"))) return;
     const { error } = await deleteListing(id);
     if (!error) {
       setListings((prev) => prev.filter((l) => l.id !== id));
@@ -81,10 +86,10 @@ export default function DashboardListingsPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-dq-text">
-          出品管理
+          {t("listings")}
         </h1>
         <Link href="/list">
-          <Button variant="primary">新規出品</Button>
+          <Button variant="primary">{t("newListing")}</Button>
         </Link>
       </div>
 
@@ -92,10 +97,10 @@ export default function DashboardListingsPage() {
         <Card padding="lg">
           <div className="text-center">
             <p className="text-dq-text-muted">
-              まだ出品がありません
+              {t("noListings")}
             </p>
             <Link href="/list" className="mt-4 inline-block">
-              <Button variant="primary">最初の知識を出品する</Button>
+              <Button variant="primary">{t("listFirstItem")}</Button>
             </Link>
           </div>
         </Card>
@@ -123,16 +128,18 @@ export default function DashboardListingsPage() {
                   <div className="mt-2 flex items-center gap-4 text-sm text-dq-text-muted">
                     {item.price_sol && <span>{item.price_sol} SOL</span>}
                     {item.price_usdc && <span>{item.price_usdc} USDC</span>}
-                    <span>{item.view_count} 閲覧</span>
+                    <span>{tKnowledge("viewCount", { count: item.view_count })}</span>
                     <span>
-                      {item.purchase_count} {item.listing_type === "request" ? "反応" : "購入"}
+                      {item.listing_type === "request"
+                        ? tKnowledge("reactionCount", { count: item.purchase_count })
+                        : tKnowledge("purchaseCount", { count: item.purchase_count })}
                     </span>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Link href={`/list/${item.id}/edit`}>
                     <Button variant="outline" size="sm">
-                      編集
+                      {tCommon("edit")}
                     </Button>
                   </Link>
                   {item.status === "draft" && (
@@ -141,7 +148,7 @@ export default function DashboardListingsPage() {
                       size="sm"
                       onClick={() => handlePublish(item.id)}
                     >
-                      公開
+                      {tCommon("publish")}
                     </Button>
                   )}
                   <Button
@@ -149,7 +156,7 @@ export default function DashboardListingsPage() {
                     size="sm"
                     onClick={() => handleDelete(item.id)}
                   >
-                    削除
+                    {tCommon("delete")}
                   </Button>
                 </div>
               </div>

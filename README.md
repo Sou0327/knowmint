@@ -1,101 +1,29 @@
 # KnowMint
 
-人間の暗黙知・体験知を AIエージェントに販売できる知識マーケットプレイス。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Deploy: Cloudflare Workers](https://img.shields.io/badge/Deploy-Cloudflare%20Workers-orange)](https://developers.cloudflare.com/workers/)
 
-**コアバリュー:**
-- **人間→AI 知識供給**: AIが自力で獲得できない体験知・暗黙知・感性を、AIエージェントが自律購入
-- **人間の新収益源**: 自分の経験・知識を出品 → AIエージェント (Claude Code 等) が発見・購入
-- **ノンカストディアル決済**: 買い手→売り手 P2P 直接送金 (秘密鍵は運営非保有)
+**A knowledge marketplace where AI agents autonomously discover and purchase human expertise.**
 
-**アクセス方法:** Web UI / CLI (`km`) / REST API + MCP サーバー
+Humans list tacit knowledge, experiential insights, and craft skills that AI cannot acquire on its own. AI agents (Claude Code, ElizaOS, AgentKit, etc.) autonomously search, evaluate, and buy this knowledge — paying sellers directly via non-custodial Solana P2P transfers. No private keys are held by the platform.
 
----
-
-## 技術スタック
-
-| レイヤー | 技術 |
-|---|---|
-| Frontend | Next.js 16 (App Router) + React 19, TypeScript, Tailwind CSS v4 |
-| Backend/DB | Supabase (PostgreSQL, Auth, Storage, RLS) |
-| 決済 | Solana (Anchor 0.32.1 / 95:5 自動分配) + EVM (wagmi v3 / viem、UI のみ / 購入 API は Solana 限定) |
-| レート制限 | Upstash Redis |
-| MCP | `@knowmint/mcp-server` (`@modelcontextprotocol/sdk`) |
-| デプロイ | Cloudflare Workers (opennextjs-cloudflare) |
-| テスト | Mocha/Chai (unit/integration) + Maestro (E2E UI) |
+Three access layers: **Web UI** / **CLI (`km`)** / **REST API + MCP Server**
 
 ---
 
-## セットアップ
+## Why KnowMint
 
-### 1. 依存関係をインストール
-
-```bash
-npm install
-cd mcp && npm install && cd ..   # MCP サーバー依存 (km-mcp 使用時)
-```
-
-### 2. 環境変数を設定
-
-```bash
-cp .env.local.example .env.local
-```
-
-**必須:**
-
-| 変数 | 説明 |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Anon Key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Admin クライアント用 (API routes) |
-
-**オプション (本番推奨):**
-
-| 変数 | 説明 |
-|---|---|
-| `NEXT_PUBLIC_SOLANA_RPC_URL` | Solana RPC (未設定時は `NEXT_PUBLIC_SOLANA_NETWORK` に対応する default RPC。ネットワーク未指定時は devnet) |
-| `NEXT_PUBLIC_SOLANA_NETWORK` | `devnet` (default) / `mainnet-beta` |
-| `X402_NETWORK` | x402 決済ネットワーク CAIP-2 識別子 (例: `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1`)。コンテンツ取得を使う場合は `X402_NETWORK` と `NEXT_PUBLIC_SOLANA_NETWORK` の両方が**必須**。未設定・不正値・不一致のいずれでも 500 エラー |
-| `CRON_SECRET` | cron クリーンアップジョブ認証キー (**本番必須**。`/api/cron/cleanup-pending-tx` で使用。未設定時は 401 でジョブ失敗) |
-| `UPSTASH_REDIS_REST_URL` | レート制限用 Upstash Redis URL |
-| `UPSTASH_REDIS_REST_TOKEN` | レート制限用 Upstash Redis トークン |
-| `WEBHOOK_SIGNING_KEY` | Webhook 署名検証キー (**本番必須**。未設定時は Webhook 配信不可) |
-
-### 3. Supabase ローカル起動
-
-```bash
-npx supabase start
-```
-
-### 4. 開発サーバー起動
-
-```bash
-npm run dev   # http://localhost:3000
-```
+- **Human → AI knowledge supply** — Sell experiential and tacit knowledge that AI cannot self-generate
+- **New revenue for humans** — List your expertise, let AI agents find and buy it autonomously
+- **Non-custodial payments** — Buyer-to-seller P2P direct transfer on Solana (no platform custody)
 
 ---
 
-## 開発コマンド
+## For AI Agents
 
-```bash
-npm run dev              # 開発サーバー
-npm run build            # Next.js プロダクションビルド
-npm run lint             # ESLint
-npm run km -- <cmd>      # CLI ツール
-npm run km-mcp           # MCP サーバー (stdio) ※ Node.js 22.6+ 必須・cd mcp && npm install が必要
-npm run build:cf         # Cloudflare Workers ビルド
-npm run deploy:cf        # Cloudflare Workers デプロイ
-npm run preview:cf       # Cloudflare Workers プレビュー
-```
+### MCP Server
 
----
-
-## MCP サーバー
-
-`@knowmint/mcp-server` を使うと、Claude Code 等の AI エージェントが KnowMint から直接ナレッジを検索・購入・取得できます。
-
-### Claude Code への設定例
-
-設定ファイル: `~/.claude/mcp.json`
+Add to `~/.claude/mcp.json`:
 
 ```json
 {
@@ -112,51 +40,114 @@ npm run preview:cf       # Cloudflare Workers プレビュー
 }
 ```
 
-> **セキュリティ**: 設定ファイルを公開リポジトリや同期ディレクトリに置かないでください。キーは定期的にローテーションしてください。
-> - 検索・詳細取得のみ (`km_search` / `km_get_detail` / `km_get_content`) → `read` 権限キーで十分
-> - 購入・出品も使う (`km_purchase` / `km_publish`) → `write` 権限キーが必要
-
-### 利用可能ツール
-
-| ツール | 説明 |
+| Tool | Description |
 |---|---|
-| `km_search` | ナレッジを検索 |
-| `km_get_detail` | ナレッジ詳細を取得 |
-| `km_purchase` | ナレッジを購入 (Solana 送金) |
-| `km_get_content` | 購入済みコンテンツを取得 (x402 ゲート) |
-| `km_get_version_history` | バージョン履歴を取得 |
-| `km_publish` | ナレッジを出品 |
+| `km_search` | Search knowledge |
+| `km_get_detail` | Get knowledge details |
+| `km_purchase` | Purchase knowledge (Solana transfer) |
+| `km_get_content` | Get purchased content (x402 gate) |
+| `km_get_version_history` | Get version history |
+| `km_publish` | Publish knowledge |
 
-### x402 自律購入フロー
+#### x402 Autonomous Purchase Flow
 
 ```
-km_get_content() → payment_required (HTTP 402) → 送金 → payment_proof で再実行 → コンテンツ取得
+km_get_content()
+  → HTTP 402 (payment_required)
+  → Solana transfer
+  → Retry with payment_proof
+  → Content returned
 ```
+
+> **Security**: Do not place config files in public repos or synced directories. Rotate keys regularly.
+> - Search & read only (`km_search` / `km_get_detail` / `km_get_content`) → `read` permission key
+> - Purchase & publish (`km_purchase` / `km_publish`) → `write` permission key
+
+### CLI (`km`)
+
+Standalone Node.js CLI. Config stored in `~/.km/config.json`.
+
+```bash
+km login --base-url https://knowmint.shop   # Interactive API key input
+km search "prompt engineering"
+km install <knowledge_id> --tx-hash <solana_tx_hash> --deploy-to claude
+km publish prompt ./prompt.md --price 0.5SOL --tags "seo,marketing"
+km my purchases
+```
+
+`--deploy-to claude,opencode` auto-deploys purchased knowledge to your tools.
+
+See `cli/README.md` for full documentation.
 
 ---
 
-## AI エージェントプラグイン
+## For Humans
 
-KnowMint は MCP サーバーに加え、主要な AI エージェントフレームワーク向けのプラグインを提供しています。
+The web UI features a retro RPG-style design (Dragon Quest inspired). Humans can:
+
+- **List** knowledge with SOL pricing, previews, and tags
+- **Browse** a marketplace of prompts, tool definitions, datasets, and APIs
+- **Purchase** with Phantom or Solflare wallet
+- **Track** sales, purchases, and feedback on a personal dashboard
+
+---
+
+## Quick Start
+
+**Prerequisites**: Node.js 22.6+ / npm
+
+```bash
+git clone https://github.com/Sou0327/knowmint.git
+cd knowmint
+npm install
+
+# Start local Supabase (applies migrations automatically)
+npx supabase start
+
+# Copy and fill environment variables
+cp .env.local.example .env.local
+
+# Start dev server
+npm run dev   # http://localhost:3000
+```
+
+### Required Environment Variables
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Admin client (API routes) |
+
+### Optional (Recommended for Production)
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SOLANA_RPC_URL` | Solana RPC URL |
+| `NEXT_PUBLIC_SOLANA_NETWORK` | `devnet` (default) / `mainnet-beta` |
+| `X402_NETWORK` | x402 payment network CAIP-2 identifier |
+| `CRON_SECRET` | Cron job auth key |
+| `UPSTASH_REDIS_REST_URL` | Rate limiting (Upstash Redis) |
+| `UPSTASH_REDIS_REST_TOKEN` | Rate limiting token |
+| `WEBHOOK_SIGNING_KEY` | Webhook signature verification |
+
+---
+
+## Agent Plugins
 
 ### Coinbase AgentKit (`packages/agentkit-plugin/`)
 
-AgentKit エージェントが KnowMint を「ウォレット付きツール」として使えるプラグイン。
-
-- `ActionProvider<WalletProvider>` + `@CreateAction` で 5 アクション実装
-- テスト: モック 50/50 PASS + ローカル実通信 7/7 PASS
+`ActionProvider<WalletProvider>` plugin for AgentKit agents.
 
 ```bash
 cd packages/agentkit-plugin && npm install && npm run build
 ```
 
+5 actions: `km_search` / `km_get_detail` / `km_purchase` / `km_get_content` / `km_publish`
+
 ### ElizaOS (`packages/eliza-plugin/`)
 
-ai16z Eliza フレームワーク向けプラグイン。
-
-- **Actions**: `SEARCH_KNOWLEDGE` / `PURCHASE_KNOWLEDGE` / `GET_CONTENT`
-- **Provider**: `trending-knowledge` (人気ナレッジ 5 件をコンテキスト注入)
-- テスト: ユニット 53/53 PASS + ライブ API 統合 8/8 PASS
+Plugin for the ElizaOS framework.
 
 ```bash
 cd packages/eliza-plugin && npm install && npm run build
@@ -165,7 +156,6 @@ cd packages/eliza-plugin && npm install && npm run build
 ```typescript
 import { knowmintPlugin } from "@knowmint/eliza-plugin";
 
-// ElizaOS キャラクター設定に追加
 const character = {
   plugins: [knowmintPlugin],
   settings: {
@@ -175,277 +165,105 @@ const character = {
 };
 ```
 
----
-
-## CLI (`km`)
-
-スタンドアロン Node.js CLI。設定は `~/.km/config.json` に保存。
-
-```bash
-# ローカル実行
-npm run km -- help
-
-# グローバルリンク (開発用)
-cd cli && npm link && km help
-
-# 公開後のインストール
-npm install -g @knowmint/cli
-```
-
-**主なコマンド:**
-
-```bash
-# セキュリティ: API キーは対話入力または環境変数で渡すことを推奨
-km login --base-url https://knowmint.shop   # API キーを対話入力
-km search "prompt engineering"
-km install <knowledge_id> --tx-hash <solana_tx_hash> --deploy-to claude
-km publish prompt ./prompt.md --price 0.5SOL --tags "seo,marketing"
-km publish mcp ./server.json --price 1SOL
-km publish dataset ./data.csv --price 2SOL
-km my purchases
-km my listings
-```
-
-`--deploy-to claude,opencode` で購入ナレッジを自動デプロイ。
-
-詳細は `cli/README.md` を参照。
+Actions: `SEARCH_KNOWLEDGE` / `PURCHASE_KNOWLEDGE` / `GET_CONTENT`
+Provider: `trending-knowledge` (top 5 injected into context)
 
 ---
 
-## Cloudflare Workers デプロイ
+## API Overview
 
-opennextjs-cloudflare を使って Next.js アプリを Cloudflare Workers にデプロイします。
-
-```bash
-npm run build:cf    # opennextjs-cloudflare build + @vercel/og WASM 除去
-npm run deploy:cf   # wrangler deploy (本番)
-npm run preview:cf  # プレビューデプロイ
-```
-
-**CI/CD** (`.github/workflows/deploy.yml`):
-- `main` への push → 本番 Worker に自動デプロイ
-- PR 作成 → プレビュー Worker に自動デプロイ
-- PR クローズ → プレビュー Worker 削除
-
----
-
-## テスト
-
-```bash
-# Unit テスト (111件)
-npm run test:unit
-
-# Staging 統合テスト (supabase start 必要)
-npm run test:staging
-
-# E2E テスト
-npm run test:e2e:fake-tx        # 偽トランザクション拒否
-npm run test:e2e:cli-flow       # CLI フロー (login/search/install/publish/deploy)
-npm run test:e2e:x402-flow      # HTTP 402 ペイメントゲート
-npm run test:e2e:devnet         # devnet SOL 送金→購入→コンテンツ取得
-
-# Maestro UI E2E (18 フロー)
-npm run test:e2e:ui
-```
-
-**devnet E2E 必須環境変数:**
-
-```bash
-export KM_BASE_URL=http://127.0.0.1:3000
-export NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
-export TEST_API_KEY_BUYER=km_xxx
-export KM_TEST_KNOWLEDGE_ID=<item-uuid>
-export TEST_BUYER_KEYPAIR_PATH=./devnet-buyer-keypair.json
-export TEST_SELLER_WALLET=<seller-pubkey>
-npm run test:e2e:devnet
-```
-
----
-
-## ローカル devnet テスト購入ガイド
-
-ローカル環境で Solana devnet を使った出品→購入→コンテンツ取得の全フローをテストする手順。
-
-### 前提条件
-
-- Node.js 22.6+
-- [Supabase CLI](https://supabase.com/docs/guides/cli) (`npx supabase`)
-- [Solana CLI](https://docs.solanalabs.com/cli/install) (`solana`, `solana-test-validator`)
-- [Phantom Wallet](https://phantom.app/) ブラウザ拡張 (ブラウザテスト時)
-
-### 1. ローカル Supabase 起動
-
-```bash
-npx supabase start
-```
-
-起動後に表示される `API URL`, `anon key`, `service_role key` をメモ。
-
-### 2. ローカル Solana バリデータ起動
-
-```bash
-# 別ターミナルで起動
-solana-test-validator --reset --quiet
-```
-
-RPC エンドポイント: `http://127.0.0.1:8899`
-
-### 3. 環境変数を設定
-
-`.env.local` を以下の内容で作成 (既存がある場合はバックアップ):
-
-```bash
-# Supabase (ローカル — supabase start の出力値を使用)
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase start で表示された anon key>
-SUPABASE_SERVICE_ROLE_KEY=<supabase start で表示された service_role key>
-
-# Solana (ローカルバリデータ)
-NEXT_PUBLIC_SOLANA_NETWORK=devnet
-NEXT_PUBLIC_SOLANA_RPC_URL=http://127.0.0.1:8899
-
-# P2P 直接送金モード (スマートコントラクト無効)
-NEXT_PUBLIC_KM_PROGRAM_ID=
-NEXT_PUBLIC_FEE_VAULT_ADDRESS=
-
-# x402 (ローカルバリデータの genesis hash)
-X402_NETWORK=solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1
-```
-
-### 4. 開発サーバー起動
-
-```bash
-npm run dev
-```
-
-### 5. ブラウザでテスト購入
-
-#### 5a. Phantom Wallet を devnet に切り替え
-
-1. Phantom → Settings → Developer Settings
-2. Testnet Mode を ON
-3. Solana Devnet を選択
-4. Custom RPC に `http://127.0.0.1:8899` を設定 (ローカルバリデータ使用時)
-
-#### 5b. テスト用アカウント作成
-
-1. `http://localhost:3000/signup` で **seller アカウント**を作成
-2. Phantom ウォレットを接続 → ウォレットアドレスが profile に紐付く
-3. ログアウト
-4. 別のメールで **buyer アカウント**を作成
-5. 別の Phantom ウォレット (またはアカウント切替) を接続
-
-#### 5c. テスト用 SOL を付与
-
-```bash
-# seller と buyer それぞれの Phantom アドレスに SOL を airdrop
-solana airdrop 10 <seller-phantom-address> --url http://127.0.0.1:8899
-solana airdrop 10 <buyer-phantom-address> --url http://127.0.0.1:8899
-```
-
-#### 5d. 出品→購入フロー
-
-1. **seller** でログイン → `/list` からナレッジを出品 (SOL 価格を設定、例: 0.01 SOL)
-2. 出品後 → ダッシュボードから「公開」
-3. **buyer** でログイン → 出品されたナレッジの詳細ページを開く
-4. 「購入」ボタン → トークン選択 (SOL) → 利用規約同意 → Phantom で署名
-5. 購入完了 → ライブラリにコンテンツが表示される
-
-### 6. スクリプトでテスト購入 (API 経由)
-
-ブラウザを使わずにスクリプトで全フローを自動実行する方法。
-
-```bash
-# キーペア生成 (初回のみ)
-node scripts/e2e/devnet-setup.mjs
-
-# テスト用 SOL を付与
-solana airdrop 10 <buyer-pubkey> --url http://127.0.0.1:8899
-
-# E2E テスト実行
-TEST_API_KEY_BUYER=km_xxx \
-KM_TEST_KNOWLEDGE_ID=<出品した item の UUID> \
-TEST_BUYER_KEYPAIR_PATH=./devnet-buyer-keypair.json \
-TEST_SELLER_WALLET=<seller の wallet address> \
-KM_BASE_URL=http://127.0.0.1:3000 \
-NEXT_PUBLIC_SOLANA_RPC_URL=http://127.0.0.1:8899 \
-node scripts/e2e/devnet-purchase-flow.mjs
-```
-
-テスト成功時の出力:
-
-```
-[Step 1] PASS — price_sol = 0.01
-[Step 2] PASS — no prior purchase detected
-[Step 3] PASS — buyer balance = 10000000000 lamports
-[Step 4] PASS — tx_hash = 5wH...abc
-[Step 5] PASS — purchase confirmed (tx_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
-[Step 6] PASS — content fetched
-PASS: devnet purchase flow completed successfully
-```
-
-### 注意事項
-
-- `NEXT_PUBLIC_KM_PROGRAM_ID` と `NEXT_PUBLIC_FEE_VAULT_ADDRESS` が空の場合は **P2P 直接送金モード** (seller に全額送金、手数料分配なし)
-- `verify-transaction.ts` がオンチェーン検証を行うため、**実際の送金トランザクションが必要** (偽 tx_hash は拒否される)
-- ローカルバリデータを `--reset` で再起動すると過去のトランザクション履歴がリセットされる
-- テスト用キーペアファイル (`devnet-*-keypair.json`) は `.gitignore` 済み
-
----
-
-## API エンドポイント
-
-ほとんどのエンドポイントは `withApiAuth` HOC で保護されています (API キー認証 + レート制限)。
-`/api/v1/keys` は例外で、独自の認証ロジックを使用します。
-
-詳細: `docs/openapi.yaml` / `docs/api-guidelines.md`
+Most endpoints are protected by `withApiAuth` (API key auth + rate limiting).
+Full reference: `docs/openapi.yaml` / `docs/api-guidelines.md`
 
 ### Knowledge
 
-| メソッド + パス | 説明 |
-|---|---|
-| `GET /api/v1/knowledge` | ナレッジ一覧 |
-| `POST /api/v1/knowledge` | ナレッジ作成 |
-| `POST /api/v1/knowledge/batch` | ナレッジ一括取得 (`{ "ids": ["<uuid>", ...] }`) |
-| `GET /api/v1/knowledge/{id}` | ナレッジ詳細 |
-| `PATCH /api/v1/knowledge/{id}` | ナレッジ更新 |
-| `POST /api/v1/knowledge/{id}/publish` | ナレッジ公開 |
-| `POST /api/v1/knowledge/{id}/purchase` | ナレッジ購入 (Solana TX 検証) |
-| `GET /api/v1/knowledge/{id}/content` | 購入済みコンテンツ取得 (x402 ゲート) |
-| `GET /api/v1/knowledge/{id}/preview` | プレビュー取得 |
-| `POST /api/v1/knowledge/{id}/feedback` | フィードバック送信 |
-| `GET /api/v1/knowledge/{id}/versions` | バージョン一覧 |
-| `POST /api/v1/knowledge/{id}/dataset/upload-url` | Supabase Storage 署名付きアップロード URL 発行 |
-| `POST /api/v1/knowledge/{id}/dataset/finalize` | データセット確定 |
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/v1/knowledge` | List knowledge |
+| POST | `/api/v1/knowledge` | Create knowledge |
+| POST | `/api/v1/knowledge/batch` | Batch get |
+| GET | `/api/v1/knowledge/{id}` | Get details |
+| PATCH | `/api/v1/knowledge/{id}` | Update |
+| POST | `/api/v1/knowledge/{id}/publish` | Publish |
+| POST | `/api/v1/knowledge/{id}/purchase` | Purchase (Solana TX verification) |
+| GET | `/api/v1/knowledge/{id}/content` | Get content (x402 gate) |
+| GET | `/api/v1/knowledge/{id}/preview` | Get preview |
+| POST | `/api/v1/knowledge/{id}/feedback` | Submit feedback |
 
-### ユーザー
+### User
 
-| メソッド + パス | 説明 |
-|---|---|
-| `GET /api/v1/transactions/{id}` | トランザクション詳細 |
-| `GET /api/v1/me/purchases` | 購入履歴 |
-| `GET /api/v1/me/listings` | 出品一覧 |
-| `POST /api/v1/me/wallet/challenge` | SIWS チャレンジ発行 |
-| `POST /api/v1/me/wallet/verify` | 署名検証 (ウォレット認証) |
-
-### その他
-
-| メソッド + パス | 説明 |
-|---|---|
-| `GET /api/v1/categories` | カテゴリ一覧 |
-| `GET /api/v1/favorites` | お気に入り一覧 |
-| `POST /api/v1/favorites` | お気に入り追加 |
-| `DELETE /api/v1/favorites` | お気に入り削除 |
-| `GET /api/v1/keys` | API キー一覧 |
-| `POST /api/v1/keys` | API キー作成 |
-| `DELETE /api/v1/keys` | API キー削除 |
-| `GET /api/v1/webhooks` | Webhook 一覧 |
-| `POST /api/v1/webhooks` | Webhook 作成 |
-| `DELETE /api/v1/webhooks` | Webhook 削除 |
-| `POST /api/v1/webhooks/{id}/regenerate` | Webhook シークレット再生成 |
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/v1/me/purchases` | Purchase history |
+| GET | `/api/v1/me/listings` | My listings |
+| POST | `/api/v1/me/wallet/challenge` | SIWS challenge |
+| POST | `/api/v1/me/wallet/verify` | Wallet verification |
 
 ---
 
-## コンテンツタイプ
+## Tech Stack
 
-`prompt` | `tool_def` | `dataset` | `api` | `general`
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16 (App Router) + React 19, TypeScript, Tailwind CSS v4 |
+| Backend / DB | Supabase (PostgreSQL, Auth, Storage, RLS) |
+| Payments | Solana (non-custodial P2P, Anchor 0.32) |
+| Rate Limiting | Upstash Redis |
+| MCP | `@knowmint/mcp-server` (`@modelcontextprotocol/sdk`) |
+| Deploy | Cloudflare Workers (opennextjs-cloudflare) |
+| Testing | Mocha/Chai (unit/integration) + Maestro (E2E UI) |
+
+---
+
+## Testing
+
+```bash
+# Unit tests (202 tests, Mocha/Chai)
+npm run test:unit
+
+# Component tests (Vitest)
+npm run test:components
+
+# Staging integration tests (requires supabase start)
+npm run test:staging
+
+# E2E tests
+npm run test:e2e:fake-tx        # Fake transaction rejection
+npm run test:e2e:cli-flow       # CLI flow (login/search/install/publish/deploy)
+npm run test:e2e:cli-purchase   # CLI purchase flow
+npm run test:e2e:x402-flow      # HTTP 402 payment gate
+npm run test:e2e:devnet         # Devnet SOL transfer → purchase → content
+```
+
+For local devnet testing with a full purchase flow, see [Local Devnet Testing Guide](docs/local-devnet-guide.md).
+
+---
+
+## Deployment
+
+Deployed to Cloudflare Workers via opennextjs-cloudflare.
+
+```bash
+npm run build:cf    # Build + strip @vercel/og WASM
+npm run deploy:cf   # Deploy to production
+```
+
+**CI/CD** (`.github/workflows/deploy.yml`):
+- Push to `main` → auto-deploy to production Worker
+- PR created → auto-deploy to preview Worker
+- PR closed → preview Worker deleted
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes
+4. Push to the branch and open a Pull Request
+
+---
+
+## License
+
+[MIT](LICENSE)

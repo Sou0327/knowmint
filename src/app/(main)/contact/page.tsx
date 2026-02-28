@@ -1,60 +1,65 @@
-export const metadata = {
-  title: "お問い合わせ",
-  description: "KnowMint へのお問い合わせ",
-  openGraph: { title: "お問い合わせ | KnowMint", type: "website" },
-};
+import { getTranslations } from "next-intl/server";
 
-const CATEGORIES = [
-  {
-    title: "技術的なご質問・不具合報告",
-    description:
-      "ログインできない、決済が完了しない、コンテンツが表示されないなどの技術的な問題はこちら。",
-    action: "GitHub Issues で報告",
-    href: "https://github.com/knowmint/knowmint/issues",
-    isExternal: true,
-  },
-  {
-    title: "コンテンツに関する報告",
-    description:
-      "利用規約違反のコンテンツ、著作権侵害の疑いがあるコンテンツ、不適切な出品についての報告はこちら。",
-    action: "メールで報告",
-    href: "mailto:h.client.walletapp@gmail.com",
-    isExternal: true,
-  },
-  {
-    title: "法的開示請求・個人情報に関するお問い合わせ",
-    description:
-      "取引DPF消費者保護法に基づく出品者情報の開示請求、個人情報の開示・訂正・削除請求等はこちら。",
-    action: "メールでお問い合わせ",
-    href: "mailto:h.client.walletapp@gmail.com",
-    isExternal: true,
-  },
-  {
-    title: "ビジネス・パートナーシップに関するご相談",
-    description: "提携・連携・その他ビジネス上のご相談はこちら。",
-    action: "メールでご連絡",
-    href: "mailto:h.client.walletapp@gmail.com",
-    isExternal: true,
-  },
-];
+const EMAIL = "sohu0327@gmail.com";
+const GITHUB_ISSUES = "https://github.com/Sou0327/knowmint/issues";
 
-export default function ContactPage() {
+export async function generateMetadata() {
+  const t = await getTranslations("Contact");
+  return {
+    title: t("title"),
+    description: t("description"),
+    openGraph: { title: t("ogTitle"), type: "website" },
+  };
+}
+
+export default async function ContactPage() {
+  const t = await getTranslations("Contact");
+  const tFooter = await getTranslations("Footer");
+
+  const categories = [
+    {
+      title: t("techTitle"),
+      description: t("techDescription"),
+      action: t("techAction"),
+      href: GITHUB_ISSUES,
+      isExternal: true,
+    },
+    {
+      title: t("contentTitle"),
+      description: t("contentDescription"),
+      action: t("contentAction"),
+      href: `mailto:${EMAIL}`,
+    },
+    {
+      title: t("legalTitle"),
+      description: t("legalDescription"),
+      action: t("legalAction"),
+      href: `mailto:${EMAIL}`,
+    },
+    {
+      title: t("bizTitle"),
+      description: t("bizDescription"),
+      action: t("bizAction"),
+      href: `mailto:${EMAIL}`,
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold font-display text-dq-text">
-        お問い合わせ
+        {t("title")}
       </h1>
-      <p className="mb-8 text-sm text-dq-text-muted">
-        最終更新日: 2026年2月24日
-      </p>
+      <p className="mb-8 text-sm text-dq-text-muted">{t("lastUpdated")}</p>
 
-      <p className="mb-8 leading-relaxed text-dq-text-sub">
-        お問い合わせの内容に応じて、以下の窓口をご利用ください。
-        なお、返信にはお時間をいただく場合があります。
-      </p>
+      <p className="mb-8 leading-relaxed text-dq-text-sub">{t("intro")}</p>
+
+      <div className="mb-6 rounded-sm border border-dq-border bg-dq-window-bg p-4 text-center">
+        <p className="mb-1 text-sm text-dq-text-sub">{t("emailLabel")}</p>
+        <p className="font-mono text-lg text-dq-cyan select-all">{EMAIL}</p>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <div
             key={cat.title}
             className="flex flex-col rounded-sm border border-dq-border bg-dq-window-bg p-5"
@@ -69,7 +74,7 @@ export default function ContactPage() {
               href={cat.href}
               target={cat.isExternal ? "_blank" : undefined}
               rel={cat.isExternal ? "noopener noreferrer" : undefined}
-              className="inline-flex items-center gap-1.5 rounded-sm bg-dq-gold px-4 py-2 text-center text-sm font-medium text-dq-bg transition-colors hover:bg-dq-gold/80"
+              className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-dq-gold px-4 py-2 text-center text-sm font-medium text-dq-bg transition-colors hover:bg-dq-gold/80"
             >
               {cat.action}
               {cat.isExternal && (
@@ -94,39 +99,37 @@ export default function ContactPage() {
 
       <div className="mt-10 rounded-sm border border-dq-border bg-dq-surface p-5">
         <h2 className="mb-3 text-base font-semibold text-dq-text">
-          取引DPF消費者保護法に基づく開示請求について
+          {t("dpfTitle")}
         </h2>
         <p className="text-sm leading-relaxed text-dq-text-sub">
-          特定商取引法および取引デジタルプラットフォームを利用する消費者の利益の保護に関する法律（取引DPF消費者保護法）に基づき、
-          出品者に関する情報の開示を請求される場合は、上記「法的開示請求」窓口までご連絡ください。
-          開示請求には本人確認書類のご提出が必要です。法令の定める範囲内で対応いたします。
+          {t("dpfBody")}
         </p>
       </div>
 
       <div className="mt-6 text-center text-sm text-dq-text-muted">
         <p>
-          一般的なご質問については、まず{" "}
+          {t("faqPrefix")}{" "}
           <a
             href="/terms"
             className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
-            利用規約
+            {tFooter("terms")}
           </a>
           ・
           <a
             href="/privacy"
             className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
-            プライバシーポリシー
+            {tFooter("privacy")}
           </a>
           ・
           <a
             href="/legal"
             className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
-            特商法表示
-          </a>
-          をご確認ください。
+            {tFooter("commercialLaw")}
+          </a>{" "}
+          {t("faqSuffix")}
         </p>
       </div>
     </div>

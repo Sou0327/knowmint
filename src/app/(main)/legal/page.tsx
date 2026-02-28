@@ -1,81 +1,85 @@
-export const metadata = {
-  title: "特定商取引法に基づく表示",
-  description: "KnowMint の特定商取引法に基づく表示",
-  openGraph: { title: "特定商取引法に基づく表示 | KnowMint", type: "website" },
-};
+import { getTranslations } from "next-intl/server";
 
-const LEGAL_ITEMS = [
-  {
-    label: "販売事業者名",
-    value: "KnowMint 運営事務局",
-  },
-  {
-    label: "所在地",
-    value: "東京都（詳細は開示請求によりご案内します）",
-  },
-  {
-    label: "連絡先",
-    value: "お問い合わせページよりご連絡ください",
-    isLink: true,
-    href: "/contact",
-  },
-  {
-    label: "代表責任者",
-    value: "KnowMint 運営者",
-  },
-  {
-    label: "販売価格",
-    value:
-      "各知識アイテムの詳細ページに SOL・USDC 等の暗号資産建てで表示します。円換算額は暗号資産の市場価格により変動します。",
-  },
-  {
-    label: "販売価格以外の必要料金",
-    value:
-      "ブロックチェーンネットワークのトランザクション手数料（ガス代）が別途必要です。手数料はネットワークの混雑状況により変動します。",
-  },
-  {
-    label: "商品の引渡時期",
-    value:
-      "決済トランザクションが確認された後、即時にデジタルコンテンツへのアクセスが提供されます。",
-  },
-  {
-    label: "支払方法",
-    value:
-      "Solana ネットワークを利用した暗号資産（SOL、USDC）による決済。将来的に EVM チェーン（Base、Ethereum）への対応を予定。",
-  },
-  {
-    label: "返品・返金について",
-    value:
-      "デジタルコンテンツの性質上、コンテンツ開示後の返品・返金は原則として承っておりません。ただし、コンテンツが説明と著しく異なる場合等の例外については利用規約をご参照ください。",
-    isLink: true,
-    href: "/terms",
-    linkText: "利用規約",
-  },
-  {
-    label: "動作環境",
-    value:
-      "最新版の Chrome、Firefox、Safari、Edge 等のウェブブラウザ。Solana 対応ウォレット（Phantom、Solflare 等）が必要です。",
-  },
-  {
-    label: "コンテンツ形式",
-    value:
-      "テキスト形式のデジタルコンテンツ（プロンプト、ツール定義、データセット、API 仕様、一般知識等）。",
-  },
-  {
-    label: "事業者の種別",
-    value:
-      "本サービスはデジタルコンテンツの取引プラットフォームです。個々のコンテンツの販売者は登録ユーザー（出品者）です。当社はマーケットプレイスの提供者であり、個々の取引の当事者ではありません。",
-  },
-];
+export async function generateMetadata() {
+  const t = await getTranslations("Legal");
+  return {
+    title: t("title"),
+    description: t("description"),
+    openGraph: { title: t("ogTitle"), type: "website" },
+  };
+}
 
-export default function LegalPage() {
+export default async function LegalPage() {
+  const t = await getTranslations("Legal");
+
+  const LEGAL_ITEMS = [
+    {
+      label: t("label1"),
+      value: t("value1"),
+    },
+    {
+      label: t("label2"),
+      value: t("value2"),
+    },
+    {
+      label: t("label3"),
+      value: t("value3"),
+      isLink: true,
+      href: "/contact",
+      linkText: t("contactLinkText"),
+    },
+    {
+      label: t("label4"),
+      value: t("value4"),
+    },
+    {
+      label: t("label4_5"),
+      value: t("value4_5"),
+    },
+    {
+      label: t("label5"),
+      value: t("value5"),
+    },
+    {
+      label: t("label6"),
+      value: t("value6"),
+    },
+    {
+      label: t("label7"),
+      value: t("value7"),
+    },
+    {
+      label: t("label8"),
+      value: t("value8"),
+    },
+    {
+      label: t("label9"),
+      value: t("value9"),
+      isLink: true,
+      href: "/terms",
+      linkText: t("termsLinkText"),
+    },
+    {
+      label: t("label10"),
+      value: t("value10"),
+    },
+    {
+      label: t("label11"),
+      value: t("value11"),
+    },
+    {
+      label: t("label12"),
+      value: t("value12"),
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold font-display text-dq-gold">
-        特定商取引法に基づく表示
+        {t("title")}
       </h1>
       <p className="mb-8 text-sm text-dq-text-muted">
-        最終更新日: 2026年2月24日
+        {t("lastUpdated")}
       </p>
 
       <div className="font-legal overflow-hidden rounded-sm border border-dq-border">
@@ -119,11 +123,9 @@ export default function LegalPage() {
       </div>
 
       <div className="mt-8 rounded-sm bg-dq-yellow/10 p-4 text-sm text-dq-yellow">
-        <p className="font-medium">注意事項</p>
+        <p className="font-medium">{t("warningTitle")}</p>
         <p className="mt-1 leading-relaxed">
-          暗号資産による決済は価格変動リスクを伴います。送金ミスの場合、当社は返金・補償を行いかねますので、
-          送金前に必ず宛先ウォレットアドレスをご確認ください。
-          本サービスはノンカストディアル（非管理型）であり、当社は利用者の秘密鍵を管理しません。
+          {t("warningBody")}
         </p>
       </div>
     </div>

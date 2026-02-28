@@ -22,7 +22,8 @@
     "preview:cf": "opennextjs-cloudflare preview",
     "test:e2e:ui": "bash maestro/run-tests.sh",
     "test:e2e:ui:studio": "maestro -p web studio",
-    "gen:types": "npx supabase gen types typescript --local > src/types/database.generated.ts",
+    "gen:types": "node scripts/gen-types.mjs",
+    "gen:types:check": "node scripts/gen-types.mjs --check",
     "test:components": "vitest run --config vitest.config.ts",
     "test:components:watch": "vitest --config vitest.config.ts"
   },

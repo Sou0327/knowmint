@@ -1,3 +1,9 @@
+/**
+ * 手書きドメイン型 — フラット named import の後方互換レイヤー。
+ * truth source は database.generated.ts (supabase gen types --local)。
+ * 将来的にこのファイルは generated.ts の re-export + カスタム型のみに縮小予定。
+ */
+
 // Content type enum
 export type ContentType = "prompt" | "tool_def" | "dataset" | "api" | "general";
 export type UserType = "human" | "agent";

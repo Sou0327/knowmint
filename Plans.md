@@ -9,15 +9,123 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R すべて `cc:DONE`
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
+
+---
+
+## Phase R: OSS 公開準備 [P0 — 今すぐ] 🚨
+
+> リポジトリは既に Public。日本語 README のまま公開中。即対応。
+
+### R.1 README.md 英語リライト
+
+- [ ] README.md を英語で全面リライト `cc:TODO`
+  - Hero: タグライン + (GIF placeholder)
+  - Why KnowMint: 3行で価値提案
+  - For AI Agents: MCP / CLI / x402 の使い方
+  - For Humans: Web UI の概要
+  - Quick Start: clone → env → supabase start → npm run dev
+  - Agent Plugins: AgentKit + ElizaOS（コード例付き）
+  - API Overview: 主要エンドポイントのみ（詳細は docs/ 参照）
+  - Tech Stack: テーブル
+  - Contributing: 簡潔に
+  - License: MIT
+- [ ] 旧 README の日本語ローカルテストガイドを `docs/local-devnet-guide.md` に移動 `cc:TODO`
+- [ ] README 内の古い記述を修正 (EVM 言及削除、Mocha → Vitest、テスト数更新) `cc:TODO`
+
+### R.2 LICENSE ファイル追加
+
+- [ ] MIT LICENSE ファイルをルートに作成 `cc:TODO`
+
+### R.3 リポジトリメタデータ
+
+- [ ] GitHub の Description / Topics / Website URL を設定（手動） `cc:TODO`
+  - Description: "Knowledge marketplace where AI agents autonomously buy human expertise"
+  - Topics: `ai-agent`, `mcp`, `solana`, `x402`, `marketplace`, `knowledge`
+  - Website: knowmint.shop (あれば)
+
+---
+
+## Phase A: 死コード削除 + テスト統一 [P0 — 技術的負債]
+
+> 「やらないことを決める」フェーズ。EVM 死コード全削除 + mocha 廃止で即効のコードベース軽量化。
+
+### A.1 EVM 死コード全削除
+
+- [ ] `src/contexts/EVMWalletContext.tsx` 削除 `cc:TODO`
+- [ ] `src/contexts/ChainContext.tsx` 削除 `cc:TODO`
+- [ ] `src/components/features/EVMWalletButton.tsx` 削除 `cc:TODO`
+- [ ] `src/components/features/ChainSelector.tsx` 削除 `cc:TODO`
+- [ ] `src/lib/evm/` ディレクトリ全削除 (config.ts, payment.ts, verify.ts) `cc:TODO`
+- [ ] root layout.tsx から EVM/Chain Provider 除去 (5→3 Provider) `cc:TODO`
+- [ ] `wagmi`, `viem`, `@tanstack/react-query` を dependencies から削除 `cc:TODO`
+- [ ] PurchaseModal から EVM 関連分岐・無効化 UI 削除 `cc:TODO`
+- [ ] 設計メモ・CLAUDE.md の EVM 関連記述更新 `cc:TODO`
+
+### A.2 mocha 全廃 → vitest 統一
+
+- [ ] `tests/` 内の mocha/chai テストを vitest に書き換え `cc:TODO`
+- [ ] `mocha`, `ts-mocha`, `chai`, `@types/chai`, `@types/mocha` を devDeps から削除 `cc:TODO`
+- [ ] `.mocharc.*` 設定ファイル削除 `cc:TODO`
+
+### A.3 fire-and-forget エラー可視化
+
+- [ ] audit log / email / webhook dispatch の `.then(() => {}, () => {})` に `console.error` 追加 `cc:TODO`
+
+---
+
+## Phase B: Provider 最適化 + Playwright E2E [P1 — パフォーマンス・品質]
+
+> バンドルサイズ削減 + E2E テスト基盤の近代化。
+
+### B.1 WalletProvider lazy 化
+
+- [ ] root layout.tsx から SolanaWalletProvider を除去 `cc:TODO`
+- [ ] 購入ページ (`/knowledge/[id]`) と出品ページ (`/list`) にのみ WalletProvider を配置 `cc:TODO`
+- [ ] WalletButton を wallet 不要ページでは非表示 or ConnectWallet CTA に変更 `cc:TODO`
+
+### B.2 Playwright E2E 導入
+
+- [ ] Playwright セットアップ (`playwright.config.ts`, `tests/e2e/`) `cc:TODO`
+- [ ] Maestro 18 フローのうち主要 10 フローを Playwright に移植 `cc:TODO`
+- [ ] CI に Playwright を組み込み `cc:TODO`
+- [ ] Maestro フロー・設定を `_archived/` に移動 `cc:TODO`
+
+---
+
+## Phase C: i18n URL 化 + shadcn/ui 段階導入 [P1 — SEO・保守性]
+
+> SEO の根本改善 + 自前 UI コンポーネント保守からの解放。
+
+### C.1 i18n URL ベース化
+
+- [ ] next-intl middleware を URL ベース (`/ja/`, `/en/`) に変更 `cc:TODO`
+- [ ] `hreflang` タグ出力 `cc:TODO`
+- [ ] 既存 cookie ベースからのリダイレクト (後方互換) `cc:TODO`
+- [ ] sitemap.xml に言語別 URL 追加 `cc:TODO`
+
+### C.2 shadcn/ui 段階導入
+
+- [ ] shadcn/ui セットアップ (`components.json`, Tailwind 統合) `cc:TODO`
+- [ ] Button → shadcn/ui Button に置換 (DQ テーマ維持) `cc:TODO`
+- [ ] Modal → shadcn/ui Dialog に置換 (focus trap 自動解決) `cc:TODO`
+- [ ] Input / Textarea / Select → shadcn/ui に置換 `cc:TODO`
+- [ ] Card → shadcn/ui Card に置換 `cc:TODO`
+- [ ] 自前 `src/components/ui/` の旧コンポーネント削除 `cc:TODO`
+
+### C.3 ダークモード手動切り替え
+
+- [ ] Tailwind を `class` strategy に変更 `cc:TODO`
+- [ ] テーマトグルコンポーネント追加 (Header) `cc:TODO`
+- [ ] `localStorage` でテーマ永続化 `cc:TODO`
 
 ---
 
 ## Phase 26: 自律購入デモ動画 [P1 — 訴求コンテンツ]
 
 > 「AIエージェントが知識を自律購入した」実証動画。最強のマーケティング素材。
-> 前提: Phase 40 (自律オンボーディング) ✅完了。着手可能。
+> 前提: Phase 40 (自律オンボーディング) 完了済。着手可能。
 
 - [ ] 26.1 デモシナリオ設計 + `scripts/demo/autonomous-purchase-demo.mjs` 作成
 - [ ] 26.2 Claude Code + MCP でデモ実行・キャプチャ
@@ -26,17 +134,9 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R すべて `cc:DONE`
 
 ---
 
-## Phase 32.3: スマコン mainnet デプロイ `cc:DEFERRED`
-
-> Phase 26 デモ・拡散の反響を見てから着手。P2P モードで十分運用可能。
-
-- [ ] `anchor deploy --provider.cluster mainnet` → Program ID / Fee Vault 設定
-
----
-
 ## Phase 33: 品質担保機能 [P1]
 
-> 無料tier: 証拠フィールド必須化 + ティア型プレビュー。有料tier (33.3): 将来フェーズ。
+> 無料tier: 証拠フィールド必須化 + ティア型プレビュー。
 
 ### 33.1 構造化「証拠」フィールド必須化
 
@@ -60,29 +160,6 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R すべて `cc:DONE`
 
 ---
 
-## Phase 41-44, 46: ゼロから再設計レビュー改善 `cc:DONE`
-
-> 「ゼロから再設計するなら」レビューに基づく全面改善。121ファイル変更、+7551/-5683行。
->
-> - **41 型安全性**: `Database<>` 型を全 Supabase クライアントに適用、`as unknown as` 全廃、`toSingle<T>()` で nested join 正規化、`supabase.types.ts` 削除統合
-> - **42 アーキテクチャ**: Server Action + カスタムフック (`useFavorite`/`useFollow`/`useNotifications`) で Client→DB 直接アクセス廃止、カテゴリ fetch も Server Action 経由に
-> - **43 API 品質**: POST /keys→201、/health→apiSuccess、/publish 冪等フル返却、/purchase フォールバック修正、webhook fail-close 統一、ログ prefix 統一、OpenAPI 同期
-> - **44 i18n**: `Social`/`VersionHistory`/`Notifications` namespace 追加、SellerRankingCard 内部化、en/ja 完備
-> - **46 マイグレーション**: 29本→1本スクワッシュ (1,420行)、旧ファイル `_archived/` 保存
-
----
-
-## 設計メモ
-
-- **⑤⑥ EVM**: 意図的未対応 (Solana 優先)。将来フェーズで対応。
-- **38.5 法的ページ i18n**: 言語固有性が高く英訳に法的チェック要。将来フェーズ。
-
-## Phase 45: テスト拡充 `cc:DONE`
-
-> Vitest + RTL セットアップ、Server Actions / queries / コンポーネント / i18n 完全性テスト追加。
-
----
-
 ## Phase 47: CI 型安全パイプライン [P1 — 堅牢性]
 
 > Database 型が手書き。マイグレーション追加時に型ファイルとの乖離が無チェックで発生する。
@@ -93,41 +170,28 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R すべて `cc:DONE`
 
 ---
 
-## Phase 48: Rate Limit 障害耐性 [P2 — 可用性]
+## Phase 50: updateListing RPC 原子化 [P2 — データ整合性]
 
-> Upstash 障害時、in-memory fallback が CF Workers のリクエスト隔離で無効。rate limit ゼロになる。
-
-- [ ] 48.1 Upstash 障害時の挙動調査 + CF Workers 対応方針決定 `cc:TODO`
-- [ ] 48.2 fallback 戦略実装 (固定レート許可 or 503 返却 or CF WAF 連携) `cc:TODO`
-- [ ] 48.3 Upstash ヘルスチェック + `/health` エンドポイントに rate limit status 追加 `cc:TODO`
-
----
-
-## Phase 49: E2E カバレッジ拡大 [P2 — 品質]
-
-> Maestro 18フロー/95%で停止。library/[id] 未カバー + Phase 42 リファクタ後の動作確認。
-
-- [ ] 49.1 `/library/[id]` E2E フロー追加 (購入済みコンテンツ表示) `cc:TODO`
-- [ ] 49.2 FavoriteButton / FollowButton のリファクタ後 E2E 動作確認フロー `cc:TODO`
-- [ ] 49.3 NotificationBell の Server Action 経由動作確認フロー `cc:TODO`
-
----
-
-## Phase 50: UX 残件 [P3 — 品質]
-
-> Phase 38.R で次フェーズ送りにしたアクセシビリティ・UX 改善。
-
-- [ ] 50.1 Modal focus trap 実装 (Tab キーがモーダル外に出ない) `cc:TODO`
 - [ ] 50.2 `updateListing` を RPC トランザクション化 (version snapshot + update の原子性) `cc:TODO`
 
 ---
 
-## Phase 51: git history クリーンアップ [P3 — セキュリティ]
+## Phase 32.3: スマコン mainnet デプロイ `cc:DEFERRED`
 
-> devnet keypair が git history に残存。低リスクだが本番前に対応推奨。
+> Phase 26 デモ・拡散の反響を見てから着手。P2P モードで十分運用可能。
 
-- [ ] 51.1 `git filter-repo` で keypair ファイル除去 `cc:TODO`
-- [ ] 51.2 force push 後のチーム通知 + clone 再実行手順ドキュメント `cc:TODO`
+- [ ] `anchor deploy --provider.cluster mainnet` → Program ID / Fee Vault 設定
+
+---
+
+## 削除済みフェーズ (理由付き)
+
+| Phase | 削除理由 |
+|-------|----------|
+| 48 (Rate Limit 障害耐性) | Upstash fallback 修正より CF 組み込み rate limiting が正解。問題設定が間違い |
+| 49 (E2E Maestro 拡大) | Phase B で Maestro → Playwright に置換するため、Maestro フロー追加は無駄 |
+| 50.1 (Modal focus trap) | Phase C で shadcn/ui Dialog に置換すれば built-in で解決 |
+| 51 (git history cleanup) | devnet keypair は低リスク。force push のリスクのほうが高い |
 
 ---
 
@@ -141,6 +205,6 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R すべて `cc:DONE`
 | --- | --- |
 | Frontend | Next.js 16 (App Router), TypeScript, Tailwind CSS v4 |
 | Backend/DB | Supabase (PostgreSQL, Auth, Storage, RLS) |
-| 決済 | Anchor 0.32.1 (Solana Program) 95/5 自動分配 — devnet デプロイ済み |
+| 決済 | Solana のみ (EVM 対応は Phase A で死コード削除) |
 | MCP | `@modelcontextprotocol/sdk` (TypeScript) |
 | デプロイ | Cloudflare Workers (opennextjs-cloudflare) |

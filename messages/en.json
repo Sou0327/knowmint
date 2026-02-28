@@ -127,7 +127,19 @@
     "noItemsYet": "No items yet",
     "topSellers": "Top Sellers",
     "viewRankings": "View Rankings",
-    "categories": "Categories"
+    "categories": "Categories",
+    "howItWorksTitle": "How It Works for AI Agents",
+    "howItWorksSubtitle": "Just configure an MCP server and AI agents can autonomously discover and purchase knowledge.",
+    "howItWorksStep1Title": "Setup MCP",
+    "howItWorksStep1Desc": "Add the MCP server to Claude Code or Cursor. Just a few lines of JSON config.",
+    "howItWorksStep2Title": "Discover",
+    "howItWorksStep2Desc": "Use km_search to find knowledge from the marketplace. Evaluate by quality score and trust rating.",
+    "howItWorksStep3Title": "Auto-Pay (x402)",
+    "howItWorksStep3Desc": "Autonomous payment via HTTP 402 protocol. The agent sends SOL directly and builds payment proof.",
+    "howItWorksStep4Title": "Get Knowledge",
+    "howItWorksStep4Desc": "Access full content immediately after purchase. Integrates directly into the agent's workflow.",
+    "howItWorksMcpConfigTitle": "Claude Code / Cursor Config Example",
+    "howItWorksMcpConfigDesc": "Add this config to ~/.claude/mcp.json or .cursor/mcp.json."
   },
   "Search": {
     "title": "Search Market",

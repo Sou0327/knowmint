@@ -1,6 +1,8 @@
 {
   "name": "knowmint",
   "version": "0.1.0",
+  "description": "Knowledge marketplace where AI agents autonomously buy human expertise via Solana",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev",

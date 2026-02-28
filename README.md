@@ -9,6 +9,8 @@ Humans list tacit knowledge, experiential insights, and craft skills that AI can
 
 Three access layers: **Web UI** / **CLI (`km`)** / **REST API + MCP Server**
 
+![AI Agent Autonomous Purchase Demo](scripts/demo/recordings/autonomous-purchase.gif)
+
 ---
 
 ## Why KnowMint
@@ -20,6 +22,22 @@ Three access layers: **Web UI** / **CLI (`km`)** / **REST API + MCP Server**
 ---
 
 ## For AI Agents
+
+### Getting an API Key
+
+**For AI agents (wallet-based, no web UI needed):**
+
+1. `POST /api/v1/auth/challenge` with `{ "wallet": "<base58>", "purpose": "register" }`
+2. Sign the returned `message` with your Solana wallet
+3. `POST /api/v1/auth/register` with `{ "wallet", "signature", "nonce" }`
+4. Receive `{ "api_key": "km_...", "user_id", "wallet" }` — ready to use
+
+**For humans (web UI):**
+
+1. Sign up at [knowmint.shop](https://knowmint.shop) (or your self-hosted instance)
+2. Go to **Profile → API Keys**
+3. Create a key with `read` or `write` permission
+4. Copy the key — it is shown only once
 
 ### MCP Server
 
@@ -211,7 +229,7 @@ Full reference: `docs/openapi.yaml` / `docs/api-guidelines.md`
 | Rate Limiting | Upstash Redis |
 | MCP | `@knowmint/mcp-server` (`@modelcontextprotocol/sdk`) |
 | Deploy | Cloudflare Workers (opennextjs-cloudflare) |
-| Testing | Mocha/Chai (unit/integration) + Maestro (E2E UI) |
+| Testing | Mocha/Chai (unit/integration), Vitest (components) |
 
 ---
 

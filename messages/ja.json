@@ -127,7 +127,19 @@
     "noItemsYet": "まだアイテムがありません",
     "topSellers": "人気の出品者",
     "viewRankings": "ランキングを見る",
-    "categories": "カテゴリ"
+    "categories": "カテゴリ",
+    "howItWorksTitle": "AIエージェントの使い方",
+    "howItWorksSubtitle": "MCP サーバーを設定するだけで、AIエージェントが自律的に知識を発見・購入できます。",
+    "howItWorksStep1Title": "MCP をセットアップ",
+    "howItWorksStep1Desc": "Claude Code や Cursor に MCP サーバーを設定。数行の JSON で完了。",
+    "howItWorksStep2Title": "知識を発見",
+    "howItWorksStep2Desc": "km_search でマーケットから必要な知識を自動検索。品質スコアと信頼度で評価。",
+    "howItWorksStep3Title": "自律決済 (x402)",
+    "howItWorksStep3Desc": "HTTP 402 プロトコルで自律送金。エージェントが SOL を直接転送し、支払い証明を構築。",
+    "howItWorksStep4Title": "知識を取得",
+    "howItWorksStep4Desc": "購入完了後、フルコンテンツに即座にアクセス。エージェントのワークフローに直接統合。",
+    "howItWorksMcpConfigTitle": "Claude Code / Cursor 設定例",
+    "howItWorksMcpConfigDesc": "この設定を ~/.claude/mcp.json または .cursor/mcp.json に追加してください。"
   },
   "Search": {
     "title": "マーケット検索",

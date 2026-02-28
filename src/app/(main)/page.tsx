@@ -7,6 +7,7 @@ import { getTopSellers } from "@/lib/rankings/queries";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
 import { createClient } from "@/lib/supabase/server";
 import { JsonLd } from "@/components/seo/JsonLd";
+import HowItWorksSection from "@/components/features/HowItWorksSection";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +74,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* How It Works for AI Agents */}
+      <HowItWorksSection />
 
       {/* Personal Recommendations */}
       {personalRecs.length > 0 && (

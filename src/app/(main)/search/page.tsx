@@ -7,7 +7,7 @@ import type { ContentType, ListingType } from "@/types/database.types";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
-import { CONTENT_TYPE_LABELS } from "@/types/knowledge.types";
+import { CONTENT_TYPES, getContentDisplayLabel } from "@/types/knowledge.types";
 
 interface Props {
   searchParams: Promise<{
@@ -23,7 +23,7 @@ interface Props {
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q } = await searchParams;
   const t = await getTranslations("Search");
-  const title = q ? `「${q}」` : t("title");
+  const title = q ? t("searchMetaTitle", { query: q }) : t("title");
   return {
     title,
     robots: { index: false, follow: true },
@@ -39,8 +39,9 @@ const SORT_OPTION_KEYS = [
 ] as const;
 
 export default async function SearchPage({ searchParams }: Props) {
-  const [t] = await Promise.all([
+  const [t, tTypes] = await Promise.all([
     getTranslations("Search"),
+    getTranslations("Types"),
   ]);
 
   const { q, category, type, listing_type, sort, page: pageStr } = await searchParams;
@@ -73,7 +74,7 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="mb-4 text-3xl font-bold tracking-tight text-dq-text">
+        <h1 className="mb-4 text-3xl font-bold font-display tracking-tight text-dq-text">
           {q ? t("resultCount", { count: result.total }) : t("title")}
         </h1>
         <SearchBar defaultValue={q} className="max-w-xl" />
@@ -85,7 +86,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <div className="sticky top-24 space-y-6">
             <div>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-dq-gold">
-                カテゴリ
+                {t("categoryFilter")}
               </h3>
               <ul className="space-y-1">
                 <li>
@@ -134,17 +135,17 @@ export default async function SearchPage({ searchParams }: Props) {
                     {t("all")}
                   </Link>
                 </li>
-                {Object.entries(CONTENT_TYPE_LABELS).map(([value, label]) => (
-                  <li key={value}>
+                {CONTENT_TYPES.map((ct) => (
+                  <li key={ct}>
                     <Link
-                      href={buildUrl({ type: value, page: undefined })}
+                      href={buildUrl({ type: ct, page: undefined })}
                       className={`block rounded-sm px-2 py-1 text-sm ${
-                        type === value
+                        type === ct
                           ? "bg-dq-surface font-medium text-dq-gold"
                           : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                       }`}
                     >
-                      {label}
+                      {getContentDisplayLabel(ct, tTypes)}
                     </Link>
                   </li>
                 ))}
@@ -185,21 +186,21 @@ export default async function SearchPage({ searchParams }: Props) {
 
           {result.data.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {result.data.map((item: Record<string, unknown>) => (
+              {result.data.map((item) => (
                 <KnowledgeCard
-                  key={item.id as string}
-                  id={item.id as string}
-                  listing_type={item.listing_type as ListingType}
-                  title={item.title as string}
-                  description={item.description as string}
-                  content_type={item.content_type as ContentType}
-                  price_sol={item.price_sol as number | null}
-                  price_usdc={item.price_usdc as number | null}
-                  seller={item.seller as { display_name: string | null }}
-                  category={item.category as { name: string } | null}
-                  tags={item.tags as string[]}
-                  average_rating={item.average_rating as number | null}
-                  purchase_count={item.purchase_count as number}
+                  key={item.id}
+                  id={item.id}
+                  listing_type={item.listing_type}
+                  title={item.title}
+                  description={item.description}
+                  content_type={item.content_type}
+                  price_sol={item.price_sol}
+                  price_usdc={item.price_usdc}
+                  seller={item.seller ?? { display_name: null }}
+                  category={item.category}
+                  tags={item.tags}
+                  average_rating={item.average_rating}
+                  purchase_count={item.purchase_count}
                 />
               ))}
             </div>

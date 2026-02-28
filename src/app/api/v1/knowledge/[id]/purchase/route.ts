@@ -15,6 +15,9 @@ function isValidSolanaPublicKey(addr: string): boolean {
   try { new PublicKey(addr); return true; } catch { return false; }
 }
 
+const TX_SELECT_COLUMNS =
+  "id, buyer_id, seller_id, knowledge_item_id, amount, token, chain, tx_hash, status, protocol_fee, fee_vault_address, created_at, updated_at" as const;
+
 interface PurchaseRequestBody {
   tx_hash: string;
   amount?: number;
@@ -63,7 +66,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   // Fetch knowledge item
   const { data: item, error: itemError } = await admin
     .from("knowledge_items")
-    .select("id, seller_id, listing_type, status, price_sol, price_usdc")
+    .select("id, title, seller_id, listing_type, status, price_sol, price_usdc")
     .eq("id", id)
     .single();
 
@@ -125,7 +128,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   // Idempotency by tx_hash
   const { data: existingByHash, error: existingByHashError } = await admin
     .from("transactions")
-    .select()
+    .select(TX_SELECT_COLUMNS)
     .eq("tx_hash", tx_hash.trim())
     .maybeSingle();
 
@@ -154,7 +157,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
         // RPC は 0 件更新でもエラーにならないため、再読込で status を検証
         const { data: retriedTx, error: recheckError } = await admin
           .from("transactions")
-          .select()
+          .select(TX_SELECT_COLUMNS)
           .eq("id", existingByHash.id)
           .single();
         if (recheckError) {
@@ -225,7 +228,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     console.error("[purchase] tx verification failed:", { userId: user.userId, itemId: id, error: verification.error });
     return apiError(
       API_ERRORS.BAD_REQUEST,
-      "トランザクション検証に失敗しました"
+      "Transaction verification failed"
     );
   }
 
@@ -253,7 +256,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
       })(),
       fee_vault_address: feeVaultAddress || null,
     })
-    .select()
+    .select(TX_SELECT_COLUMNS)
     .single();
 
   if (txError) {
@@ -291,37 +294,19 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     );
 
   // Notify seller about the purchase (fire-and-forget)
-  // Promise.resolve() で PromiseLike → Promise に変換し .catch() を使用可能にする
-  void Promise.resolve(
-    admin
-      .from("knowledge_items")
-      .select("id, title")
-      .eq("id", id)
-      .single()
-  ).then(({ data: itemData }) => {
-    if (itemData) {
-      notifyPurchase(
-        item.seller_id,
-        walletProfiles.find((p) => p.id === user.userId)?.display_name || "購入者",
-        { id: itemData.id, title: itemData.title },
-        expectedAmount,
-        token
-      ).catch((err: unknown) =>
-        console.error("[purchase] send notification failed:", { userId: item.seller_id, itemId: id, error: err })
-      );
-    }
-  }).catch((err: unknown) =>
-    console.error("[purchase] fetch item for notification failed:", { userId: user.userId, itemId: id, error: err })
+  // item.title is already fetched in the initial SELECT — no extra DB round-trip needed
+  notifyPurchase(
+    item.seller_id,
+    walletProfiles.find((p) => p.id === user.userId)?.display_name || "購入者",
+    { id: item.id, title: item.title },
+    expectedAmount,
+    token
+  ).catch((err: unknown) =>
+    console.error("[purchase] send notification failed:", { userId: item.seller_id, itemId: id, error: err })
   );
 
-  // Fetch updated transaction
-  const { data: confirmedTx } = await admin
-    .from("transactions")
-    .select()
-    .eq("id", transaction.id)
-    .single();
-
-  // Fire webhook event (fire-and-forget)
+  // Fire webhook event and audit log BEFORE refetch to avoid permanent side-effect loss
+  // if the refetch fails (idempotent retry would hit existingByHash.status === "confirmed" path)
   fireWebhookEvent(user.userId, "purchase.completed", {
     knowledge_id: id,
     transaction_id: transaction.id,
@@ -337,5 +322,17 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     metadata: { txHash: tx_hash.trim() },
   });
 
-  return apiSuccess(confirmedTx || transaction);
+  // Fetch updated transaction (confirmed status)
+  const { data: confirmedTx, error: refetchError } = await admin
+    .from("transactions")
+    .select(TX_SELECT_COLUMNS)
+    .eq("id", transaction.id)
+    .single();
+
+  if (refetchError || !confirmedTx) {
+    console.error("[purchase] refetch confirmed tx failed:", { txId: transaction.id, error: refetchError });
+    return apiError(API_ERRORS.INTERNAL_ERROR);
+  }
+
+  return apiSuccess(confirmedTx);
 }, { requiredPermissions: ["write"] });

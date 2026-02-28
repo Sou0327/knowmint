@@ -51,7 +51,7 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="mb-1 block text-sm font-medium text-dq-text-sub">
-          評価
+          {t("rating")}
         </label>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((star) => (

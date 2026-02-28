@@ -24,7 +24,7 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-2xl font-bold text-dq-text">{t("title")}</h1>
+      <h1 className="mb-6 text-2xl font-bold font-display text-dq-text">{t("title")}</h1>
 
       {notifications.length === 0 ? (
         <div className="py-12 text-center">

@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { toSingle } from "@/lib/supabase/utils";
 import { getUser } from "@/lib/auth/session";
 import { getTranslations, getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import { CONTENT_TYPE_LABELS } from "@/types/knowledge.types";
-import type { ContentType } from "@/types/database.types";
+import { getContentDisplayLabel } from "@/types/knowledge.types";
 
 export default async function LibraryPage() {
   const user = await getUser();
@@ -16,6 +16,7 @@ export default async function LibraryPage() {
 
   const t = await getTranslations("Library");
   const tCommon = await getTranslations("Common");
+  const tTypes = await getTranslations("Types");
   const locale = await getLocale();
 
   const supabase = await createClient();
@@ -38,7 +39,7 @@ export default async function LibraryPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold tracking-tight text-dq-text">
+      <h1 className="mb-6 text-3xl font-bold font-display tracking-tight text-dq-text">
         {t("title")}
       </h1>
 
@@ -75,20 +76,15 @@ export default async function LibraryPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {purchases.map((purchase) => {
-            const item = purchase.knowledge_item as unknown as {
-              id: string;
-              title: string;
-              description: string;
-              content_type: ContentType;
-              seller: { display_name: string | null };
-            };
+            const item = toSingle(purchase.knowledge_item);
             if (!item) return null;
+            const seller = toSingle(item.seller);
             return (
               <Link key={purchase.id} href={`/library/${item.id}`} className="group">
                 <Card hover padding="md" className="h-full transition-all duration-200 group-hover:border-dq-gold/50">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-start justify-between">
-                      <Badge>{CONTENT_TYPE_LABELS[item.content_type]}</Badge>
+                      <Badge>{getContentDisplayLabel(item.content_type, tTypes)}</Badge>
                     </div>
                     <h3 className="font-semibold text-dq-text transition-colors group-hover:text-dq-gold">
                       {item.title}
@@ -101,7 +97,7 @@ export default async function LibraryPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span>
-                        {item.seller?.display_name || tCommon("anonymous")} ・{" "}
+                        {seller?.display_name || tCommon("anonymous")} ・{" "}
                         {new Date(purchase.created_at).toLocaleDateString(locale === "ja" ? "ja-JP" : "en-US")}
                       </span>
                     </div>

@@ -6,6 +6,7 @@ import type {
   TopSellingItem,
 } from "@/types/dashboard.types";
 import type { Chain, ContentType, Token, TransactionStatus } from "@/types/database.types";
+import { toSingle } from "@/lib/supabase/utils";
 
 export async function getDashboardStats(
   userId: string
@@ -68,7 +69,12 @@ export async function getRecentTransactions(
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  return (data as RecentTransaction[]) ?? [];
+  if (!data) return [];
+  // nested join 正規化: knowledge_item は single join だが T | T[] 推論対策
+  return data.map((row) => ({
+    ...row,
+    knowledge_item: toSingle(row.knowledge_item),
+  })) as RecentTransaction[];
 }
 
 export async function getSalesByDateRange(
@@ -180,7 +186,7 @@ export async function getPurchaseHistory(
   let query = supabase
     .from("transactions")
     .select(
-      "id, knowledge_item_id, amount, token, chain, tx_hash, status, created_at, knowledge_items(id, title, content_type)"
+      "id, knowledge_item_id, amount, token, chain, tx_hash, status, created_at, knowledge_item:knowledge_items(id, title, content_type)"
     )
     .eq("buyer_id", userId)
     .order("created_at", { ascending: false });
@@ -195,18 +201,8 @@ export async function getPurchaseHistory(
 
   if (!data) return [];
 
-  // Transform the data to match the expected type
   return data.map((item) => ({
-    id: item.id,
-    knowledge_item_id: item.knowledge_item_id,
-    amount: item.amount,
-    token: item.token,
-    chain: item.chain,
-    tx_hash: item.tx_hash,
-    status: item.status,
-    created_at: item.created_at,
-    knowledge_item: Array.isArray(item.knowledge_items) && item.knowledge_items.length > 0
-      ? item.knowledge_items[0]
-      : null,
+    ...item,
+    knowledge_item: toSingle(item.knowledge_item),
   })) as PurchaseHistoryItem[];
 }

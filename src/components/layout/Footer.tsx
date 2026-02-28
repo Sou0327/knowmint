@@ -13,8 +13,8 @@ export async function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
-            <h3 className="text-lg font-bold">
-              <span className="text-dq-gold">
+            <h3 className="text-lg font-bold font-display tracking-wide">
+              <span className="text-dq-gold text-glow-gold">
                 ◆ KnowMint
               </span>
             </h3>
@@ -25,7 +25,7 @@ export async function Footer() {
 
           {/* Platform Links */}
           <div>
-            <h4 className="text-sm font-semibold text-dq-gold">
+            <h4 className="text-sm font-semibold font-display text-dq-gold">
               {t('platform')}
             </h4>
             <ul className="mt-4 space-y-2">
@@ -49,7 +49,7 @@ export async function Footer() {
 
           {/* Support Links */}
           <div>
-            <h4 className="text-sm font-semibold text-dq-gold">
+            <h4 className="text-sm font-semibold font-display text-dq-gold">
               {t('support')}
             </h4>
             <ul className="mt-4 space-y-2">
@@ -68,7 +68,7 @@ export async function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="text-sm font-semibold text-dq-gold">
+            <h4 className="text-sm font-semibold font-display text-dq-gold">
               {t('legal')}
             </h4>
             <ul className="mt-4 space-y-2">

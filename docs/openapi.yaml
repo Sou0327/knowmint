@@ -6,10 +6,12 @@ info:
     Agent-first API for search, purchase, publish, and dataset delivery.
 servers:
   # 本番URL - 環境によって変更してください
-  - url: https://knowledge-market.vercel.app
+  - url: https://knowmint.shop
 security:
   - BearerAuth: []
 tags:
+  - name: Health
+  - name: Auth
   - name: Knowledge
   - name: Purchase
   - name: Dataset
@@ -19,6 +21,7 @@ tags:
   - name: Favorites
   - name: Categories
   - name: Webhooks
+  - name: Admin
 paths:
   /api/v1/knowledge:
     get:
@@ -91,6 +94,12 @@ paths:
             text/plain:
               schema:
                 type: string
+        "402":
+          description: Payment required (x402 protocol). Includes payment instructions in response headers.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/knowledge/{id}/preview:
     get:
       tags: [Knowledge]
@@ -310,7 +319,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateApiKeyRequest"
       responses:
-        "200":
+        "201":
           description: API key created
           content:
             application/json:
@@ -487,6 +496,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Webhook signing key not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       tags: [Webhooks]
       summary: Remove a webhook subscription
@@ -498,6 +513,9 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/DeleteWebhookRequest"
+        description: |
+          webhook_id can be provided in the request body OR as a query parameter.
+          The request body is optional — if omitted, the query parameter is used.
       parameters:
         - in: query
           name: webhook_id
@@ -539,6 +557,293 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns service health status. No authentication required.
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: ok
+                      service:
+                        type: string
+                        example: knowmint-api
+                      timestamp:
+                        type: string
+                        format: date-time
+  /api/v1/auth/challenge:
+    post:
+      tags: [Auth]
+      summary: Request wallet signature challenge
+      description: |
+        Public endpoint (no authentication required).
+        Issues a nonce and message for wallet signature verification.
+        - purpose="register": wallet must not be registered yet
+        - purpose="login": wallet must already be registered
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthChallengeRequest"
+      responses:
+        "200":
+          description: Challenge issued (nonce, message, expires_at)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid wallet address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Wallet not registered (login only)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Wallet already registered (register only)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Wallet login and API key issuance
+      description: |
+        Public endpoint. Verifies wallet signature, consumes challenge,
+        and returns a new API key (30-day expiry, read+write permissions).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLoginRequest"
+      responses:
+        "200":
+          description: Login successful (api_key, user_id, wallet)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Signature verification failed or challenge expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Wallet registration and API key issuance
+      description: |
+        Public endpoint. Creates a new account via wallet signature,
+        provisions a Supabase Auth user, and returns an API key.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRegisterRequest"
+      responses:
+        "200":
+          description: Registration successful (api_key, user_id, wallet)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Signature verification failed or challenge expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/me/wallet/challenge:
+    post:
+      tags: [Me]
+      summary: Request wallet bind challenge
+      description: |
+        Issues a SIWS challenge for binding a wallet to the authenticated user's account.
+        Requires write permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet]
+              properties:
+                wallet: { type: string, minLength: 32, maxLength: 44 }
+      responses:
+        "200":
+          description: Challenge issued (nonce, message, expires_at)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid wallet address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/me/wallet/verify:
+    post:
+      tags: [Me]
+      summary: Verify wallet signature and bind wallet
+      description: |
+        Verifies the Ed25519 signature against the challenge message,
+        atomically consumes the challenge and updates the user's wallet_address.
+        Requires write permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletVerifyRequest"
+      responses:
+        "200":
+          description: Wallet verified and bound (verified, wallet)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Signature verification failed or challenge expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Wallet already registered to another account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/knowledge/{id}/report:
+    post:
+      tags: [Knowledge]
+      summary: Report a knowledge item
+      description: |
+        Report a published knowledge item for moderation review.
+        Cannot report your own items. One report per user per item.
+        Requires write permission.
+      parameters:
+        - $ref: "#/components/parameters/KnowledgeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportRequest"
+      responses:
+        "201":
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid input or cannot report own item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Knowledge item not found or not published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Already reported this item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/reports:
+    get:
+      tags: [Admin]
+      summary: List moderation reports
+      description: |
+        Admin-only endpoint. Returns paginated reports filtered by status.
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, reviewing, resolved, dismissed]
+            default: pending
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, maximum: 1000, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Paginated reports with knowledge item details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccessResponse"
+  /api/v1/admin/reports/{id}:
+    post:
+      tags: [Admin]
+      summary: Review a moderation report
+      description: |
+        Admin-only endpoint. Resolves, dismisses, or starts review of a report.
+        Uses admin_review_report RPC for atomic status update.
+      parameters:
+        - $ref: "#/components/parameters/ReportId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewReportRequest"
+      responses:
+        "200":
+          description: Report reviewed (reviewed, status)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   securitySchemes:
     BearerAuth:
@@ -563,6 +868,11 @@ components:
       required: true
       schema: { type: string, format: uuid }
     WebhookId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+    ReportId:
       in: path
       name: id
       required: true
@@ -699,7 +1009,6 @@ components:
           description: Event types to subscribe to
     DeleteWebhookRequest:
       type: object
-      required: [webhook_id]
       properties:
         webhook_id:
           type: string
@@ -752,3 +1061,92 @@ components:
         key_id:
           type: string
           format: uuid
+    AuthChallengeRequest:
+      type: object
+      required: [wallet, purpose]
+      properties:
+        wallet:
+          type: string
+          minLength: 32
+          maxLength: 44
+          description: Solana wallet address (canonical base58)
+        purpose:
+          type: string
+          enum: [register, login]
+    AuthLoginRequest:
+      type: object
+      required: [wallet, signature, nonce]
+      properties:
+        wallet:
+          type: string
+          minLength: 32
+          maxLength: 44
+        signature:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Ed25519 signature (hex or base64)
+        nonce:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+        key_name:
+          type: string
+          maxLength: 100
+          description: Optional name for the issued API key
+    AuthRegisterRequest:
+      type: object
+      required: [wallet, signature, nonce]
+      properties:
+        wallet:
+          type: string
+          minLength: 32
+          maxLength: 44
+        signature:
+          type: string
+          minLength: 1
+          maxLength: 200
+        nonce:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+        display_name:
+          type: string
+          maxLength: 100
+          description: Optional display name for the new account
+    WalletVerifyRequest:
+      type: object
+      required: [wallet, signature, nonce]
+      properties:
+        wallet:
+          type: string
+          minLength: 32
+          maxLength: 44
+        signature:
+          type: string
+          minLength: 1
+          maxLength: 200
+        nonce:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+    ReportRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          enum: [spam, illegal, misleading, inappropriate, copyright, other]
+        description:
+          type: string
+          maxLength: 1000
+    ReviewReportRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [resolve, dismiss, start_review]
+        reviewer_note:
+          type: string
+          maxLength: 1000
+        remove_item:
+          type: boolean
+          description: If true and action=resolve, removes the reported item

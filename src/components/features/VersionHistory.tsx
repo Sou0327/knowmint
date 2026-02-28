@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useTransition } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { fetchVersionHistory } from "@/app/(main)/knowledge/actions";
 
 interface VersionEntry {
@@ -48,6 +49,9 @@ function reducer(state: State, action: Action): State {
 }
 
 export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
+  const t = useTranslations("VersionHistory");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [state, dispatch] = useReducer(reducer, {
     versions: [],
     loading: true,
@@ -58,6 +62,7 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
   const [, startTransition] = useTransition();
 
   const { versions, loading, error, page, totalPages } = state;
+  const unknownErrorMsg = t("unknownError");
 
   const setPage = useCallback((updater: (prev: number) => number) => {
     dispatch({ type: "SET_PAGE", page: updater(page) });
@@ -81,17 +86,17 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
         }
       } catch (err) {
         if (cancelled) return;
-        dispatch({ type: "FETCH_ERROR", error: err instanceof Error ? err.message : "Unknown error" });
+        dispatch({ type: "FETCH_ERROR", error: err instanceof Error ? err.message : unknownErrorMsg });
       }
     });
 
     return () => { cancelled = true; };
-  }, [knowledgeItemId, page]);
+  }, [knowledgeItemId, page, unknownErrorMsg]);
 
   if (loading) {
     return (
       <div className="py-8 text-center text-sm text-dq-text-muted">
-        Loading version history...
+        {tCommon("loading")}
       </div>
     );
   }
@@ -99,7 +104,7 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
   if (error) {
     return (
       <div className="py-8 text-center text-sm text-dq-red">
-        Failed to load version history: {error}
+        {t("error", { error })}
       </div>
     );
   }
@@ -107,14 +112,14 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
   if (versions.length === 0) {
     return (
       <div className="py-8 text-center text-sm text-dq-text-muted">
-        No version history yet.
+        {t("empty")}
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      <h3 className="text-base font-semibold text-dq-gold">Version History</h3>
+      <h3 className="text-base font-semibold text-dq-gold">{t("title")}</h3>
       <ul className="divide-y divide-dq-border rounded-sm border-2 border-dq-border">
         {versions.map((v) => (
           <li key={v.id} className="flex items-start gap-4 px-4 py-3">
@@ -126,15 +131,15 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
               {v.change_summary ? (
                 <p className="mt-0.5 text-xs text-dq-text-muted">{v.change_summary}</p>
               ) : (
-                <p className="mt-0.5 text-xs text-dq-text-muted italic">No summary</p>
+                <p className="mt-0.5 text-xs text-dq-text-muted italic">{t("noSummary")}</p>
               )}
             </div>
             <time
               dateTime={v.created_at}
               className="flex-shrink-0 text-xs text-dq-text-muted"
-              title={new Date(v.created_at).toLocaleString()}
+              title={new Date(v.created_at).toLocaleString(locale)}
             >
-              {new Date(v.created_at).toLocaleDateString()}
+              {new Date(v.created_at).toLocaleDateString(locale)}
             </time>
           </li>
         ))}
@@ -147,17 +152,17 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
             disabled={page <= 1}
             className="rounded-sm px-3 py-1 text-sm text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Previous
+            {tCommon("previous")}
           </button>
           <span className="text-xs text-dq-text-muted">
-            Page {page} / {totalPages}
+            {t("pageIndicator", { page, totalPages })}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className="rounded-sm px-3 py-1 text-sm text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Next
+            {tCommon("next")}
           </button>
         </div>
       )}

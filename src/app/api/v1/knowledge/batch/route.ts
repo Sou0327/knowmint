@@ -53,7 +53,7 @@ export const POST = withApiAuth(async (request) => {
     .eq("status", "published");
 
   if (error) {
-    console.error("Failed to fetch batch:", error);
+    console.error("[batch] Failed to fetch batch:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 

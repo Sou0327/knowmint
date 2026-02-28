@@ -9,50 +9,24 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34 すべて `cc:DONE`
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
 
 ---
 
 ## Phase 26: 自律購入デモ動画 [P1 — 訴求コンテンツ]
 
-> 「AIエージェントが知識を自律購入した」実証動画。これが最強のマーケティング素材。
+> 「AIエージェントが知識を自律購入した」実証動画。最強のマーケティング素材。
+> 前提: Phase 40 (自律オンボーディング) ✅完了。着手可能。
 
-### 26.1 デモシナリオ設計
-
-- [ ] デモ用ナレッジアイテムを出品 (例: `"Solana DeFi arbitrage — 6-month real P&L data"`, 0.01 SOL, type: dataset)
-- [ ] `scripts/demo/autonomous-purchase-demo.mjs` 作成
-  - km_search → km_get_detail → devnet 送金 → km_purchase → km_get_content の 5 ステップ自動実行
-
-### 26.2 Claude Code + MCP でデモ実行
-
-- [ ] ローカル起動 + MCP 設定 → Claude に「Find and purchase the best Solana DeFi knowledge」
-- [ ] Claude が自律的に search → detail → purchase → content を実行するフローをキャプチャ
-
-### 26.3 録画・公開
-
-- [ ] `asciinema rec` でターミナル録画 → GIF 変換 (`agg`)
-- [ ] README.md トップに GIF 埋め込み
-- [ ] Twitter/X + Warpcast (Farcaster) に投稿
-
-### 26.4 LP 更新
-
-- [ ] Web UI トップページに「How it works for AI Agents」セクション (デモ GIF + 3 ステップ)
-- [ ] `npx @knowledge-market/mcp-server` 設定例をトップページに掲載
-
-**成果物**: `scripts/demo/autonomous-purchase-demo.mjs`, デモ GIF, README 更新, SNS 投稿
+- [ ] 26.1 デモシナリオ設計 + `scripts/demo/autonomous-purchase-demo.mjs` 作成
+- [ ] 26.2 Claude Code + MCP でデモ実行・キャプチャ
+- [ ] 26.3 `asciinema rec` → GIF → README + SNS 投稿
+- [ ] 26.4 Web UI トップに「How it works for AI Agents」セクション
 
 ---
 
-## 設計メモ
-
-- **④ dataset Migration**: `storage_path`, `checksum_sha256` カラム → Phase 15 staging テスト時に確認
-- **⑤⑥ EVM**: 意図的未対応 (Solana 優先)。`chain !== "solana"` → BAD_REQUEST、ChainSelector も Coming Soon。将来フェーズで対応。
-- **Phase 29** (KnowMint リブランド): cc:DONE。詳細: `plans/archive-phase16-29.md`
-
----
-
-## Phase 32.3 (後回し) スマコン mainnet デプロイ `cc:DEFERRED`
+## Phase 32.3: スマコン mainnet デプロイ `cc:DEFERRED`
 
 > Phase 26 デモ・拡散の反響を見てから着手。P2P モードで十分運用可能。
 
@@ -62,93 +36,98 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34 すべて `cc:DONE`
 
 ## Phase 33: 品質担保機能 [P1]
 
-> 会話ログ (2026-02-25) の方針決定:
-> - **無料tier**: 証拠フィールド必須化 + ティア型プレビュー → 品質の最低ライン担保
-> - **有料tier (将来)**: AI非代替認定バッジ → 別フェーズで収益化機能として実装
+> 無料tier: 証拠フィールド必須化 + ティア型プレビュー。有料tier (33.3): 将来フェーズ。
 
-### 33.1 出品フォーム: 構造化「証拠」フィールド必須化
+### 33.1 構造化「証拠」フィールド必須化
 
-> 自由記述ではなく「検証済みの結果」として見せる。
-
-- [ ] `knowledge_items` テーブルに `evidence_description` (text) / `evidence_url` (text, optional) カラム追加
-  - migration: `20260225000029_phase33_evidence_fields.sql`
-- [ ] 出品フォーム (`/list`) に必須フィールドを追加
-  - 「この知識で得た具体的な結果 (数字・実績)」← 必須
-  - 「使った状況・時期」← 必須
-  - 「証拠リンク (Solana Explorer / GitHub / 記事等)」← 任意
-- [ ] 知識詳細ページ (`/knowledge/[id]`) に証拠セクションを表示
-- [ ] API バリデーション (Zod) に `evidence_description` 必須追加
+- [ ] `evidence_description` / `evidence_url` カラム追加 (migration)
+- [ ] 出品フォーム + 詳細ページ + API バリデーション
 
 ### 33.2 ティア型プレビュー
 
-> Layer 2 の質が Layer 3 の品質を予測させる。
+- [ ] `key_insight` カラム追加 → 3層構造 (description → key_insight → content)
+- [ ] MCP `km_get_detail` に `key_insight` 追加
 
-- [ ] `knowledge_items` テーブルに `key_insight` (text) カラム追加 ← Layer 2 用
-  - migration: 同上
-- [ ] 出品フォームに「核心のさわり (1つだけ公開)」フィールドを追加
-- [ ] 知識詳細ページのプレビューを 3 層構造に変更
-  ```
-  Layer 1 (無料): 「何が解決できるか」= 既存 description
-  Layer 2 (無料): 核心のさわり 1 つ = key_insight
-  Layer 3 (有料): フルコンテンツ = 既存 content
-  ```
-- [ ] MCP `km_get_detail` レスポンスに `key_insight` を含める
-
-### 33.3 (将来・有料) AI非代替認定バッジ
-
-> Claude が「学習データから答えられない」と判定した知識にバッジ付与。
-> 出品者が 1 件ごと or 月額で課金する収益化機能。
-
-- [ ] 設計・料金体系の決定 (別途検討)
-- [ ] 出品 API に Claude 審査フローを追加
-- [ ] 認定バッジの UI デザイン
-- [ ] 認定済み知識を検索上位表示
-
-**成果物**: 証拠フィールド・ティア型プレビューを備えた品質担保出品フロー
-
----
-
-## Phase 34: SEO / OGP 基盤 `cc:DONE`
-
-> 全公開ページの OGP・メタタグ・sitemap・robots・JSON-LD を整備。Codex 3ラウンド → ISSUES_FOUND: 0
-
-- [x] 34.1 `layout.tsx` に `metadataBase` + OGP + Twitter Card + `og-default.png` (1200x630 DQ テーマ)
-- [x] 34.2 `getKnowledgeForMetadata()` (Admin client, view_count 汚染なし) + `/knowledge/[id]` に `generateMetadata()` + canonical
-- [x] 34.3 `sitemap.ts` (静的6ページ + published 動的、50,000 URL 上限準拠) + `robots.ts` (dashboard/profile/api/list/library disallow)
-- [x] 34.4 `JsonLd` コンポーネント (`<` → `\u003c` XSS 対策) + Product JSON-LD (`/knowledge/[id]`) + WebSite+SearchAction (`/`)
-- [x] 34.5 rankings/category/search/dashboard/terms/privacy/legal/contact の metadata 補完 (noindex, openGraph, canonical)
-- [x] 34.6 (将来) 動的 OG 画像 — CF Workers 3MiB 制限のため据え置き
-
-**成果物**: 全公開ページの OGP・メタタグ・sitemap・robots・JSON-LD
+### 33.3 AI非代替認定バッジ `cc:DEFERRED`
 
 ---
 
 ## Phase 35: ブランド画像アセット整備 [P1]
 
-> favicon がデフォルト、OG 画像が自動生成の簡素版。SNS シェア・ブラウザタブの印象を大幅改善。
+- [ ] 35.1 favicon (32/192/512/apple-icon) + テンプレート残骸 SVG 削除
+- [ ] 35.2 OG デフォルト画像リデザイン (1200x630, DQ テーマ)
+- [ ] 35.3 動的 OG 画像 `cc:DEFERRED` (CF Workers 3MiB 制限)
 
-### 35.1 favicon / アプリアイコン
+---
 
-- [ ] `src/app/icon.png` — 32x32 favicon (DQ テーマのドット絵風ロゴ)
-- [ ] `src/app/icon-192.png` — 192x192 PWA アイコン
-- [ ] `src/app/icon-512.png` — 512x512 PWA アイコン
-- [ ] `src/app/apple-icon.png` — 180x180 iOS ホーム画面用
-- [ ] `public/` の Next.js テンプレート残骸 SVG を削除 (file.svg, globe.svg, next.svg, vercel.svg, window.svg)
+## Phase 41-44, 46: ゼロから再設計レビュー改善 `cc:DONE`
 
-### 35.2 OG デフォルト画像リデザイン
+> 「ゼロから再設計するなら」レビューに基づく全面改善。121ファイル変更、+7551/-5683行。
+>
+> - **41 型安全性**: `Database<>` 型を全 Supabase クライアントに適用、`as unknown as` 全廃、`toSingle<T>()` で nested join 正規化、`supabase.types.ts` 削除統合
+> - **42 アーキテクチャ**: Server Action + カスタムフック (`useFavorite`/`useFollow`/`useNotifications`) で Client→DB 直接アクセス廃止、カテゴリ fetch も Server Action 経由に
+> - **43 API 品質**: POST /keys→201、/health→apiSuccess、/publish 冪等フル返却、/purchase フォールバック修正、webhook fail-close 統一、ログ prefix 統一、OpenAPI 同期
+> - **44 i18n**: `Social`/`VersionHistory`/`Notifications` namespace 追加、SellerRankingCard 内部化、en/ja 完備
+> - **46 マイグレーション**: 29本→1本スクワッシュ (1,420行)、旧ファイル `_archived/` 保存
 
-- [ ] `public/og-default.png` を高品質版に差し替え (1200x630)
-  - DotGothic16 フォント使用、KnowMint ロゴ、DQ テーマ配色
-  - Figma / Canva / スクリプト生成いずれか
+---
 
-### 35.3 (将来) 動的 OG 画像 — Phase 34.6 から引き継ぎ `cc:DEFERRED`
+## 設計メモ
 
-> CF Workers 3MiB 制限のため `@vercel/og` 使用不可。
-> 案A: Cloudflare Images 別エンドポイント / 案B: 外部 OG 画像サービス
+- **⑤⑥ EVM**: 意図的未対応 (Solana 優先)。将来フェーズで対応。
+- **38.5 法的ページ i18n**: 言語固有性が高く英訳に法的チェック要。将来フェーズ。
 
-- [ ] 方式決定・実装
+## Phase 45: テスト拡充 `cc:DONE`
 
-**成果物**: favicon セット, apple-icon, 高品質 OG デフォルト画像
+> Vitest + RTL セットアップ、Server Actions / queries / コンポーネント / i18n 完全性テスト追加。
+
+---
+
+## Phase 47: CI 型安全パイプライン [P1 — 堅牢性]
+
+> Database 型が手書き。マイグレーション追加時に型ファイルとの乖離が無チェックで発生する。
+
+- [ ] 47.1 `supabase gen types typescript` → `src/types/database.types.ts` 自動生成スクリプト作成 `cc:TODO`
+- [ ] 47.2 CI で `supabase gen types` → `git diff --exit-code` チェック追加 (型乖離検出) `cc:TODO`
+- [ ] 47.3 `npm run build` を CI に組み込み (型エラー = ビルド失敗) `cc:TODO`
+
+---
+
+## Phase 48: Rate Limit 障害耐性 [P2 — 可用性]
+
+> Upstash 障害時、in-memory fallback が CF Workers のリクエスト隔離で無効。rate limit ゼロになる。
+
+- [ ] 48.1 Upstash 障害時の挙動調査 + CF Workers 対応方針決定 `cc:TODO`
+- [ ] 48.2 fallback 戦略実装 (固定レート許可 or 503 返却 or CF WAF 連携) `cc:TODO`
+- [ ] 48.3 Upstash ヘルスチェック + `/health` エンドポイントに rate limit status 追加 `cc:TODO`
+
+---
+
+## Phase 49: E2E カバレッジ拡大 [P2 — 品質]
+
+> Maestro 18フロー/95%で停止。library/[id] 未カバー + Phase 42 リファクタ後の動作確認。
+
+- [ ] 49.1 `/library/[id]` E2E フロー追加 (購入済みコンテンツ表示) `cc:TODO`
+- [ ] 49.2 FavoriteButton / FollowButton のリファクタ後 E2E 動作確認フロー `cc:TODO`
+- [ ] 49.3 NotificationBell の Server Action 経由動作確認フロー `cc:TODO`
+
+---
+
+## Phase 50: UX 残件 [P3 — 品質]
+
+> Phase 38.R で次フェーズ送りにしたアクセシビリティ・UX 改善。
+
+- [ ] 50.1 Modal focus trap 実装 (Tab キーがモーダル外に出ない) `cc:TODO`
+- [ ] 50.2 `updateListing` を RPC トランザクション化 (version snapshot + update の原子性) `cc:TODO`
+
+---
+
+## Phase 51: git history クリーンアップ [P3 — セキュリティ]
+
+> devnet keypair が git history に残存。低リスクだが本番前に対応推奨。
+
+- [ ] 51.1 `git filter-repo` で keypair ファイル除去 `cc:TODO`
+- [ ] 51.2 force push 後のチーム通知 + clone 再実行手順ドキュメント `cc:TODO`
 
 ---
 

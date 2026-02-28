@@ -1,9 +1,11 @@
 "use server";
 
 import { z } from "zod";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth/session";
 import { createVersionSnapshot } from "@/lib/knowledge/versions";
+import { getCategories } from "@/lib/knowledge/queries";
 import type { KnowledgeStatus } from "@/types/database.types";
 import {
   buildRequestFullContent,
@@ -12,26 +14,28 @@ import {
   type RequestContentInput,
 } from "@/lib/knowledge/requestContent";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const requestContentSchema = z.object({
   needed_info: z
     .string()
     .trim()
-    .min(1, "必要な情報は必須です")
-    .max(5000, "必要な情報は5000文字以内"),
+    .min(1, "Required information is required")
+    .max(5000, "Must be 5000 characters or less"),
   background: z
     .string()
     .trim()
-    .min(1, "用途・背景は必須です")
-    .max(5000, "用途・背景は5000文字以内"),
+    .min(1, "Background is required")
+    .max(5000, "Must be 5000 characters or less"),
   delivery_conditions: z
     .string()
     .trim()
-    .max(5000, "納品条件は5000文字以内")
+    .max(5000, "Must be 5000 characters or less")
     .default(""),
   notes: z
     .string()
     .trim()
-    .max(5000, "補足は5000文字以内")
+    .max(5000, "Must be 5000 characters or less")
     .default(""),
 });
 
@@ -44,8 +48,8 @@ const metadataSchema = z.object({
 
 const listingSchemaBase = z.object({
   listing_type: z.enum(["offer", "request"]).default("offer"),
-  title: z.string().min(1, "タイトルは必須です").max(200, "タイトルは200文字以内"),
-  description: z.string().min(1, "説明は必須です").max(5000, "説明は5000文字以内"),
+  title: z.string().trim().min(1, "Title is required").max(200, "Must be 200 characters or less"),
+  description: z.string().trim().min(1, "Description is required").max(5000, "Must be 5000 characters or less"),
   content_type: z.enum(["prompt", "tool_def", "dataset", "api", "general"]),
   price_sol: z.number().min(0).max(1000000).nullable(),
   price_usdc: z.number().min(0).max(1000000).nullable(),
@@ -63,12 +67,20 @@ const listingSchema = listingSchemaBase.superRefine((data, ctx) => {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["request_content"],
-        message: "募集内容を入力してください",
+        message: "Request details are required",
       });
     }
   });
 
-const updateSchema = listingSchemaBase.partial();
+const updateSchema = listingSchemaBase.partial().superRefine((data, ctx) => {
+  if (data.listing_type === "request" && data.request_content === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["request_content"],
+      message: "Request details are required when listing type is request",
+    });
+  }
+});
 
 export async function createListing(input: {
   listing_type: string;
@@ -90,9 +102,11 @@ export async function createListing(input: {
   } | null;
   seller_disclosure?: string;
 }) {
+  const t = await getTranslations("Errors");
+
   const parsed = listingSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message || "入力が不正です", id: null };
+    return { error: t("invalidInput"), id: null };
   }
 
   const { full_content, request_content, metadata, seller_disclosure, ...itemData } = parsed.data;
@@ -101,18 +115,20 @@ export async function createListing(input: {
   let previewContent = itemData.preview_content;
   let fullContent = full_content;
 
-  // metadata から空文字フィールドを除去してサニタイズ
-  const sanitizedMetadata: Record<string, unknown> = {};
+  // metadata から空文字フィールドを除去してサニタイズ（null は null のまま保持）
+  let sanitizedMetadata: Record<string, unknown> | null = null;
   if (metadata) {
-    if (metadata.domain) sanitizedMetadata.domain = metadata.domain;
-    if (metadata.experience_type) sanitizedMetadata.experience_type = metadata.experience_type;
-    if (metadata.applicable_to && metadata.applicable_to.length > 0) sanitizedMetadata.applicable_to = metadata.applicable_to;
-    if (metadata.source_type) sanitizedMetadata.source_type = metadata.source_type;
+    const obj: Record<string, unknown> = {};
+    if (metadata.domain) obj.domain = metadata.domain;
+    if (metadata.experience_type) obj.experience_type = metadata.experience_type;
+    if (metadata.applicable_to && metadata.applicable_to.length > 0) obj.applicable_to = metadata.applicable_to;
+    if (metadata.source_type) obj.source_type = metadata.source_type;
+    sanitizedMetadata = Object.keys(obj).length > 0 ? obj : null;
   }
 
   if (itemData.listing_type === "request") {
     if (!request_content) {
-      return { error: "募集内容を入力してください", id: null };
+      return { error: t("requestContentRequired"), id: null };
     }
     const normalized = normalizeRequestContent(request_content);
     previewContent = buildRequestPreviewContent(normalized);
@@ -135,13 +151,15 @@ export async function createListing(input: {
       tags: itemData.tags,
       status: "draft" as KnowledgeStatus,
       metadata: sanitizedMetadata,
+      usefulness_score: null,
       seller_disclosure: seller_disclosure?.trim() || null,
     })
     .select("id")
     .single();
 
   if (error) {
-    return { error: error.message, id: null };
+    console.error("[listing] create failed:", error);
+    return { error: t("listingCreateFailed"), id: null };
   }
 
   // コンテンツ分離テーブルに full_content を挿入
@@ -151,12 +169,20 @@ export async function createListing(input: {
       .insert({
       knowledge_item_id: data.id,
       full_content: fullContent,
+      file_url: null,
     });
 
     if (contentError) {
-      await supabase.from("knowledge_items").delete().eq("id", data.id);
+      console.error("[listing] content insert failed:", contentError);
+      const { error: rollbackError } = await supabase
+        .from("knowledge_items")
+        .delete()
+        .eq("id", data.id);
+      if (rollbackError) {
+        console.error("[listing] compensating delete failed — orphaned item:", data.id, rollbackError);
+      }
       return {
-        error: contentError.message || "コンテンツ保存に失敗しました",
+        error: t("contentSaveFailed"),
         id: null,
       };
     }
@@ -166,15 +192,37 @@ export async function createListing(input: {
 }
 
 export async function updateListing(id: string, input: Record<string, unknown>) {
+  const t = await getTranslations("Errors");
+
+  if (!UUID_RE.test(id)) {
+    return { error: t("invalidInput") };
+  }
+
   const parsed = updateSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message || "入力が不正です" };
+    return { error: t("invalidInput") };
   }
 
   const { full_content, request_content, metadata, seller_disclosure: rawDisclosure, ...itemData } = parsed.data;
   const user = await requireAuth();
   const supabase = await createClient();
   let fullContent = full_content;
+
+  // 所有権を事前検証（content 更新パスでも確実にチェック）
+  const { data: owned, error: ownerError } = await supabase
+    .from("knowledge_items")
+    .select("id")
+    .eq("id", id)
+    .eq("seller_id", user.id)
+    .maybeSingle();
+
+  if (ownerError) {
+    console.error("[listing] ownership check failed:", ownerError);
+    return { error: t("listingUpdateFailed") };
+  }
+  if (!owned) {
+    return { error: t("itemNotFound") };
+  }
 
   if (request_content) {
     const normalized = normalizeRequestContent(request_content);
@@ -189,15 +237,21 @@ export async function updateListing(id: string, input: Record<string, unknown>) 
       ? { seller_disclosure: rawDisclosure?.trim() || null }
       : {}),
   };
+  // category_id を正規化（"" → null）— createListing と一貫性を保つ
+  if ("category_id" in updatePayload) {
+    updatePayload.category_id = updatePayload.category_id || null;
+  }
   if (metadata !== undefined) {
-    const sanitizedMetadata: Record<string, unknown> = {};
+    let sanitizedMeta: Record<string, unknown> | null = null;
     if (metadata) {
-      if (metadata.domain) sanitizedMetadata.domain = metadata.domain;
-      if (metadata.experience_type) sanitizedMetadata.experience_type = metadata.experience_type;
-      if (metadata.applicable_to && metadata.applicable_to.length > 0) sanitizedMetadata.applicable_to = metadata.applicable_to;
-      if (metadata.source_type) sanitizedMetadata.source_type = metadata.source_type;
+      const obj: Record<string, unknown> = {};
+      if (metadata.domain) obj.domain = metadata.domain;
+      if (metadata.experience_type) obj.experience_type = metadata.experience_type;
+      if (metadata.applicable_to && metadata.applicable_to.length > 0) obj.applicable_to = metadata.applicable_to;
+      if (metadata.source_type) obj.source_type = metadata.source_type;
+      sanitizedMeta = Object.keys(obj).length > 0 ? obj : null;
     }
-    updatePayload = { ...updatePayload, metadata: sanitizedMetadata };
+    updatePayload = { ...updatePayload, metadata: sanitizedMeta };
   }
 
   // 変更がある場合はバージョンスナップショットを保存
@@ -209,8 +263,8 @@ export async function updateListing(id: string, input: Record<string, unknown>) 
         changedBy: user.id,
       });
     } catch (snapshotError) {
-      console.error("Version snapshot failed:", snapshotError);
-      return { error: "バージョンスナップショットの保存に失敗しました" };
+      console.error("[listing] version snapshot failed:", snapshotError);
+      return { error: t("versionSnapshotFailed") };
     }
   }
 
@@ -223,30 +277,22 @@ export async function updateListing(id: string, input: Record<string, unknown>) 
       .eq("seller_id", user.id);
 
     if (error) {
-      return { error: error.message };
+      console.error("[listing] update failed:", error);
+      return { error: t("listingUpdateFailed") };
     }
   }
 
-  // full_content がある場合はコンテンツテーブルを更新
+  // full_content がある場合はコンテンツテーブルを upsert（race condition 防止）
   if (fullContent !== undefined) {
-    const { data: existing } = await supabase
+    const { error } = await supabase
       .from("knowledge_item_contents")
-      .select("id")
-      .eq("knowledge_item_id", id)
-      .single();
-
-    if (existing) {
-      const { error } = await supabase
-        .from("knowledge_item_contents")
-        .update({ full_content: fullContent })
-        .eq("knowledge_item_id", id);
-      if (error) return { error: error.message };
-    } else {
-      const { error } = await supabase.from("knowledge_item_contents").insert({
-        knowledge_item_id: id,
-        full_content: fullContent,
-      });
-      if (error) return { error: error.message };
+      .upsert(
+        { knowledge_item_id: id, full_content: fullContent, file_url: null },
+        { onConflict: "knowledge_item_id" },
+      );
+    if (error) {
+      console.error("[listing] content upsert failed:", error);
+      return { error: t("contentUpdateFailed") };
     }
   }
 
@@ -254,30 +300,46 @@ export async function updateListing(id: string, input: Record<string, unknown>) 
 }
 
 export async function publishListing(id: string) {
+  const t = await getTranslations("Errors");
+
+  if (!UUID_RE.test(id)) {
+    return { error: t("invalidInput") };
+  }
+
   const user = await requireAuth();
   const supabase = await createClient();
 
   // Validate required fields before publishing
-  const { data: item } = await supabase
+  const { data: item, error: itemError } = await supabase
     .from("knowledge_items")
-    .select("listing_type, title, description, price_sol, price_usdc")
+    .select("listing_type, title, description, price_sol, price_usdc, status")
     .eq("id", id)
     .eq("seller_id", user.id)
-    .single();
+    .maybeSingle();
 
+  if (itemError) {
+    console.error("[listing] publish lookup failed:", itemError);
+    return { error: t("listingPublishFailed") };
+  }
   if (!item) {
-    return { error: "アイテムが見つかりません" };
+    return { error: t("itemNotFound") };
   }
 
-  if (!item.title || !item.description) {
-    return { error: "タイトルと説明は必須です" };
+  if (item.status !== "draft") {
+    return { error: t("invalidStatus") };
   }
 
-  if (!item.price_sol && !item.price_usdc) {
+  if (!item.title?.trim() || !item.description?.trim()) {
+    return { error: t("titleDescRequired") };
+  }
+
+  const hasPriceSol = item.price_sol != null && item.price_sol > 0;
+  const hasPriceUsdc = item.price_usdc != null && item.price_usdc > 0;
+  if (!hasPriceSol && !hasPriceUsdc) {
     if (item.listing_type === "request") {
-      return { error: "希望報酬を設定してください" };
+      return { error: t("rewardRequired") };
     }
-    return { error: "価格を設定してください" };
+    return { error: t("priceRequired") };
   }
 
   const { error } = await supabase
@@ -287,12 +349,19 @@ export async function publishListing(id: string) {
     .eq("seller_id", user.id);
 
   if (error) {
-    return { error: error.message };
+    console.error("[listing] publish failed:", error);
+    return { error: t("listingPublishFailed") };
   }
   return { error: null };
 }
 
 export async function deleteListing(id: string) {
+  const t = await getTranslations("Errors");
+
+  if (!UUID_RE.test(id)) {
+    return { error: t("invalidInput") };
+  }
+
   const user = await requireAuth();
   const supabase = await createClient();
 
@@ -303,12 +372,14 @@ export async function deleteListing(id: string) {
     .eq("seller_id", user.id);
 
   if (error) {
-    return { error: error.message };
+    console.error("[listing] delete failed:", error);
+    return { error: t("listingDeleteFailed") };
   }
   return { error: null };
 }
 
 export async function getMyListings() {
+  const t = await getTranslations("Errors");
   const user = await requireAuth();
   const supabase = await createClient();
 
@@ -319,7 +390,15 @@ export async function getMyListings() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    return { error: error.message, data: [] };
+    console.error("[listing] fetch failed:", error);
+    return { error: t("listingFetchFailed"), data: [] };
   }
   return { error: null, data: data ?? [] };
+}
+
+export async function fetchCategories(): Promise<
+  { id: string; name: string }[]
+> {
+  const categories = await getCategories();
+  return categories.map((c) => ({ id: c.id, name: c.name }));
 }

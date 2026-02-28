@@ -41,7 +41,7 @@ const CATEGORIES = [
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold text-dq-text">
+      <h1 className="mb-2 text-3xl font-bold font-display text-dq-text">
         お問い合わせ
       </h1>
       <p className="mb-8 text-sm text-dq-text-muted">

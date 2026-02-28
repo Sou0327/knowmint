@@ -262,6 +262,137 @@ npm run test:e2e:devnet
 
 ---
 
+## ローカル devnet テスト購入ガイド
+
+ローカル環境で Solana devnet を使った出品→購入→コンテンツ取得の全フローをテストする手順。
+
+### 前提条件
+
+- Node.js 22.6+
+- [Supabase CLI](https://supabase.com/docs/guides/cli) (`npx supabase`)
+- [Solana CLI](https://docs.solanalabs.com/cli/install) (`solana`, `solana-test-validator`)
+- [Phantom Wallet](https://phantom.app/) ブラウザ拡張 (ブラウザテスト時)
+
+### 1. ローカル Supabase 起動
+
+```bash
+npx supabase start
+```
+
+起動後に表示される `API URL`, `anon key`, `service_role key` をメモ。
+
+### 2. ローカル Solana バリデータ起動
+
+```bash
+# 別ターミナルで起動
+solana-test-validator --reset --quiet
+```
+
+RPC エンドポイント: `http://127.0.0.1:8899`
+
+### 3. 環境変数を設定
+
+`.env.local` を以下の内容で作成 (既存がある場合はバックアップ):
+
+```bash
+# Supabase (ローカル — supabase start の出力値を使用)
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase start で表示された anon key>
+SUPABASE_SERVICE_ROLE_KEY=<supabase start で表示された service_role key>
+
+# Solana (ローカルバリデータ)
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+NEXT_PUBLIC_SOLANA_RPC_URL=http://127.0.0.1:8899
+
+# P2P 直接送金モード (スマートコントラクト無効)
+NEXT_PUBLIC_KM_PROGRAM_ID=
+NEXT_PUBLIC_FEE_VAULT_ADDRESS=
+
+# x402 (ローカルバリデータの genesis hash)
+X402_NETWORK=solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1
+```
+
+### 4. 開発サーバー起動
+
+```bash
+npm run dev
+```
+
+### 5. ブラウザでテスト購入
+
+#### 5a. Phantom Wallet を devnet に切り替え
+
+1. Phantom → Settings → Developer Settings
+2. Testnet Mode を ON
+3. Solana Devnet を選択
+4. Custom RPC に `http://127.0.0.1:8899` を設定 (ローカルバリデータ使用時)
+
+#### 5b. テスト用アカウント作成
+
+1. `http://localhost:3000/signup` で **seller アカウント**を作成
+2. Phantom ウォレットを接続 → ウォレットアドレスが profile に紐付く
+3. ログアウト
+4. 別のメールで **buyer アカウント**を作成
+5. 別の Phantom ウォレット (またはアカウント切替) を接続
+
+#### 5c. テスト用 SOL を付与
+
+```bash
+# seller と buyer それぞれの Phantom アドレスに SOL を airdrop
+solana airdrop 10 <seller-phantom-address> --url http://127.0.0.1:8899
+solana airdrop 10 <buyer-phantom-address> --url http://127.0.0.1:8899
+```
+
+#### 5d. 出品→購入フロー
+
+1. **seller** でログイン → `/list` からナレッジを出品 (SOL 価格を設定、例: 0.01 SOL)
+2. 出品後 → ダッシュボードから「公開」
+3. **buyer** でログイン → 出品されたナレッジの詳細ページを開く
+4. 「購入」ボタン → トークン選択 (SOL) → 利用規約同意 → Phantom で署名
+5. 購入完了 → ライブラリにコンテンツが表示される
+
+### 6. スクリプトでテスト購入 (API 経由)
+
+ブラウザを使わずにスクリプトで全フローを自動実行する方法。
+
+```bash
+# キーペア生成 (初回のみ)
+node scripts/e2e/devnet-setup.mjs
+
+# テスト用 SOL を付与
+solana airdrop 10 <buyer-pubkey> --url http://127.0.0.1:8899
+
+# E2E テスト実行
+TEST_API_KEY_BUYER=km_xxx \
+KM_TEST_KNOWLEDGE_ID=<出品した item の UUID> \
+TEST_BUYER_KEYPAIR_PATH=./devnet-buyer-keypair.json \
+TEST_SELLER_WALLET=<seller の wallet address> \
+KM_BASE_URL=http://127.0.0.1:3000 \
+NEXT_PUBLIC_SOLANA_RPC_URL=http://127.0.0.1:8899 \
+node scripts/e2e/devnet-purchase-flow.mjs
+```
+
+テスト成功時の出力:
+
+```
+[Step 1] PASS — price_sol = 0.01
+[Step 2] PASS — no prior purchase detected
+[Step 3] PASS — buyer balance = 10000000000 lamports
+[Step 4] PASS — tx_hash = 5wH...abc
+[Step 5] PASS — purchase confirmed (tx_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+[Step 6] PASS — content fetched
+PASS: devnet purchase flow completed successfully
+```
+
+### 注意事項
+
+- `NEXT_PUBLIC_KM_PROGRAM_ID` と `NEXT_PUBLIC_FEE_VAULT_ADDRESS` が空の場合は **P2P 直接送金モード** (seller に全額送金、手数料分配なし)
+- `verify-transaction.ts` がオンチェーン検証を行うため、**実際の送金トランザクションが必要** (偽 tx_hash は拒否される)
+- ローカルバリデータを `--reset` で再起動すると過去のトランザクション履歴がリセットされる
+- テスト用キーペアファイル (`devnet-*-keypair.json`) は `.gitignore` 済み
+
+---
+
 ## API エンドポイント
 
 ほとんどのエンドポイントは `withApiAuth` HOC で保護されています (API キー認証 + レート制限)。

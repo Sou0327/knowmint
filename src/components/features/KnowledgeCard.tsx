@@ -3,7 +3,7 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import type { BadgeProps } from "@/components/ui/Badge";
 import { getTranslations } from "next-intl/server";
-import { CONTENT_TYPE_LABELS, LISTING_TYPE_LABELS } from "@/types/knowledge.types";
+import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.types";
 import type { ContentType, ListingType } from "@/types/database.types";
 
 const BADGE_VARIANT: Record<ContentType, BadgeProps["variant"]> = {
@@ -45,6 +45,7 @@ export default async function KnowledgeCard({
 }: KnowledgeCardProps) {
   const t = await getTranslations("Knowledge");
   const tCommon = await getTranslations("Common");
+  const tTypes = await getTranslations("Types");
   const listingType = listing_type || "offer";
 
   return (
@@ -54,10 +55,10 @@ export default async function KnowledgeCard({
           <div className="mb-2 flex items-start justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1">
               <Badge variant={listingType === "request" ? "warning" : "success"}>
-                {LISTING_TYPE_LABELS[listingType]}
+                {getListingTypeLabel(listingType, tTypes)}
               </Badge>
               <Badge variant={BADGE_VARIANT[content_type]}>
-                {CONTENT_TYPE_LABELS[content_type]}
+                {getContentDisplayLabel(content_type, tTypes)}
               </Badge>
             </div>
             {category && (
@@ -67,7 +68,7 @@ export default async function KnowledgeCard({
             )}
           </div>
 
-          <h3 className="mb-1 line-clamp-2 text-base font-semibold text-dq-text transition-colors group-hover:text-dq-gold">
+          <h3 className="mb-1 line-clamp-2 text-base font-semibold font-display text-dq-text transition-colors group-hover:text-dq-gold">
             {title}
           </h3>
 

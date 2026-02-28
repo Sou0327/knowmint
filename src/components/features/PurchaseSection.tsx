@@ -35,7 +35,7 @@ export function PurchaseSection({
   ): Promise<void> => {
     const result = await recordPurchase(knowledgeId, txHash, chain, token, true);
     if (!result.success) {
-      throw new Error(result.error ?? t("recordPurchaseFailed"));
+      throw new Error(result.error ?? "Purchase failed");
     }
     setIsOpen(false);
   };

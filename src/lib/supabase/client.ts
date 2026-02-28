@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import type { Database } from "@/types/database.types";
 
 // Placeholder values for build-time prerendering (won't make real API calls)
 const SUPABASE_URL =
@@ -6,7 +7,6 @@ const SUPABASE_URL =
 const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
 
-// Note: Database 型ジェネリックは `supabase gen types typescript` で生成後に適用
 export function createClient() {
-  return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return createBrowserClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 }

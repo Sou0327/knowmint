@@ -32,7 +32,7 @@ export default function StatsCard({
           <p className="text-sm font-medium text-dq-text-muted">
             {label}
           </p>
-          <p className="mt-1.5 text-2xl font-bold tracking-tight text-dq-gold">
+          <p className="mt-1.5 text-2xl font-bold font-display tracking-tight text-dq-gold">
             {value}
           </p>
           {subValue && (

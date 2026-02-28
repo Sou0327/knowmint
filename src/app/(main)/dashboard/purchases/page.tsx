@@ -12,15 +12,17 @@ export default async function DashboardPurchasesPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const purchases = await getPurchaseHistory(user.id);
-  const t = await getTranslations("Dashboard");
-  const tCommon = await getTranslations("Common");
-  const locale = await getLocale();
+  const [purchases, t, tCommon, locale] = await Promise.all([
+    getPurchaseHistory(user.id),
+    getTranslations("Dashboard"),
+    getTranslations("Common"),
+    getLocale(),
+  ]);
   const dateLocale = locale === "ja" ? "ja-JP" : "en-US";
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-dq-text">{t("purchaseHistory")}</h1>
+      <h1 className="mb-6 text-2xl font-bold font-display text-dq-text">{t("purchaseHistory")}</h1>
 
       {purchases.length === 0 ? (
         <div className="py-12 text-center">

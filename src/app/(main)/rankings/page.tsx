@@ -5,19 +5,24 @@ import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "出品者ランキング",
-  description: "KnowMint で販売実績の多い出品者をランキング表示",
-  openGraph: { title: "出品者ランキング | KnowMint", type: "website" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Rankings");
+  return {
+    title: t("ogTitle"),
+    description: t("ogDescription"),
+    openGraph: { title: `${t("ogTitle")} | KnowMint`, type: "website" },
+  };
+}
 
 export default async function RankingsPage() {
-  const t = await getTranslations("Rankings");
-  const topSellers = await getTopSellers(20);
+  const [t, topSellers] = await Promise.all([
+    getTranslations("Rankings"),
+    getTopSellers(20),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-2 text-2xl font-bold text-dq-text">{t("title")}</h1>
+      <h1 className="mb-2 text-2xl font-bold font-display text-dq-text">{t("title")}</h1>
       <p className="mb-8 text-sm text-dq-text-muted">
         {t("description")}
       </p>

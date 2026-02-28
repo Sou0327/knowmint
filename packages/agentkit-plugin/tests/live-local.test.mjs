@@ -46,7 +46,7 @@ async function checkDevServer() {
   try {
     const res = await fetch(`${DEV_SERVER_URL}/api/health`);
     const data = await res.json();
-    if (data.status !== "ok") throw new Error("unhealthy");
+    if (!(data.status === "ok" || (data.success && data.data?.status === "ok"))) throw new Error("unhealthy");
   } catch {
     console.error(
       "\n❌ Dev server is not running at " + DEV_SERVER_URL + "\n" +

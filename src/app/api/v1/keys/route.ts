@@ -47,26 +47,31 @@ async function resolveKeysAuth(request: Request): Promise<ResolvedAuth | Respons
  * List all API keys for the authenticated user (excluding key_hash).
  */
 export const GET = async (request: Request) => {
-  const preAuth = await checkPreAuthRateLimit(request);
-  if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
+  try {
+    const preAuth = await checkPreAuthRateLimit(request);
+    if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
 
-  const auth = await resolveKeysAuth(request);
-  if (auth instanceof Response) return auth;
+    const auth = await resolveKeysAuth(request);
+    if (auth instanceof Response) return auth;
 
-  const admin = getAdminClient();
+    const admin = getAdminClient();
 
-  const { data: keys, error } = await admin
-    .from("api_keys")
-    .select("id, name, permissions, last_used_at, created_at, expires_at")
-    .eq("user_id", auth.userId)
-    .order("created_at", { ascending: false });
+    const { data: keys, error } = await admin
+      .from("api_keys")
+      .select("id, name, permissions, last_used_at, created_at, expires_at")
+      .eq("user_id", auth.userId)
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Failed to fetch API keys:", error);
+    if (error) {
+      console.error("[keys] Failed to fetch API keys:", error);
+      return apiError(API_ERRORS.INTERNAL_ERROR);
+    }
+
+    return apiSuccess(keys || []);
+  } catch (error) {
+    console.error("[keys] Unhandled error in GET:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
-
-  return apiSuccess(keys || []);
 };
 
 /**
@@ -75,124 +80,130 @@ export const GET = async (request: Request) => {
  * Body: { name: string, permissions?: string[], expires_at?: string }
  */
 export const POST = async (request: Request) => {
-  const preAuth = await checkPreAuthRateLimit(request);
-  if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
-
-  const auth = await resolveKeysAuth(request);
-  if (auth instanceof Response) return auth;
-
-  let body: { name?: string; permissions?: string[]; expires_at?: string };
   try {
-    body = await request.json();
-  } catch {
-    return apiError(API_ERRORS.BAD_REQUEST, "Invalid JSON body");
-  }
+    const preAuth = await checkPreAuthRateLimit(request);
+    if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
 
-  const { name, permissions = ["read"], expires_at } = body;
+    const auth = await resolveKeysAuth(request);
+    if (auth instanceof Response) return auth;
 
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return apiError(
-      API_ERRORS.BAD_REQUEST,
-      "Field 'name' is required and must be non-empty"
+    let body: { name?: string; permissions?: string[]; expires_at?: string };
+    try {
+      body = await request.json();
+    } catch {
+      return apiError(API_ERRORS.BAD_REQUEST, "Invalid JSON body");
+    }
+
+    const { name, permissions = ["read"], expires_at } = body;
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      return apiError(
+        API_ERRORS.BAD_REQUEST,
+        "Field 'name' is required and must be non-empty"
+      );
+    }
+
+    if (name.trim().length > 255) {
+      return apiError(API_ERRORS.BAD_REQUEST, "Field 'name' must be 255 characters or fewer");
+    }
+
+    if (
+      !Array.isArray(permissions) ||
+      permissions.some((p) => typeof p !== "string")
+    ) {
+      return apiError(
+        API_ERRORS.BAD_REQUEST,
+        "Field 'permissions' must be an array of strings"
+      );
+    }
+
+    const invalid = permissions.filter(
+      (p) => !(ALLOWED_PERMISSIONS as readonly string[]).includes(p)
     );
-  }
+    if (invalid.length > 0) {
+      return apiError(
+        API_ERRORS.BAD_REQUEST,
+        `Invalid permissions: ${invalid.join(", ")}. Allowed: ${ALLOWED_PERMISSIONS.join(", ")}`
+      );
+    }
 
-  if (name.trim().length > 255) {
-    return apiError(API_ERRORS.BAD_REQUEST, "Field 'name' must be 255 characters or fewer");
-  }
+    // セッション認証ユーザーは admin パーミッションを付与できない
+    // (既存 admin キー経由でのみ admin キー作成可能)
+    if (!auth.currentKeyId && permissions.includes("admin")) {
+      return apiError(
+        API_ERRORS.FORBIDDEN,
+        "Admin permission can only be granted via an existing admin API key"
+      );
+    }
 
-  if (
-    !Array.isArray(permissions) ||
-    permissions.some((p) => typeof p !== "string")
-  ) {
-    return apiError(
-      API_ERRORS.BAD_REQUEST,
-      "Field 'permissions' must be an array of strings"
-    );
-  }
+    const expiresResult = validateExpiresAt(expires_at);
+    if (!expiresResult.valid) {
+      return apiError(API_ERRORS.BAD_REQUEST, expiresResult.reason);
+    }
 
-  const invalid = permissions.filter(
-    (p) => !(ALLOWED_PERMISSIONS as readonly string[]).includes(p)
-  );
-  if (invalid.length > 0) {
-    return apiError(
-      API_ERRORS.BAD_REQUEST,
-      `Invalid permissions: ${invalid.join(", ")}. Allowed: ${ALLOWED_PERMISSIONS.join(", ")}`
-    );
-  }
+    // 日付のみ形式（YYYY-MM-DD）は TIMESTAMPTZ に 00:00:00 で保存されるため
+    // 当日終端に正規化してから保存する（検証ロジックの compareDate と整合させる）
+    const normalizedExpiresAt =
+      expires_at && !expires_at.includes("T")
+        ? `${expires_at}T23:59:59.999Z`
+        : expires_at || null;
 
-  // セッション認証ユーザーは admin パーミッションを付与できない
-  // (既存 admin キー経由でのみ admin キー作成可能)
-  if (!auth.currentKeyId && permissions.includes("admin")) {
-    return apiError(
-      API_ERRORS.FORBIDDEN,
-      "Admin permission can only be granted via an existing admin API key"
-    );
-  }
+    const { raw, hash } = await generateApiKey();
+    const admin = getAdminClient();
 
-  const expiresResult = validateExpiresAt(expires_at);
-  if (!expiresResult.valid) {
-    return apiError(API_ERRORS.BAD_REQUEST, expiresResult.reason);
-  }
+    const { data: newKey, error } = await admin
+      .from("api_keys")
+      .insert({
+        user_id: auth.userId,
+        key_hash: hash,
+        name: name.trim(),
+        permissions,
+        last_used_at: null,
+        expires_at: normalizedExpiresAt,
+      })
+      .select("id, name, permissions, created_at, expires_at")
+      .single();
 
-  // 日付のみ形式（YYYY-MM-DD）は TIMESTAMPTZ に 00:00:00 で保存されるため
-  // 当日終端に正規化してから保存する（検証ロジックの compareDate と整合させる）
-  const normalizedExpiresAt =
-    expires_at && !expires_at.includes("T")
-      ? `${expires_at}T23:59:59.999Z`
-      : expires_at || null;
+    if (error) {
+      console.error("[keys] Failed to create API key:", error);
+      return apiError(API_ERRORS.INTERNAL_ERROR);
+    }
 
-  const { raw, hash } = await generateApiKey();
-  const admin = getAdminClient();
+    logAuditEvent({
+      userId: auth.userId,
+      action: "key.created",
+      resourceType: "api_key",
+      resourceId: newKey.id,
+      metadata: { name: newKey.name, permissions: newKey.permissions },
+    });
 
-  const { data: newKey, error } = await admin
-    .from("api_keys")
-    .insert({
-      user_id: auth.userId,
-      key_hash: hash,
-      name: name.trim(),
-      permissions,
-      expires_at: normalizedExpiresAt,
-    })
-    .select("id, name, permissions, created_at, expires_at")
-    .single();
+    // APIキー作成メール送信 (fire-and-forget)
+    // セッション認証時は auth.email が既に取得済みのため getUserById を省略
+    const sendCreatedEmail = (email: string) => {
+      const content = apiKeyCreatedEmailHtml({ keyName: newKey.name, permissions: newKey.permissions as string[] });
+      sendEmail({ to: email, ...content }).catch(() => {});
+    };
+    if (auth.email) {
+      sendCreatedEmail(auth.email);
+    } else {
+      admin.auth.admin.getUserById(auth.userId).then(
+        ({ data: authData }) => { if (authData?.user?.email) sendCreatedEmail(authData.user.email); },
+        () => {}
+      );
+    }
 
-  if (error) {
-    console.error("Failed to create API key:", error);
+    return apiSuccess({
+      id: newKey.id,
+      name: newKey.name,
+      key: raw,
+      permissions: newKey.permissions,
+      created_at: newKey.created_at,
+      expires_at: newKey.expires_at,
+    }, 201);
+  } catch (error) {
+    console.error("[keys] Unhandled error in POST:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
-
-  logAuditEvent({
-    userId: auth.userId,
-    action: "key.created",
-    resourceType: "api_key",
-    resourceId: newKey.id,
-    metadata: { name: newKey.name, permissions: newKey.permissions },
-  });
-
-  // APIキー作成メール送信 (fire-and-forget)
-  // セッション認証時は auth.email が既に取得済みのため getUserById を省略
-  const sendCreatedEmail = (email: string) => {
-    const content = apiKeyCreatedEmailHtml({ keyName: newKey.name, permissions: newKey.permissions as string[] });
-    sendEmail({ to: email, ...content }).catch(() => {});
-  };
-  if (auth.email) {
-    sendCreatedEmail(auth.email);
-  } else {
-    admin.auth.admin.getUserById(auth.userId).then(
-      ({ data: authData }) => { if (authData?.user?.email) sendCreatedEmail(authData.user.email); },
-      () => {}
-    );
-  }
-
-  return apiSuccess({
-    id: newKey.id,
-    name: newKey.name,
-    key: raw,
-    permissions: newKey.permissions,
-    created_at: newKey.created_at,
-    expires_at: newKey.expires_at,
-  });
 };
 
 /**
@@ -201,77 +212,82 @@ export const POST = async (request: Request) => {
  * Body or URL params: { key_id: string }
  */
 export const DELETE = async (request: Request) => {
-  const preAuth = await checkPreAuthRateLimit(request);
-  if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
-
-  const auth = await resolveKeysAuth(request);
-  if (auth instanceof Response) return auth;
-
-  let keyId: string | null = null;
-
   try {
-    const body = await request.json();
-    keyId = body.key_id || null;
-  } catch {
-    const url = new URL(request.url);
-    keyId = url.searchParams.get("key_id");
-  }
+    const preAuth = await checkPreAuthRateLimit(request);
+    if (!preAuth.allowed) return apiError(API_ERRORS.RATE_LIMITED);
 
-  if (!keyId || typeof keyId !== "string") {
-    return apiError(API_ERRORS.BAD_REQUEST, "Field 'key_id' is required");
-  }
+    const auth = await resolveKeysAuth(request);
+    if (auth instanceof Response) return auth;
 
-  if (!UUID_RE.test(keyId)) {
-    return apiError(API_ERRORS.BAD_REQUEST, "Field 'key_id' must be a valid UUID");
-  }
+    let keyId: string | null = null;
 
-  if (auth.currentKeyId && keyId === auth.currentKeyId) {
-    return apiError(
-      API_ERRORS.BAD_REQUEST,
-      "Cannot delete the API key currently in use"
-    );
-  }
+    try {
+      const body = await request.json();
+      keyId = body.key_id || null;
+    } catch {
+      const url = new URL(request.url);
+      keyId = url.searchParams.get("key_id");
+    }
 
-  const admin = getAdminClient();
+    if (!keyId || typeof keyId !== "string") {
+      return apiError(API_ERRORS.BAD_REQUEST, "Field 'key_id' is required");
+    }
 
-  const { data: deleted, error } = await admin
-    .from("api_keys")
-    .delete()
-    .eq("id", keyId)
-    .eq("user_id", auth.userId)
-    .select("id, name");
+    if (!UUID_RE.test(keyId)) {
+      return apiError(API_ERRORS.BAD_REQUEST, "Field 'key_id' must be a valid UUID");
+    }
 
-  if (error) {
-    console.error("Failed to delete API key:", error);
+    if (auth.currentKeyId && keyId === auth.currentKeyId) {
+      return apiError(
+        API_ERRORS.BAD_REQUEST,
+        "Cannot delete the API key currently in use"
+      );
+    }
+
+    const admin = getAdminClient();
+
+    const { data: deleted, error } = await admin
+      .from("api_keys")
+      .delete()
+      .eq("id", keyId)
+      .eq("user_id", auth.userId)
+      .select("id, name");
+
+    if (error) {
+      console.error("[keys] Failed to delete API key:", error);
+      return apiError(API_ERRORS.INTERNAL_ERROR);
+    }
+
+    if (!deleted || deleted.length === 0) {
+      return apiError(API_ERRORS.NOT_FOUND, "API key not found");
+    }
+
+    logAuditEvent({
+      userId: auth.userId,
+      action: "key.deleted",
+      resourceType: "api_key",
+      resourceId: keyId,
+      metadata: {},
+    });
+
+    // APIキー削除メール送信 (fire-and-forget)
+    const deletedKeyName = (deleted[0] as { name?: string } | undefined)?.name ?? keyId;
+    const sendDeletedEmail = (email: string) => {
+      const content = apiKeyDeletedEmailHtml({ keyName: deletedKeyName });
+      sendEmail({ to: email, ...content }).catch(() => {});
+    };
+    if (auth.email) {
+      sendDeletedEmail(auth.email);
+    } else {
+      admin.auth.admin.getUserById(auth.userId).then(
+        ({ data: authData }) => { if (authData?.user?.email) sendDeletedEmail(authData.user.email); },
+        () => {}
+      );
+    }
+
+    return apiSuccess({ deleted: true });
+  } catch (error) {
+    console.error("[keys] Unhandled error in DELETE:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
-
-  if (!deleted || deleted.length === 0) {
-    return apiError(API_ERRORS.NOT_FOUND, "API key not found");
-  }
-
-  logAuditEvent({
-    userId: auth.userId,
-    action: "key.deleted",
-    resourceType: "api_key",
-    resourceId: keyId,
-    metadata: {},
-  });
-
-  // APIキー削除メール送信 (fire-and-forget)
-  const deletedKeyName = (deleted[0] as { name?: string } | undefined)?.name ?? keyId;
-  const sendDeletedEmail = (email: string) => {
-    const content = apiKeyDeletedEmailHtml({ keyName: deletedKeyName });
-    sendEmail({ to: email, ...content }).catch(() => {});
-  };
-  if (auth.email) {
-    sendDeletedEmail(auth.email);
-  } else {
-    admin.auth.admin.getUserById(auth.userId).then(
-      ({ data: authData }) => { if (authData?.user?.email) sendDeletedEmail(authData.user.email); },
-      () => {}
-    );
-  }
-
-  return apiSuccess({ deleted: true });
 };

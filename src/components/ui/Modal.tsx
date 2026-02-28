@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ const Modal = ({
   children,
   size = 'md',
 }: ModalProps) => {
+  const t = useTranslations("Common");
   const sizeStyles = {
     sm: 'max-w-md',
     md: 'max-w-lg',
@@ -75,14 +77,14 @@ const Modal = ({
           <div className="flex items-center justify-between p-6 border-b-2 border-dq-border">
             <h2
               id="modal-title"
-              className="text-xl font-semibold text-dq-gold"
+              className="text-xl font-semibold font-display text-dq-gold"
             >
               {title}
             </h2>
             <button
               onClick={onClose}
               className="text-dq-text-muted hover:text-dq-text transition-colors"
-              aria-label="Close modal"
+              aria-label={t("close")}
             >
               <span className="text-xl">✕</span>
             </button>

@@ -46,7 +46,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .maybeSingle();
 
   if (txError || !tx) {
-    return apiError(API_ERRORS.FORBIDDEN, "購入履歴が見つかりません");
+    return apiError(API_ERRORS.FORBIDDEN, "No confirmed purchase found for this item");
   }
 
   // 既存フィードバック確認（UNIQUE制約で弾かれる前に適切なエラーを返す）
@@ -57,7 +57,7 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .maybeSingle();
 
   if (existing) {
-    return apiError(API_ERRORS.CONFLICT, "既にフィードバックを送信済みです");
+    return apiError(API_ERRORS.CONFLICT, "Feedback already submitted for this transaction");
   }
 
   // INSERT（トリガーが usefulness_score を自動更新）
@@ -74,10 +74,10 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   if (insertError) {
     // UNIQUE 違反（レース条件）→ 409 Conflict として返す
     if (insertError.code === "23505") {
-      return apiError(API_ERRORS.CONFLICT, "既にフィードバックを送信済みです");
+      return apiError(API_ERRORS.CONFLICT, "Feedback already submitted for this transaction");
     }
     console.error("[feedback] insert failed:", { userId: user.userId, itemId: id, error: insertError });
-    return apiError(API_ERRORS.INTERNAL_ERROR, "フィードバックの保存に失敗しました");
+    return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
   logAuditEvent({
@@ -94,5 +94,5 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     useful: body.useful,
   }).catch((err: unknown) => console.error("[feedback] webhook dispatch failed:", { userId: user.userId, itemId: id, error: err }));
 
-  return apiSuccess({ message: "フィードバックを送信しました" }, 201);
+  return apiSuccess({ submitted: true, transaction_id: tx.id }, 201);
 }, { requiredPermissions: ["write"] });

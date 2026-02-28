@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { TopSeller } from "@/lib/rankings/queries";
 
 interface Props {
@@ -7,6 +10,8 @@ interface Props {
 }
 
 export default function SellerRankingCard({ seller, rank }: Props) {
+  const t = useTranslations("Rankings");
+  const tC = useTranslations("Common");
   const rankStyles: Record<number, string> = {
     1: "bg-dq-gold text-dq-bg",
     2: "bg-dq-text-sub text-dq-bg",
@@ -14,7 +19,7 @@ export default function SellerRankingCard({ seller, rank }: Props) {
   };
 
   return (
-    <div className="flex items-center gap-4 dq-window-sm p-4 transition-all hover:brightness-110">
+    <div className="flex items-center gap-4 dq-window-sm dq-window-hover p-4">
       {/* Rank */}
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-sm font-bold ${
@@ -35,15 +40,15 @@ export default function SellerRankingCard({ seller, rank }: Props) {
           href={`/search?seller=${seller.id}`}
           className="text-sm font-semibold text-dq-text hover:text-dq-gold"
         >
-          {seller.display_name || "匿名ユーザー"}
+          {seller.display_name || tC("anonymousUser")}
         </Link>
         <div className="mt-1 flex items-center gap-4 text-xs text-dq-text-muted">
-          <span>{seller.total_sales} 販売</span>
-          <span>{seller.total_items} アイテム</span>
-          <span>{seller.follower_count} フォロワー</span>
+          <span>{t("salesUnit", { count: seller.total_sales })}</span>
+          <span>{t("itemsUnit", { count: seller.total_items })}</span>
+          <span>{t("followersUnit", { count: seller.follower_count })}</span>
           {seller.trust_score != null && (
             <span className="font-medium text-dq-cyan">
-              信頼度 {Math.round(seller.trust_score * 100)}%
+              {t("trustScore", { score: Math.round(seller.trust_score * 100) })}
             </span>
           )}
         </div>

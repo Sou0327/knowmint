@@ -71,24 +71,43 @@ export interface PaginatedResult<T> {
   total_pages: number;
 }
 
-// Content type labels
-export const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
-  prompt: "テキスト・記事",
-  tool_def: "テンプレート・設定",
-  dataset: "データ・資料",
-  api: "リンク・外部リソース",
-  general: "その他ナレッジ",
-};
+// Trust score thresholds
+export const TRUST_HIGH_THRESHOLD = 0.8;
+export const TRUST_THRESHOLD = 0.5;
 
-export const LISTING_TYPE_LABELS: Record<ListingType, string> = {
-  offer: "出品",
-  request: "募集",
+// Exhaustive content type record → array derivation
+const CONTENT_TYPE_MAP: Record<ContentType, true> = {
+  prompt: true,
+  tool_def: true,
+  dataset: true,
+  api: true,
+  general: true,
 };
+export const CONTENT_TYPES = Object.keys(CONTENT_TYPE_MAP) as ContentType[];
 
-// Status labels
-export const STATUS_LABELS: Record<KnowledgeStatus, string> = {
-  draft: "下書き",
-  published: "公開中",
-  archived: "アーカイブ",
-  suspended: "停止中",
-};
+// i18n key types for type-safe translation lookups
+type ContentDisplayKey = `contentDisplayLabel.${ContentType}`;
+type ListingTypeKey = `listingType.${ListingType}`;
+type StatusKey = `status.${KnowledgeStatus}`;
+
+// i18n helper: t is from useTranslations("Types") or getTranslations("Types")
+export function getContentDisplayLabel(
+  type: ContentType,
+  t: (key: ContentDisplayKey) => string,
+): string {
+  return t(`contentDisplayLabel.${type}`);
+}
+
+export function getListingTypeLabel(
+  type: ListingType,
+  t: (key: ListingTypeKey) => string,
+): string {
+  return t(`listingType.${type}`);
+}
+
+export function getStatusLabel(
+  status: KnowledgeStatus,
+  t: (key: StatusKey) => string,
+): string {
+  return t(`status.${status}`);
+}

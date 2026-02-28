@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { requireAuth } from "@/lib/auth/session";
 
@@ -28,6 +29,7 @@ export async function fetchVersionHistory(
   page: number = 1,
   perPage: number = 20
 ): Promise<VersionResult> {
+  const t = await getTranslations("Errors");
   const user = await requireAuth();
   const supabase = getAdminClient();
 
@@ -36,10 +38,10 @@ export async function fetchVersionHistory(
     .from("knowledge_items")
     .select("id, seller_id")
     .eq("id", knowledgeItemId)
-    .single();
+    .single<{ id: string; seller_id: string }>();
 
   if (!item) {
-    return { data: [], totalPages: 0, error: "Knowledge item not found" };
+    return { data: [], totalPages: 0, error: t("itemNotFound") };
   }
 
   const isSeller = item.seller_id === user.id;
@@ -51,18 +53,22 @@ export async function fetchVersionHistory(
       .eq("buyer_id", user.id)
       .eq("status", "confirmed")
       .limit(1)
-      .maybeSingle();
+      .maybeSingle<{ id: string }>();
 
     if (!purchase) {
-      return { data: [], totalPages: 0, error: "Access denied" };
+      return { data: [], totalPages: 0, error: t("accessDenied") };
     }
   }
 
   // 総件数
-  const { count } = await supabase
+  const { count, error: countError } = await supabase
     .from("knowledge_item_versions")
     .select("id", { count: "exact", head: true })
     .eq("knowledge_item_id", knowledgeItemId);
+
+  if (countError) {
+    return { data: [], totalPages: 0, error: t("versionCountFailed") };
+  }
 
   const total = count ?? 0;
   const safePage = Math.min(1000, Math.max(1, page));
@@ -80,7 +86,7 @@ export async function fetchVersionHistory(
     .range(offset, offset + safePerPage - 1);
 
   if (fetchError) {
-    return { data: [], totalPages: 0, error: "Failed to fetch version history" };
+    return { data: [], totalPages: 0, error: t("versionFetchFailed") };
   }
 
   return {

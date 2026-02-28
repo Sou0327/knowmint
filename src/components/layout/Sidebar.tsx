@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface Category {
   id: string;
@@ -15,11 +16,12 @@ interface SidebarProps {
 }
 
 export function Sidebar({ categories, currentSlug }: SidebarProps) {
+  const t = useTranslations('Home');
   return (
     <aside className="w-full md:w-64 bg-dq-window-bg border-r-2 border-dq-border">
       <div className="p-4">
         <h2 className="text-sm font-semibold text-dq-gold mb-4">
-          カテゴリ
+          {t('categories')}
         </h2>
         <nav aria-label="Category navigation">
           <ul className="space-y-1">

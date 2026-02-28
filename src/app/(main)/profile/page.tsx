@@ -60,7 +60,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-3xl font-bold tracking-tight text-dq-text">
+      <h1 className="mb-6 text-3xl font-bold font-display tracking-tight text-dq-text">
         {t("title")}
       </h1>
 

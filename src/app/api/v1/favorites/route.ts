@@ -132,5 +132,5 @@ export const DELETE = withApiAuth(async (request, user) => {
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
-  return apiSuccess({ message: "Favorite removed" });
+  return apiSuccess({ removed: true });
 }, { requiredPermissions: ["write"] });

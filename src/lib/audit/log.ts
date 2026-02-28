@@ -1,15 +1,7 @@
 import { getAdminClient } from "@/lib/supabase/admin";
+import type { AuditAction } from "@/types/database.types";
 
-export type AuditAction =
-  | "key.created"
-  | "key.deleted"
-  | "purchase.completed"
-  | "feedback.created"
-  | "listing.published"
-  | "webhook.created"
-  | "webhook.deleted"
-  | "report.created"
-  | "report.reviewed";
+export type { AuditAction };
 
 interface AuditLogParams {
   userId: string | null;
@@ -37,8 +29,8 @@ export function logAuditEvent(params: AuditLogParams): void {
     .insert({
       user_id: params.userId,
       action: params.action,
-      resource_type: params.resourceType,
-      resource_id: params.resourceId,
+      resource_type: params.resourceType ?? null,
+      resource_id: params.resourceId ?? null,
       metadata,
     })
     .throwOnError()

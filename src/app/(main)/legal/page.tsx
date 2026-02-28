@@ -71,7 +71,7 @@ const LEGAL_ITEMS = [
 export default function LegalPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold text-dq-gold">
+      <h1 className="mb-2 text-3xl font-bold font-display text-dq-gold">
         特定商取引法に基づく表示
       </h1>
       <p className="mb-8 text-sm text-dq-text-muted">

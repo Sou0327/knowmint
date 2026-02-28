@@ -90,4 +90,4 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   });
 
   return apiSuccess({ reported: true }, 201);
-}, { requiredPermissions: ["read"] });
+}, { requiredPermissions: ["write"] });

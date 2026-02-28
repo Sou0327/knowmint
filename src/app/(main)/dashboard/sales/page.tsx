@@ -110,11 +110,11 @@ export default function SalesPage() {
       if (!byDate.has(date)) byDate.set(date, new Map());
       const tokenMap = byDate.get(date)!;
       const token = tx.token as Token;
-      tokenMap.set(token, (tokenMap.get(token) ?? 0) + Number(tx.amount));
+      tokenMap.set(token, (tokenMap.get(token) ?? 0) + tx.amount);
 
       if (!tokenTotals.has(token)) tokenTotals.set(token, { total: 0, count: 0 });
       const tt = tokenTotals.get(token)!;
-      tt.total += Number(tx.amount);
+      tt.total += tx.amount;
       tt.count++;
     });
 
@@ -143,13 +143,13 @@ export default function SalesPage() {
         .in("knowledge_item_id", itemIds);
 
       const revenueMap = new Map<string, Partial<Record<Token, number>>>();
-      itemTxs?.forEach((tx) => {
+      (itemTxs ?? []).forEach((tx) => {
         if (!revenueMap.has(tx.knowledge_item_id)) {
           revenueMap.set(tx.knowledge_item_id, {});
         }
         const byToken = revenueMap.get(tx.knowledge_item_id)!;
         const token = tx.token as Token;
-        byToken[token] = (byToken[token] ?? 0) + Number(tx.amount);
+        byToken[token] = (byToken[token] ?? 0) + tx.amount;
       });
 
       setTopItems(
@@ -176,7 +176,7 @@ export default function SalesPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-dq-text">
+        <h1 className="text-2xl font-bold font-display text-dq-text">
           {t("salesAnalytics")}
         </h1>
         <div className="flex gap-2" role="group" aria-label={t("periodSelect")}>

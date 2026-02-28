@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface SearchBarProps {
   defaultValue?: string;
@@ -11,6 +12,7 @@ interface SearchBarProps {
 export default function SearchBar({ defaultValue = "", className = "" }: SearchBarProps) {
   const [query, setQuery] = useState(defaultValue);
   const router = useRouter();
+  const t = useTranslations("Search");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +28,7 @@ export default function SearchBar({ defaultValue = "", className = "" }: SearchB
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="知識を検索..."
+          placeholder={t("searchKnowledge")}
           className="peer h-11 w-full rounded-sm border-2 border-dq-border bg-dq-surface py-2 pl-10 pr-4 text-sm text-dq-text placeholder:text-dq-text-muted focus:border-dq-gold focus:outline-none focus:ring-2 focus:ring-dq-gold/30 transition-colors"
         />
         <svg

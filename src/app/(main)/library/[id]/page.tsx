@@ -11,7 +11,7 @@ import { getTranslations } from "next-intl/server";
 export const dynamic = "force-dynamic";
 import Badge from "@/components/ui/Badge";
 import ContentPreview from "@/components/features/ContentPreview";
-import { CONTENT_TYPE_LABELS } from "@/types/knowledge.types";
+import { getContentDisplayLabel } from "@/types/knowledge.types";
 import type { ContentType } from "@/types/database.types";
 
 interface Props {
@@ -41,6 +41,7 @@ export default async function LibraryItemPage({ params }: Props) {
 
   const tLibrary = await getTranslations("Library");
   const tKnowledge = await getTranslations("Knowledge");
+  const tTypes = await getTranslations("Types");
 
   const { id } = await params;
   const item = await getKnowledgeById(id);
@@ -52,7 +53,7 @@ export default async function LibraryItemPage({ params }: Props) {
   if (!canAccess) {
     return (
       <div className="mx-auto max-w-2xl text-center">
-        <h1 className="mb-4 text-2xl font-bold text-dq-text">
+        <h1 className="mb-4 text-2xl font-bold font-display text-dq-text">
           {tKnowledge("accessDenied")}
         </h1>
         <p className="mb-4 text-dq-text-sub">
@@ -74,7 +75,7 @@ export default async function LibraryItemPage({ params }: Props) {
     .from("knowledge_item_contents")
     .select("full_content, file_url")
     .eq("knowledge_item_id", id)
-    .single();
+    .single<{ full_content: string | null; file_url: string | null }>();
 
   let downloadUrl: string | null = null;
   if (content?.file_url) {
@@ -99,7 +100,7 @@ export default async function LibraryItemPage({ params }: Props) {
       </Link>
 
       <div className="mb-4 flex items-center gap-2">
-        <Badge>{CONTENT_TYPE_LABELS[item.content_type as ContentType]}</Badge>
+        <Badge>{getContentDisplayLabel(item.content_type as ContentType, tTypes)}</Badge>
       </div>
 
       <h1 className="mb-4 text-2xl font-bold text-dq-text">

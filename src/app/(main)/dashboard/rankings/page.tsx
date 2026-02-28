@@ -5,12 +5,14 @@ import SellerRankingCard from "@/components/features/SellerRankingCard";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardRankingsPage() {
-  const topSellers = await getTopSellers(20);
-  const t = await getTranslations("Rankings");
+  const [topSellers, t] = await Promise.all([
+    getTopSellers(20),
+    getTranslations("Rankings"),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-2 text-2xl font-bold text-dq-text">
+      <h1 className="mb-2 text-2xl font-bold font-display text-dq-text">
         {t("title")}
       </h1>
       <p className="mb-8 text-sm text-dq-text-muted">

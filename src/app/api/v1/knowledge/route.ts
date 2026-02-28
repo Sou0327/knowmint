@@ -324,6 +324,8 @@ export const POST = withApiAuth(async (request, user) => {
       tags: body.tags ?? [],
       status: "draft" as KnowledgeStatus,
       metadata: sanitizeMetadata(body.metadata),
+      usefulness_score: null,
+      seller_disclosure: null,
     })
     .select(
       `

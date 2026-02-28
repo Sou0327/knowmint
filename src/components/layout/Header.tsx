@@ -36,14 +36,14 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-3 border-dq-border-outer bg-dq-window-bg">
+    <header className="sticky top-0 z-50 w-full border-b-3 border-dq-border-outer bg-dq-window-bg supports-[backdrop-filter]:bg-dq-window-bg/95 supports-[backdrop-filter]:backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold font-display tracking-wide">
               <span className="text-dq-gold">◆</span>
-              <span className="text-dq-gold">
+              <span className="text-dq-gold text-glow-gold">
                 KnowMint
               </span>
             </Link>

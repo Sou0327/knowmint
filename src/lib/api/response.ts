@@ -29,6 +29,9 @@ export function apiSuccess<T>(data: T, status = 200) {
 }
 
 export function apiError(error: ApiErrorDef, details?: string) {
+  if (details) {
+    console.error(`[api] ${error.code}: ${details}`);
+  }
   return withSecurityHeaders(
     NextResponse.json(
       { success: false, error: { code: error.code, message: details || error.message } },
@@ -38,6 +41,7 @@ export function apiError(error: ApiErrorDef, details?: string) {
 }
 
 export function apiPaginated<T>(data: T[], total: number, page: number, perPage: number) {
+  const safePerPage = Math.max(1, perPage);
   return withSecurityHeaders(
     NextResponse.json({
       success: true,
@@ -45,8 +49,8 @@ export function apiPaginated<T>(data: T[], total: number, page: number, perPage:
       pagination: {
         total,
         page,
-        per_page: perPage,
-        total_pages: Math.ceil(total / perPage),
+        per_page: safePerPage,
+        total_pages: Math.ceil(total / safePerPage),
       },
     })
   );
@@ -60,4 +64,25 @@ export function withRateLimitHeaders(
   response.headers.set("X-RateLimit-Remaining", String(remaining));
   response.headers.set("X-RateLimit-Reset", String(Math.ceil(resetMs / 1000)));
   return response;
+}
+
+export interface ApiSuccessResponse<T> {
+  success: true;
+  data: T;
+}
+
+export interface ApiErrorResponse {
+  success: false;
+  error: { code: string; message: string };
+}
+
+export interface ApiPaginatedResponse<T> {
+  success: true;
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    per_page: number;
+    total_pages: number;
+  };
 }

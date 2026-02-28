@@ -7,6 +7,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output, exit } from "node:process";
+import { loadOrCreateKeypair, signMessage } from "../lib/keypair.mjs";
 
 const CONFIG_DIR = path.join(os.homedir(), ".km");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
@@ -26,6 +27,8 @@ function printHelp() {
   console.log(`km - KnowMint CLI
 
 Usage:
+  km register [--keypair <path>] [--base-url <url>] [--display-name <name>]
+  km wallet-login [--keypair <path>] [--base-url <url>] [--key-name <name>]
   km login --api-key <km_key> [--base-url <url>]
   km logout
   km search <query> [--page <n>] [--per-page <n>] [--json]
@@ -143,12 +146,12 @@ async function parseApiResponse(response) {
   }
 
   if (!response.ok) {
+    // JSON 内のエラーメッセージのみ使用。生テキスト (HTML/スタックトレース等) は露出しない。
     const message =
       json?.error?.message ||
       json?.message ||
-      text ||
       `Request failed with status ${response.status}`;
-    throw new KmError(message, response.status, json?.error?.code || null, json || text);
+    throw new KmError(message, response.status, json?.error?.code || null, json || null);
   }
 
   return json;
@@ -325,6 +328,104 @@ async function promptForApiKey() {
   } finally {
     rl.close();
   }
+}
+
+/**
+ * 認証不要 API へ JSON リクエストを送信する (Bearer なし)。
+ */
+async function apiFetchPublic(baseUrl, apiPath, method, body) {
+  const url = `${normalizeBaseUrl(baseUrl)}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
+  const headers = { Accept: "application/json" };
+  const init = { method, headers };
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    init.body = JSON.stringify(body);
+  }
+  const response = await fetch(url, init);
+  return parseApiResponse(response);
+}
+
+/**
+ * サーバー返却のチャレンジメッセージが期待フォーマットと完全一致するか検証。
+ * buildAuthMessage (サーバー側 src/lib/siws/auth-message.ts) と同一テンプレートを
+ * クライアント側で再構築し、署名オラクル攻撃を防止する。
+ *
+ * IMPORTANT: テンプレート変更時は src/lib/siws/auth-message.ts と mcp/src/tools.ts も同期すること。
+ */
+function validateChallengeMessage(message, wallet, nonce, purpose) {
+  const action = purpose === "register"
+    ? "register a new account with"
+    : "log in with";
+  const expected = [
+    `KnowMint wants you to ${action} your Solana wallet.`,
+    "",
+    `Wallet: ${wallet}`,
+    `Nonce: ${nonce}`,
+    "",
+    "By signing this message you confirm that you own this wallet.",
+    "This request does not involve any transaction or transfer of funds.",
+  ].join("\n");
+  if (message !== expected) {
+    throw new KmError("Challenge message does not match expected format. Server may be compromised.");
+  }
+}
+
+/**
+ * ウォレット認証の共通フロー (register / login)。
+ * challenge 取得 → メッセージ検証 → 署名 → API 呼び出し → config 保存。
+ */
+async function walletAuthFlow(args, mode) {
+  const { flags } = parseArgs(args);
+  const keypairPath = String(getFlag(flags, "keypair") ?? "").trim() || undefined;
+  const baseUrl = normalizeBaseUrl(String(getFlag(flags, "base-url") ?? DEFAULT_BASE_URL));
+
+  const { secretKey, wallet } = await loadOrCreateKeypair(keypairPath);
+  console.log(`Wallet: ${wallet}`);
+
+  // 1. challenge 取得
+  const challengeResult = await apiFetchPublic(baseUrl, "/api/v1/auth/challenge", "POST", {
+    wallet,
+    purpose: mode,
+  });
+  const challengeData = challengeResult?.data;
+  if (!challengeData?.nonce || !challengeData?.message) {
+    throw new KmError("Failed to obtain challenge from server");
+  }
+
+  // 2. メッセージ検証 + 署名
+  validateChallengeMessage(challengeData.message, wallet, challengeData.nonce, mode);
+  const sig = signMessage(secretKey, challengeData.message);
+
+  // 3. mode 固有パラメータ
+  const extraParam = mode === "register"
+    ? { display_name: String(getFlag(flags, "display-name") ?? "").trim() || undefined }
+    : { key_name: String(getFlag(flags, "key-name") ?? "").trim() || undefined };
+
+  const result = await apiFetchPublic(baseUrl, `/api/v1/auth/${mode}`, "POST", {
+    wallet,
+    signature: sig,
+    nonce: challengeData.nonce,
+    ...extraParam,
+  });
+  const data = result?.data;
+  if (!data?.api_key) {
+    throw new KmError(`${mode === "register" ? "Registration" : "Login"} failed: no API key returned`);
+  }
+
+  // 4. config 保存
+  await saveConfig({ apiKey: data.api_key, baseUrl });
+  const verb = mode === "register" ? "Registered successfully." : "Logged in successfully via wallet signature.";
+  console.log(verb);
+  console.log(`User ID: ${data.user_id}`);
+  console.log(`Base URL: ${baseUrl}`);
+}
+
+async function cmdRegister(args) {
+  await walletAuthFlow(args, "register");
+}
+
+async function cmdWalletLogin(args) {
+  await walletAuthFlow(args, "login");
 }
 
 async function cmdLogin(args) {
@@ -747,6 +848,14 @@ async function main() {
     return;
   }
 
+  if (command === "register") {
+    await cmdRegister(argv.slice(1));
+    return;
+  }
+  if (command === "wallet-login") {
+    await cmdWalletLogin(argv.slice(1));
+    return;
+  }
   if (command === "login") {
     await cmdLogin(argv.slice(1));
     return;

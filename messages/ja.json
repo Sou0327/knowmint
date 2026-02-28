@@ -20,7 +20,8 @@
     "copy": "コピー",
     "user": "ユーザー",
     "edit": "編集",
-    "next": "次へ"
+    "next": "次へ",
+    "previous": "前へ"
   },
   "Types": {
     "contentType": {
@@ -30,12 +31,16 @@
       "api": "APIエンドポイント",
       "general": "汎用ナレッジ"
     },
+    "contentDisplayLabel": {
+      "prompt": "テキスト・記事",
+      "tool_def": "テンプレート・設定",
+      "dataset": "データ・資料",
+      "api": "リンク・外部リソース",
+      "general": "その他ナレッジ"
+    },
     "listingType": {
-      "text_article": "テキスト・記事",
-      "template_config": "テンプレート・設定",
-      "data_material": "データ・資料",
-      "link_resource": "リンク・外部リソース",
-      "other": "その他ナレッジ"
+      "offer": "出品",
+      "request": "募集"
     },
     "category": {
       "business": "ビジネス・仕事",
@@ -121,7 +126,8 @@
     "popular": "人気",
     "noItemsYet": "まだアイテムがありません",
     "topSellers": "人気の出品者",
-    "viewRankings": "ランキングを見る"
+    "viewRankings": "ランキングを見る",
+    "categories": "カテゴリ"
   },
   "Search": {
     "title": "マーケット検索",
@@ -138,7 +144,12 @@
     "sortPopular": "人気順",
     "sortNewest": "新着順",
     "sortPriceLow": "価格: 低い順",
-    "sortPriceHigh": "価格: 高い順"
+    "sortPriceHigh": "価格: 高い順",
+    "categoryFilter": "カテゴリ",
+    "categoryMetaTitle": "{name}の知識",
+    "categoryMetaDescription": "{name}カテゴリの知識一覧",
+    "categoryItemCount": "{count} 件のアイテム",
+    "searchMetaTitle": "「{query}」"
   },
   "Knowledge": {
     "backToMarket": "マーケットに戻る",
@@ -166,7 +177,6 @@
     "viewCount": "{count}閲覧",
     "reward": "報酬",
     "reaction": "反応",
-    "recordPurchaseFailed": "購入記録に失敗しました",
     "accessDenied": "アクセス権限がありません",
     "contentSection": "コンテンツ"
   },
@@ -188,16 +198,26 @@
   "Wallet": {
     "connect": "ウォレット接続",
     "disconnect": "切断",
+    "signingPending": "署名確認中...",
+    "signCancelled": "署名がキャンセルされました",
+    "registrationError": "ウォレット登録中にエラーが発生しました",
+    "connectTo": "{chain}に接続"
+  },
+  "Social": {
     "follow": "フォローする",
     "following": "フォロー中",
     "unfollow": "フォローを解除",
     "addFavorite": "お気に入りに追加",
     "removeFavorite": "お気に入りから削除",
-    "followerCount": "{count} フォロワー",
-    "signingPending": "署名確認中...",
-    "signCancelled": "署名がキャンセルされました",
-    "registrationError": "ウォレット登録中にエラーが発生しました",
-    "connectTo": "{chain}に接続"
+    "followerCount": "{count} フォロワー"
+  },
+  "VersionHistory": {
+    "title": "バージョン履歴",
+    "error": "バージョン履歴の読み込みに失敗しました: {error}",
+    "empty": "バージョン履歴はまだありません。",
+    "noSummary": "概要なし",
+    "pageIndicator": "{page} / {totalPages} ページ",
+    "unknownError": "不明なエラー"
   },
   "Library": {
     "title": "マイライブラリ",
@@ -404,7 +424,8 @@
     "comment": "コメント（任意）",
     "commentPlaceholder": "この知識についてのコメント...",
     "onlyPurchased": "購入済みのアイテムのみレビューできます",
-    "alreadyReviewed": "既にレビュー済みです"
+    "alreadyReviewed": "既にレビュー済みです",
+    "rating": "評価"
   },
   "Profile": {
     "title": "プロフィール設定",
@@ -418,7 +439,9 @@
     "accountType": "アカウント種別",
     "userTypeHuman": "人間",
     "userTypeAgent": "AIエージェント",
-    "walletNotSet": "未設定"
+    "walletNotSet": "未設定",
+    "trustHigh": "高信頼",
+    "trust": "信頼"
   },
   "Notifications": {
     "title": "通知",
@@ -436,7 +459,13 @@
   "Rankings": {
     "title": "出品者ランキング",
     "description": "販売実績の多い出品者をランキング表示しています",
-    "noData": "まだランキングデータがありません"
+    "noData": "まだランキングデータがありません",
+    "salesUnit": "{count} 販売",
+    "itemsUnit": "{count} アイテム",
+    "followersUnit": "{count} フォロワー",
+    "trustScore": "信頼度 {score}%",
+    "ogTitle": "出品者ランキング",
+    "ogDescription": "KnowMint で販売実績の多い出品者をランキング表示"
   },
   "Favorites": {
     "title": "お気に入り",
@@ -450,6 +479,7 @@
   },
   "Errors": {
     "invalidInput": "入力が不正です",
+    "invalidStatus": "現在のステータスでは公開できません",
     "invalidInputDetail": "入力が不正です: {detail}",
     "itemNotFound": "アイテムが見つかりません",
     "cannotPurchaseOwn": "自分のアイテムは購入できません",
@@ -462,8 +492,35 @@
     "senderMismatch": "送信者が一致しません",
     "recipientMissing": "受取人がトランザクションに含まれていません",
     "accessDenied": "アクセス権限がありません",
+    "solanaOnly": "現在 Solana チェーンのみ対応しています",
+    "solTokenOnly": "現在 SOL トークンのみ対応しています",
+    "requestNotPurchasable": "募集掲載は購入できません",
+    "sellerWalletMissing": "売り手のウォレットが設定されていません",
+    "buyerWalletMissing": "ウォレットを接続してください",
+    "txPending": "このトランザクションは処理中です",
+    "txFailedRetry": "このトランザクションは失敗しています。新しいトランザクションで再試行してください",
+    "txHashUsedByOther": "このトランザクションハッシュは別の購入で使用されています",
+    "purchaseRecordFailed": "購入の記録に失敗しました",
+    "purchaseConfirmFailed": "購入確認に失敗しました",
+    "onlyPurchasedCanReview": "購入済みのアイテムのみレビューできます",
+    "reviewCheckFailed": "レビュー状態の確認に失敗しました",
+    "alreadyReviewed": "既にレビュー済みです",
+    "reviewSaveFailed": "レビューの保存に失敗しました",
+    "listingCreateFailed": "出品の作成に失敗しました",
+    "contentSaveFailed": "コンテンツ保存に失敗しました",
+    "requestContentRequired": "募集内容を入力してください",
+    "versionSnapshotFailed": "バージョンスナップショットの保存に失敗しました",
+    "listingUpdateFailed": "更新に失敗しました",
+    "contentUpdateFailed": "コンテンツ更新に失敗しました",
+    "titleDescRequired": "タイトルと説明は必須です",
+    "priceRequired": "少なくとも1つの価格を設定してください",
+    "rewardRequired": "希望報酬を設定してください",
+    "listingPublishFailed": "公開に失敗しました",
+    "listingDeleteFailed": "削除に失敗しました",
+    "listingFetchFailed": "一覧取得に失敗しました",
+    "versionCountFailed": "バージョン件数の取得に失敗しました",
+    "versionFetchFailed": "バージョン履歴の取得に失敗しました",
     "supabaseNotSet": "Supabaseの環境変数が未設定です。.env.localを確認してください。",
-    "supabasePlaceholder": "Supabaseの接続設定がサンプル値のままです。.env.localに実際のProject URLとanon keyを設定してください。",
-    "buyer": "購入者"
+    "supabasePlaceholder": "Supabaseの接続設定がサンプル値のままです。.env.localに実際のProject URLとanon keyを設定してください。"
   }
 }

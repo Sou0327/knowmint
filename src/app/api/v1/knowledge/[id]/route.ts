@@ -160,7 +160,7 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
       changeSummary: body.change_summary,
     });
   } catch (snapshotError) {
-    console.error("Version snapshot failed:", snapshotError);
+    console.error("[knowledge] Version snapshot failed:", snapshotError);
     return apiError(API_ERRORS.INTERNAL_ERROR, "Failed to save version snapshot");
   }
 
@@ -210,12 +210,13 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
         {
           knowledge_item_id: id,
           full_content: body.full_content,
+          file_url: null,
         },
         { onConflict: "knowledge_item_id" }
       );
 
     if (contentError) {
-      console.error("Failed to update content:", contentError);
+      console.error("[knowledge] Failed to update content:", contentError);
       return apiError(API_ERRORS.INTERNAL_ERROR, "Failed to update content");
     }
   }

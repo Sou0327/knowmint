@@ -20,7 +20,8 @@
     "copy": "Copy",
     "user": "User",
     "edit": "Edit",
-    "next": "Next"
+    "next": "Next",
+    "previous": "Previous"
   },
   "Types": {
     "contentType": {
@@ -30,12 +31,16 @@
       "api": "API Endpoint",
       "general": "General Knowledge"
     },
+    "contentDisplayLabel": {
+      "prompt": "Text / Article",
+      "tool_def": "Template / Configuration",
+      "dataset": "Data / Material",
+      "api": "Link / External Resource",
+      "general": "Other Knowledge"
+    },
     "listingType": {
-      "text_article": "Text / Article",
-      "template_config": "Template / Configuration",
-      "data_material": "Data / Material",
-      "link_resource": "Link / External Resource",
-      "other": "Other Knowledge"
+      "offer": "Offer",
+      "request": "Request"
     },
     "category": {
       "business": "Business / Work",
@@ -121,7 +126,8 @@
     "popular": "Popular",
     "noItemsYet": "No items yet",
     "topSellers": "Top Sellers",
-    "viewRankings": "View Rankings"
+    "viewRankings": "View Rankings",
+    "categories": "Categories"
   },
   "Search": {
     "title": "Search Market",
@@ -138,7 +144,12 @@
     "sortPopular": "Most popular",
     "sortNewest": "Newest",
     "sortPriceLow": "Price: Low to High",
-    "sortPriceHigh": "Price: High to Low"
+    "sortPriceHigh": "Price: High to Low",
+    "categoryFilter": "Category",
+    "categoryMetaTitle": "{name} Knowledge",
+    "categoryMetaDescription": "Knowledge in {name} category",
+    "categoryItemCount": "{count, plural, one {# item} other {# items}}",
+    "searchMetaTitle": "\"{query}\""
   },
   "Knowledge": {
     "backToMarket": "Back to Market",
@@ -166,7 +177,6 @@
     "viewCount": "{count} views",
     "reward": "Reward",
     "reaction": "Reactions",
-    "recordPurchaseFailed": "Failed to record purchase",
     "accessDenied": "Access denied",
     "contentSection": "Content"
   },
@@ -188,16 +198,26 @@
   "Wallet": {
     "connect": "Connect Wallet",
     "disconnect": "Disconnect",
+    "signingPending": "Verifying signature...",
+    "signCancelled": "Signature was cancelled",
+    "registrationError": "An error occurred during wallet registration",
+    "connectTo": "Connect to {chain}"
+  },
+  "Social": {
     "follow": "Follow",
     "following": "Following",
     "unfollow": "Unfollow",
     "addFavorite": "Add to favorites",
     "removeFavorite": "Remove from favorites",
-    "followerCount": "{count} followers",
-    "signingPending": "Verifying signature...",
-    "signCancelled": "Signature was cancelled",
-    "registrationError": "An error occurred during wallet registration",
-    "connectTo": "Connect to {chain}"
+    "followerCount": "{count} followers"
+  },
+  "VersionHistory": {
+    "title": "Version History",
+    "error": "Failed to load version history: {error}",
+    "empty": "No version history yet.",
+    "noSummary": "No summary",
+    "pageIndicator": "Page {page} / {totalPages}",
+    "unknownError": "Unknown error"
   },
   "Library": {
     "title": "My Library",
@@ -404,7 +424,8 @@
     "comment": "Comment (optional)",
     "commentPlaceholder": "Comments about this knowledge...",
     "onlyPurchased": "Only purchased items can be reviewed",
-    "alreadyReviewed": "Already reviewed"
+    "alreadyReviewed": "Already reviewed",
+    "rating": "Rating"
   },
   "Profile": {
     "title": "Profile Settings",
@@ -418,7 +439,9 @@
     "accountType": "Account Type",
     "userTypeHuman": "Human",
     "userTypeAgent": "AI Agent",
-    "walletNotSet": "Not set"
+    "walletNotSet": "Not set",
+    "trustHigh": "Highly Trusted",
+    "trust": "Trusted"
   },
   "Notifications": {
     "title": "Notifications",
@@ -436,7 +459,13 @@
   "Rankings": {
     "title": "Seller Rankings",
     "description": "Top sellers ranked by sales performance",
-    "noData": "No ranking data yet"
+    "noData": "No ranking data yet",
+    "salesUnit": "{count, plural, one {# sale} other {# sales}}",
+    "itemsUnit": "{count, plural, one {# item} other {# items}}",
+    "followersUnit": "{count, plural, one {# follower} other {# followers}}",
+    "trustScore": "Trust {score}%",
+    "ogTitle": "Seller Rankings",
+    "ogDescription": "Top sellers ranked by sales performance on KnowMint"
   },
   "Favorites": {
     "title": "Favorites",
@@ -450,6 +479,7 @@
   },
   "Errors": {
     "invalidInput": "Invalid input",
+    "invalidStatus": "This item cannot be published in its current status",
     "invalidInputDetail": "Invalid input: {detail}",
     "itemNotFound": "Item not found",
     "cannotPurchaseOwn": "You cannot purchase your own item",
@@ -462,8 +492,35 @@
     "senderMismatch": "Sender mismatch",
     "recipientMissing": "Recipient is not included in the transaction",
     "accessDenied": "Access denied",
+    "solanaOnly": "Only Solana chain is currently supported",
+    "solTokenOnly": "Only SOL token is currently supported",
+    "requestNotPurchasable": "Request listings cannot be purchased",
+    "sellerWalletMissing": "Seller's wallet is not configured",
+    "buyerWalletMissing": "Please connect your wallet",
+    "txPending": "This transaction is being processed",
+    "txFailedRetry": "This transaction failed. Please retry with a new transaction",
+    "txHashUsedByOther": "This transaction hash is used by another purchase",
+    "purchaseRecordFailed": "Failed to record purchase",
+    "purchaseConfirmFailed": "Failed to confirm purchase",
+    "onlyPurchasedCanReview": "Only purchased items can be reviewed",
+    "reviewCheckFailed": "Failed to check review status",
+    "alreadyReviewed": "Already reviewed",
+    "reviewSaveFailed": "Failed to save review",
+    "listingCreateFailed": "Failed to create listing",
+    "contentSaveFailed": "Failed to save content",
+    "requestContentRequired": "Please enter request details",
+    "versionSnapshotFailed": "Failed to save version snapshot",
+    "listingUpdateFailed": "Failed to update listing",
+    "contentUpdateFailed": "Failed to update content",
+    "titleDescRequired": "Title and description are required",
+    "priceRequired": "Set at least one price",
+    "rewardRequired": "Please set a reward",
+    "listingPublishFailed": "Failed to publish",
+    "listingDeleteFailed": "Failed to delete",
+    "listingFetchFailed": "Failed to fetch listings",
+    "versionCountFailed": "Failed to fetch version count",
+    "versionFetchFailed": "Failed to fetch version history",
     "supabaseNotSet": "Supabase environment variables are not set. Check .env.local.",
-    "supabasePlaceholder": "Supabase settings are still placeholders. Set actual Project URL and anon key in .env.local.",
-    "buyer": "Buyer"
+    "supabasePlaceholder": "Supabase settings are still placeholders. Set actual Project URL and anon key in .env.local."
   }
 }

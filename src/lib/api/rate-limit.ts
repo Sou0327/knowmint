@@ -10,6 +10,7 @@ interface Bucket {
 const buckets = new Map<string, Bucket>();
 const MAX_TOKENS = 60; // requests per window (per API key)
 const PRE_AUTH_MAX_TOKENS = 120; // requests per window (per IP, pre-auth)
+const AUTH_MAX_TOKENS = 20; // requests per window (per IP, auth endpoints — 6x stricter)
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_BUCKETS = 10_000; // in-memory フォールバック時の上限（メモリリーク防止）
 
@@ -40,7 +41,10 @@ function memoryCheckRateLimit(
 }
 
 // Cleanup stale buckets periodically (every 10 minutes)
-if (typeof globalThis !== "undefined") {
+// 注意: Cloudflare Workers ではインメモリ状態がリクエスト間で共有されず、
+// setInterval も持続しない。本番では必ず UPSTASH_REDIS_REST_URL/TOKEN を設定すること。
+// このフォールバックはローカル開発/Node.js 環境でのみ有効。
+if (typeof globalThis !== "undefined" && typeof setInterval === "function") {
   const CLEANUP_INTERVAL = 600_000;
   const cleanup = () => {
     const cutoff = Date.now() - WINDOW_MS * 10;
@@ -59,19 +63,21 @@ if (typeof globalThis !== "undefined") {
 // ── Redis (Upstash) ratelimiter ─────────────────────────────────────────────
 let redisRatelimiter: Ratelimit | null = null;
 let redisPreAuthRatelimiter: Ratelimit | null = null;
+let redisAuthRatelimiter: Ratelimit | null = null;
 
 function getRedisRatelimiters(): {
   key: Ratelimit | null;
   preAuth: Ratelimit | null;
+  auth: Ratelimit | null;
 } {
   if (
     !process.env.UPSTASH_REDIS_REST_URL ||
     !process.env.UPSTASH_REDIS_REST_TOKEN
   ) {
-    return { key: null, preAuth: null };
+    return { key: null, preAuth: null, auth: null };
   }
-  if (redisRatelimiter && redisPreAuthRatelimiter) {
-    return { key: redisRatelimiter, preAuth: redisPreAuthRatelimiter };
+  if (redisRatelimiter && redisPreAuthRatelimiter && redisAuthRatelimiter) {
+    return { key: redisRatelimiter, preAuth: redisPreAuthRatelimiter, auth: redisAuthRatelimiter };
   }
   try {
     const redis = new Redis({
@@ -88,12 +94,17 @@ function getRedisRatelimiters(): {
       limiter: Ratelimit.slidingWindow(PRE_AUTH_MAX_TOKENS, "1 m"),
       prefix: "km:rl:ip",
     });
-    return { key: redisRatelimiter, preAuth: redisPreAuthRatelimiter };
+    redisAuthRatelimiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(AUTH_MAX_TOKENS, "1 m"),
+      prefix: "km:rl:auth",
+    });
+    return { key: redisRatelimiter, preAuth: redisPreAuthRatelimiter, auth: redisAuthRatelimiter };
   } catch {
     console.warn(
       "[rate-limit] Failed to initialize Redis ratelimiter, falling back to in-memory"
     );
-    return { key: null, preAuth: null };
+    return { key: null, preAuth: null, auth: null };
   }
 }
 
@@ -144,4 +155,31 @@ export async function checkPreAuthRateLimit(
     }
   }
   return memoryCheckRateLimit(`ip:${ip}`, PRE_AUTH_MAX_TOKENS);
+}
+
+/**
+ * Auth エンドポイント用 IP rate limit (20/min — 一般の 6 倍厳格)。
+ * /auth/challenge, /auth/register, /auth/login で使用。
+ */
+export async function checkAuthRateLimit(
+  request: Request
+): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
+  const ip =
+    request.headers.get("x-real-ip")?.trim() ||
+    request.headers.get("x-forwarded-for")?.split(",").pop()?.trim() ||
+    "unknown";
+  const { auth: limiter } = getRedisRatelimiters();
+  if (limiter) {
+    try {
+      const { success, remaining, reset } = await limiter.limit(`auth:${ip}`);
+      return {
+        allowed: success,
+        remaining,
+        resetMs: Math.max(0, reset - Date.now()),
+      };
+    } catch {
+      console.warn("[rate-limit] Redis error, falling back to in-memory");
+    }
+  }
+  return memoryCheckRateLimit(`auth:${ip}`, AUTH_MAX_TOKENS);
 }

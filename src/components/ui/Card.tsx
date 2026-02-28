@@ -24,7 +24,7 @@ const Card = ({
       className={`
         dq-window
         transition-all
-        ${hover ? 'hover:brightness-110' : ''}
+        ${hover ? 'dq-window-hover' : ''}
         ${paddingStyles[padding]}
         ${className}
       `}

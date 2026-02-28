@@ -1,10 +1,10 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
-import { ed25519 } from "@noble/curves/ed25519";
 import { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 import { buildSiwsMessage } from "@/lib/siws/message";
+import { verifyWalletSignature } from "@/lib/auth/verify-wallet-signature";
 
 const BodySchema = z.object({
   wallet: z.string().min(32).max(44),
@@ -13,18 +13,6 @@ const BodySchema = z.object({
   // nonce must be lowercase hex to match randomBytes().toString("hex") output
   nonce: z.string().regex(/^[0-9a-f]{64}$/, "nonce must be 64-char lowercase hex"),
 });
-
-/** Decode Ed25519 signature from hex (128 chars) or base64 (canonical, 64 bytes) */
-function decodeSignature(sig: string): Uint8Array {
-  if (/^[0-9a-fA-F]{128}$/.test(sig)) {
-    return new Uint8Array(Buffer.from(sig, "hex"));
-  }
-  // base64: 64 bytes → 88 chars with == padding
-  const buf = Buffer.from(sig, "base64");
-  if (buf.length !== 64) throw new Error("Signature must decode to 64 bytes");
-  if (buf.toString("base64") !== sig) throw new Error("Non-canonical base64 encoding");
-  return new Uint8Array(buf);
-}
 
 /**
  * POST /api/v1/me/wallet/verify
@@ -80,14 +68,9 @@ export const POST = withApiAuth(async (request, user) => {
   // チャレンジ消費は Step 2 の RPC で原子的に行うため、署名失敗時もチャレンジは残る。
   const message = buildSiwsMessage({ wallet, userId: user.userId, nonce });
 
-  let signatureValid = false;
-  try {
-    const messageBytes = new TextEncoder().encode(message);
-    const sigBytes = decodeSignature(signature);
-    const pubkeyBytes = new PublicKey(wallet).toBytes(); // canonical 32 bytes
-    signatureValid = ed25519.verify(sigBytes, messageBytes, pubkeyBytes);
-  } catch (err) {
-    console.error("wallet/verify: signature decode/verify failed:", err);
+  const { valid: signatureValid, error: sigError } = verifyWalletSignature({ message, signature, wallet });
+  if (sigError) {
+    console.error("wallet/verify: signature decode/verify failed:", sigError);
     return apiError(API_ERRORS.BAD_REQUEST, "Failed to decode or verify signature");
   }
 

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef, useTransition, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { useFavorite } from "@/hooks/useFavorite";
 import Button from "@/components/ui/Button";
 
 interface FavoriteButtonProps {
@@ -16,45 +15,11 @@ export default function FavoriteButton({
   initialFavorited,
   size = "md",
 }: FavoriteButtonProps) {
-  const t = useTranslations("Wallet");
-  const [favorited, setFavorited] = useState(initialFavorited);
-  const [animating, setAnimating] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  const toggle = () => {
-    startTransition(async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      if (favorited) {
-        const { error } = await supabase
-          .from("favorites")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("knowledge_item_id", itemId);
-        if (!error) setFavorited(false);
-      } else {
-        const { error } = await supabase
-          .from("favorites")
-          .insert({ user_id: user.id, knowledge_item_id: itemId });
-        if (!error) {
-          setFavorited(true);
-          setAnimating(true);
-          timerRef.current = setTimeout(() => setAnimating(false), 400);
-        }
-      }
-    });
-  };
+  const t = useTranslations("Social");
+  const { favorited, animating, isPending, toggle } = useFavorite(
+    itemId,
+    initialFavorited
+  );
 
   const iconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
 

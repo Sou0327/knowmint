@@ -1,12 +1,11 @@
 import Link from "next/link";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
-import RecommendationSection, { type SupabaseKnowledgeRow } from "@/components/features/RecommendationSection";
+import RecommendationSection from "@/components/features/RecommendationSection";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
 import { getPersonalRecommendations } from "@/lib/recommendations/queries";
 import { getTopSellers } from "@/lib/rankings/queries";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
 import { createClient } from "@/lib/supabase/server";
-import type { ListingType } from "@/types/database.types";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getTranslations } from "next-intl/server";
 
@@ -26,7 +25,7 @@ export default async function HomePage() {
     getPublishedKnowledge({ sort_by: "newest", per_page: 6 }),
     getPublishedKnowledge({ sort_by: "popular", per_page: 6 }),
     getCategories(),
-    user ? getPersonalRecommendations(user.id).then((d) => d as SupabaseKnowledgeRow[]) : Promise.resolve([] as SupabaseKnowledgeRow[]),
+    user ? getPersonalRecommendations(user.id) : Promise.resolve([]),
     getTopSellers(5),
   ]);
 
@@ -46,26 +45,32 @@ export default async function HomePage() {
     <div className="space-y-16">
       <JsonLd data={websiteJsonLd} />
       {/* Hero */}
-      <section className="py-8 text-center">
-        <h1 className="text-5xl font-bold leading-tight tracking-tight text-dq-gold sm:text-6xl">
-          KnowMint
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-dq-text-sub sm:text-xl">
-          {tHome("heroDescription")}
-        </p>
-        <div className="mt-10 flex justify-center gap-4">
-          <Link
-            href="/search"
-            className="rounded-sm bg-dq-gold px-6 py-3 text-sm font-medium text-dq-bg transition-colors hover:brightness-110"
-          >
-            {tHome("exploreMarket")}
-          </Link>
-          <Link
-            href="/list"
-            className="rounded-sm border-2 border-dq-border px-6 py-3 text-sm font-medium text-dq-text-sub transition-colors hover:bg-dq-surface hover:text-dq-gold"
-          >
-            {tNav("listItem")}
-          </Link>
+      <section className="relative overflow-hidden rounded-sm py-20 text-center sm:py-24">
+        {/* Atmospheric background */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,197,66,0.08),transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(64,192,224,0.05),transparent_50%)]" />
+
+        <div className="relative">
+          <h1 className="font-display text-5xl font-bold leading-tight tracking-wide text-dq-gold text-glow-gold sm:text-7xl">
+            Know<span className="tracking-normal">Mint</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-dq-text-sub sm:text-xl">
+            {tHome("heroDescription")}
+          </p>
+          <div className="mt-12 flex justify-center gap-4">
+            <Link
+              href="/search"
+              className="rounded-sm bg-dq-gold px-7 py-3.5 text-sm font-semibold text-dq-bg shadow-[0_0_20px_rgba(245,197,66,0.25)] transition-all hover:brightness-110 hover:shadow-[0_0_30px_rgba(245,197,66,0.35)]"
+            >
+              {tHome("exploreMarket")}
+            </Link>
+            <Link
+              href="/list"
+              className="rounded-sm border-2 border-dq-border px-7 py-3.5 text-sm font-semibold text-dq-text-sub transition-all hover:border-dq-gold/40 hover:bg-dq-surface hover:text-dq-gold"
+            >
+              {tNav("listItem")}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -77,8 +82,8 @@ export default async function HomePage() {
       {/* Categories */}
       <section>
         <div className="mb-4 flex items-center gap-4">
-          <h2 className="shrink-0 text-xl font-bold text-dq-gold">
-            カテゴリ
+          <h2 className="shrink-0 text-xl font-bold font-display text-dq-gold">
+            {tHome("categories")}
           </h2>
           <div className="h-px flex-1 bg-dq-border" />
         </div>
@@ -87,7 +92,7 @@ export default async function HomePage() {
             <Link
               key={cat.id}
               href={`/category/${cat.slug}`}
-              className="group rounded-sm dq-window-sm p-4 text-center transition-all hover:brightness-110"
+              className="group rounded-sm dq-window-sm dq-window-hover p-4 text-center"
             >
               <span className="text-sm font-medium text-dq-text-sub transition-colors group-hover:text-dq-gold">
                 {cat.name}
@@ -101,7 +106,7 @@ export default async function HomePage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-1 items-center gap-4">
-            <h2 className="shrink-0 text-xl font-bold text-dq-gold">
+            <h2 className="shrink-0 text-xl font-bold font-display text-dq-gold">
               {tHome("new")}
             </h2>
             <div className="h-px flex-1 bg-dq-border" />
@@ -117,21 +122,21 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {newest.data.map((item: Record<string, unknown>) => (
+          {newest.data.map((item) => (
             <KnowledgeCard
-              key={item.id as string}
-              id={item.id as string}
-              listing_type={item.listing_type as ListingType}
-              title={item.title as string}
-              description={item.description as string}
-              content_type={item.content_type as "prompt" | "tool_def" | "dataset" | "api" | "general"}
-              price_sol={item.price_sol as number | null}
-              price_usdc={item.price_usdc as number | null}
-              seller={item.seller as { display_name: string | null }}
-              category={item.category as { name: string } | null}
-              tags={item.tags as string[]}
-              average_rating={item.average_rating as number | null}
-              purchase_count={item.purchase_count as number}
+              key={item.id}
+              id={item.id}
+              listing_type={item.listing_type}
+              title={item.title}
+              description={item.description}
+              content_type={item.content_type}
+              price_sol={item.price_sol}
+              price_usdc={item.price_usdc}
+              seller={item.seller ?? { display_name: null }}
+              category={item.category}
+              tags={item.tags}
+              average_rating={item.average_rating}
+              purchase_count={item.purchase_count}
             />
           ))}
         </div>
@@ -161,7 +166,7 @@ export default async function HomePage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-1 items-center gap-4">
-            <h2 className="shrink-0 text-xl font-bold text-dq-gold">
+            <h2 className="shrink-0 text-xl font-bold font-display text-dq-gold">
               {tHome("popular")}
             </h2>
             <div className="h-px flex-1 bg-dq-border" />
@@ -177,21 +182,21 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {popular.data.map((item: Record<string, unknown>) => (
+          {popular.data.map((item) => (
             <KnowledgeCard
-              key={item.id as string}
-              id={item.id as string}
-              listing_type={item.listing_type as ListingType}
-              title={item.title as string}
-              description={item.description as string}
-              content_type={item.content_type as "prompt" | "tool_def" | "dataset" | "api" | "general"}
-              price_sol={item.price_sol as number | null}
-              price_usdc={item.price_usdc as number | null}
-              seller={item.seller as { display_name: string | null }}
-              category={item.category as { name: string } | null}
-              tags={item.tags as string[]}
-              average_rating={item.average_rating as number | null}
-              purchase_count={item.purchase_count as number}
+              key={item.id}
+              id={item.id}
+              listing_type={item.listing_type}
+              title={item.title}
+              description={item.description}
+              content_type={item.content_type}
+              price_sol={item.price_sol}
+              price_usdc={item.price_usdc}
+              seller={item.seller ?? { display_name: null }}
+              category={item.category}
+              tags={item.tags}
+              average_rating={item.average_rating}
+              purchase_count={item.purchase_count}
             />
           ))}
         </div>
@@ -202,7 +207,7 @@ export default async function HomePage() {
         <section>
           <div className="mb-4 flex items-center justify-between">
             <div className="flex flex-1 items-center gap-4">
-              <h2 className="shrink-0 text-xl font-bold text-dq-gold">
+              <h2 className="shrink-0 text-xl font-bold font-display text-dq-gold">
                 {tHome("topSellers")}
               </h2>
               <div className="h-px flex-1 bg-dq-border" />

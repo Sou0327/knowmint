@@ -11,7 +11,7 @@ import PreviewStep from "@/components/features/ListingForm/PreviewStep";
 import { updateListing } from "../../actions";
 import { createClient } from "@/lib/supabase/client";
 import type { ContentType, ListingType } from "@/types/database.types";
-import { LISTING_TYPE_LABELS } from "@/types/knowledge.types";
+import { getListingTypeLabel } from "@/types/knowledge.types";
 import type { RequestContentInput } from "@/lib/knowledge/requestContent";
 import { parseRequestFullContent } from "@/lib/knowledge/requestContent";
 
@@ -67,6 +67,7 @@ const initialForm: FormData = {
 export default function EditListingPage() {
   const t = useTranslations("Listing");
   const tCommon = useTranslations("Common");
+  const tTypes = useTranslations("Types");
 
   const STEPS = [t("basicInfo"), t("content"), t("pricing"), t("confirmUpdate")];
 
@@ -296,14 +297,14 @@ export default function EditListingPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-dq-text">
+        <h1 className="text-3xl font-bold font-display tracking-tight text-dq-text">
           {t("editListing")}
         </h1>
         <p className="mt-2 text-sm text-dq-text-muted">
           {t("editDesc")}
         </p>
         <p className="mt-1 text-xs text-dq-text-muted">
-          {t("currentType", { type: LISTING_TYPE_LABELS[form.listing_type] })}
+          {t("currentType", { type: getListingTypeLabel(form.listing_type, tTypes) })}
         </p>
       </div>
 

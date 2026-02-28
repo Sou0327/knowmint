@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
-import { CONTENT_TYPE_LABELS, LISTING_TYPE_LABELS } from "@/types/knowledge.types";
+import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.types";
 import type { ContentType, ListingType } from "@/types/database.types";
 import type { RequestContentInput } from "@/lib/knowledge/requestContent";
 
@@ -32,6 +32,7 @@ interface Props {
 
 export default function PreviewStep({ data, categories }: Props) {
   const t = useTranslations("Listing");
+  const tTypes = useTranslations("Types");
   const category = categories.find((c) => c.id === data.category_id);
   const isRequest = data.listing_type === "request";
 
@@ -49,9 +50,9 @@ export default function PreviewStep({ data, categories }: Props) {
             </h2>
             <div className="flex items-center gap-2">
               <Badge variant={isRequest ? "warning" : "success"}>
-                {LISTING_TYPE_LABELS[data.listing_type]}
+                {getListingTypeLabel(data.listing_type, tTypes)}
               </Badge>
-              <Badge>{CONTENT_TYPE_LABELS[data.content_type]}</Badge>
+              <Badge>{getContentDisplayLabel(data.content_type, tTypes)}</Badge>
             </div>
           </div>
 

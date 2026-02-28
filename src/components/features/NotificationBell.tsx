@@ -1,28 +1,23 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useRef, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-
-interface NotificationItem {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  link: string | null;
-  read: boolean;
-  created_at: string;
-}
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function NotificationBell() {
   const t = useTranslations("Notifications");
   const tCommon = useTranslations("Common");
   const locale = useLocale();
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    open,
+    setOpen,
+    handleOpen,
+    markAsRead,
+  } = useNotifications();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,58 +26,7 @@ export default function NotificationBell() {
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  useEffect(() => {
-    const fetchCount = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { count } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("read", false);
-
-      setUnreadCount(count ?? 0);
-    };
-    fetchCount();
-  }, []);
-
-  const fetchNotifications = async () => {
-    setLoading(true);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(10);
-
-    setNotifications((data as NotificationItem[]) ?? []);
-    setLoading(false);
-  };
-
-  const handleOpen = () => {
-    if (!open) fetchNotifications();
-    setOpen(!open);
-  };
-
-  const markAsRead = async (id: string) => {
-    const supabase = createClient();
-    await supabase
-      .from("notifications")
-      .update({ read: true })
-      .eq("id", id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-    setUnreadCount((c) => Math.max(0, c - 1));
-  };
+  }, [setOpen]);
 
   const typeIcon: Record<string, string> = {
     purchase: "G",
@@ -97,7 +41,7 @@ export default function NotificationBell() {
         type="button"
         onClick={handleOpen}
         className="relative rounded-sm p-2 text-dq-text-sub transition-colors hover:bg-dq-surface hover:text-dq-gold"
-        aria-label="Notifications"
+        aria-label={t("title")}
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -124,7 +68,7 @@ export default function NotificationBell() {
 
           <div className="max-h-80 overflow-y-auto">
             {loading ? (
-              <div className="py-8 text-center text-sm text-dq-text-muted">Loading...</div>
+              <div className="py-8 text-center text-sm text-dq-text-muted">{tCommon("loading")}</div>
             ) : notifications.length === 0 ? (
               <div className="py-8 text-center text-sm text-dq-text-muted">{t("empty")}</div>
             ) : (

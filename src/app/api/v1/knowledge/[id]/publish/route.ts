@@ -4,6 +4,14 @@ import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { fireWebhookEvent } from "@/lib/webhooks/events";
 import { logAuditEvent } from "@/lib/audit/log";
 
+// Exclude moderation_status, metadata, usefulness_score, seller_disclosure, search_vector
+// to avoid leaking internal/computed fields in the publish response.
+const ITEM_SELECT_COLUMNS = `
+  id, seller_id, listing_type, title, description, content_type, price_sol, price_usdc,
+  preview_content, category_id, tags, status, view_count, purchase_count,
+  average_rating, created_at, updated_at
+` as const;
+
 /**
  * POST /api/v1/knowledge/[id]/publish
  * Publish a draft knowledge item owned by the authenticated user.
@@ -14,7 +22,7 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
 
   const { data: item, error: fetchError } = await admin
     .from("knowledge_items")
-    .select("id, seller_id, listing_type, title, description, status, price_sol, price_usdc, content_type")
+    .select(ITEM_SELECT_COLUMNS)
     .eq("id", id)
     .single();
 
@@ -27,7 +35,7 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
   }
 
   if (item.status === "published") {
-    return apiSuccess({ id: item.id, status: item.status });
+    return apiSuccess(item);
   }
 
   if (item.status !== "draft") {
@@ -67,17 +75,11 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
     .update({ status: "published" })
     .eq("id", id)
     .eq("seller_id", user.userId)
-    .select(
-      `
-      id, seller_id, listing_type, title, description, content_type, price_sol, price_usdc,
-      preview_content, category_id, tags, status, view_count, purchase_count,
-      average_rating, created_at, updated_at
-      `
-    )
+    .select(ITEM_SELECT_COLUMNS)
     .single();
 
   if (updateError || !updated) {
-    console.error("Failed to publish knowledge item:", updateError);
+    console.error("[publish] Failed to publish knowledge item:", updateError);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 

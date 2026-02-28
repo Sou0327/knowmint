@@ -41,6 +41,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
+    "@noble/curves": "^1.0.0",
+    "@solana/web3.js": "^1.98.4",
     "zod": "^3.25.76"
   },
   "devDependencies": {

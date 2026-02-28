@@ -5,7 +5,7 @@ import { getDashboardStats, getRecentTransactions } from "@/lib/dashboard/querie
 import StatsCard from "@/components/dashboard/StatsCard";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import { CONTENT_TYPE_LABELS } from "@/types/knowledge.types";
+import { getContentDisplayLabel } from "@/types/knowledge.types";
 import type { ContentType, Token } from "@/types/database.types";
 
 function formatToken(amount: number, token: Token): string {
@@ -24,17 +24,18 @@ function timeAgo(dateStr: string, t: (key: string, values?: Record<string, strin
 
 export default async function DashboardPage() {
   const user = await requireAuth();
-  const [stats, recentTx, t, tCommon] = await Promise.all([
+  const [stats, recentTx, t, tCommon, tTypes] = await Promise.all([
     getDashboardStats(user.id),
     getRecentTransactions(user.id, 5),
     getTranslations("Dashboard"),
     getTranslations("Common"),
+    getTranslations("Types"),
   ]);
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-dq-text">
+        <h1 className="text-2xl font-bold font-display text-dq-text">
           {t("overview")}
         </h1>
         <Link
@@ -128,7 +129,7 @@ export default async function DashboardPage() {
                     <div className="mt-0.5 flex items-center gap-2">
                       {tx.knowledge_item?.content_type && (
                         <Badge>
-                          {CONTENT_TYPE_LABELS[tx.knowledge_item.content_type as ContentType]}
+                          {getContentDisplayLabel(tx.knowledge_item.content_type as ContentType, tTypes)}
                         </Badge>
                       )}
                       <span className="text-xs text-dq-text-muted">

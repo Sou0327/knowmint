@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import type { ContentType, ListingType } from "@/types/database.types";
-import { CONTENT_TYPE_LABELS } from "@/types/knowledge.types";
+import { CONTENT_TYPES, getContentDisplayLabel } from "@/types/knowledge.types";
 import type { KnowledgeMetadataForm } from "@/types/knowledge.types";
 
 interface Category {
@@ -32,10 +32,6 @@ interface Props {
   errors: Record<string, string>;
 }
 
-const contentTypeOptions = Object.entries(CONTENT_TYPE_LABELS).map(
-  ([value, label]) => ({ value, label })
-);
-
 export default function BasicInfoStep({
   data,
   categories,
@@ -43,6 +39,12 @@ export default function BasicInfoStep({
   errors,
 }: Props) {
   const t = useTranslations("Listing");
+  const tTypes = useTranslations("Types");
+
+  const contentTypeOptions = CONTENT_TYPES.map((ct) => ({
+    value: ct,
+    label: getContentDisplayLabel(ct, tTypes),
+  }));
   const [metadataOpen, setMetadataOpen] = useState(false);
 
   const categoryOptions = [

@@ -8,10 +8,9 @@ import BasicInfoStep from "@/components/features/ListingForm/BasicInfoStep";
 import ContentEditor from "@/components/features/ListingForm/ContentEditor";
 import PricingStep from "@/components/features/ListingForm/PricingStep";
 import PreviewStep from "@/components/features/ListingForm/PreviewStep";
-import { createListing, publishListing } from "./actions";
-import { createClient } from "@/lib/supabase/client";
+import { createListing, publishListing, fetchCategories } from "./actions";
 import type { ContentType, ListingType } from "@/types/database.types";
-import { LISTING_TYPE_LABELS } from "@/types/knowledge.types";
+import { getListingTypeLabel } from "@/types/knowledge.types";
 import type { RequestContentInput } from "@/lib/knowledge/requestContent";
 
 interface FormData {
@@ -64,6 +63,7 @@ const initialForm: FormData = {
 export default function ListPage() {
   const t = useTranslations("Listing");
   const tCommon = useTranslations("Common");
+  const tTypes = useTranslations("Types");
 
   const STEPS = [
     t("basicInfo"),
@@ -82,13 +82,9 @@ export default function ListPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from("categories")
-      .select("id, name")
-      .then(({ data }) => {
-        if (data) setCategories(data);
-      });
+    fetchCategories().then((data) => {
+      setCategories(data);
+    }, () => {});
   }, []);
 
   const updateForm = (updates: Partial<FormData>) => {
@@ -206,14 +202,14 @@ export default function ListPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-dq-text">
+        <h1 className="text-3xl font-bold font-display tracking-tight text-dq-text">
           {t("listKnowledge")}
         </h1>
         <p className="mt-2 text-sm text-dq-text-muted">
           {t("listKnowledgeDesc")}
         </p>
         <p className="mt-1 text-xs text-dq-text-muted">
-          {t("currentType", { type: LISTING_TYPE_LABELS[form.listing_type] })}
+          {t("currentType", { type: getListingTypeLabel(form.listing_type, tTypes) })}
         </p>
       </div>
 

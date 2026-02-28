@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { apiSuccess } from "@/lib/api/response";
 
 export async function GET() {
-  return NextResponse.json(
-    { status: "ok", service: "knowmint-api", timestamp: new Date().toISOString() },
-    { headers: { "Cache-Control": "no-store" } }
-  );
+  return apiSuccess({
+    status: "ok",
+    service: "knowmint-api",
+    timestamp: new Date().toISOString(),
+  });
 }

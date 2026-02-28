@@ -121,12 +121,13 @@ export const POST = withApiAuth(async (request, user) => {
     .join("");
 
   // Encrypt the secret for HMAC signing during webhook dispatch.
-  // Falls back to null if WEBHOOK_SIGNING_KEY is not configured.
-  let secretEncrypted: string | null = null;
+  // Fail-close: if WEBHOOK_SIGNING_KEY is misconfigured, reject the request.
+  let secretEncrypted: string;
   try {
     secretEncrypted = encryptSecret(secret);
   } catch (err) {
-    console.error("[webhooks] WEBHOOK_SIGNING_KEY not configured; webhook signing disabled:", err);
+    console.error("[webhooks] WEBHOOK_SIGNING_KEY not configured or invalid:", err);
+    return apiError(API_ERRORS.INTERNAL_ERROR, "Webhook signing is not available. Contact support.");
   }
 
   const admin = getAdminClient();
@@ -152,6 +153,7 @@ export const POST = withApiAuth(async (request, user) => {
       user_id: user.userId,
       url,
       events,
+      secret: null,
       secret_hash: secretHash,
       secret_encrypted: secretEncrypted,
       active: true,

@@ -8,6 +8,7 @@ interface Props {
 
 export default async function ContentPreview({ contentType, content }: Props) {
   const t = await getTranslations("Knowledge");
+  const tTypes = await getTranslations("Types");
 
   if (!content) {
     return (
@@ -25,7 +26,7 @@ export default async function ContentPreview({ contentType, content }: Props) {
         <>
           <div className="flex items-center gap-2 border-b-2 border-dq-border bg-dq-surface px-4 py-2">
             <span className="text-xs font-medium text-dq-text-muted">
-              {contentType === "tool_def" ? "JSON / テンプレート設定" : "外部リソース情報"}
+              {contentType === "tool_def" ? tTypes("contentFormat.jsonTemplate") : tTypes("contentFormat.externalResource")}
             </span>
           </div>
           <pre className="overflow-x-auto bg-dq-window-bg p-4 font-mono text-[13px] leading-relaxed text-dq-text">

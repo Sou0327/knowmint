@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import { getKnowledgeByCategory } from "@/lib/knowledge/queries";
-import type { ListingType } from "@/types/database.types";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +20,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .from("categories")
     .select("name")
     .eq("slug", slug)
-    .maybeSingle();
+    .maybeSingle<{ name: string }>();
   if (!category) return {};
-  const title = `${category.name}の知識`;
+  const t = await getTranslations("Search");
+  const title = t("categoryMetaTitle", { name: category.name });
   return {
     title,
-    description: `${category.name}カテゴリの知識一覧`,
+    description: t("categoryMetaDescription", { name: category.name }),
     openGraph: { title, type: "website" },
     alternates: { canonical: `/category/${slug}` },
   };
@@ -52,33 +52,33 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           href="/"
           className="text-sm text-dq-cyan hover:text-dq-gold"
         >
-          ← トップ
+          ← {t("backToTop")}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-dq-text">
+        <h1 className="mt-2 text-2xl font-bold font-display text-dq-text">
           {result.category.name}
         </h1>
         <p className="text-sm text-dq-text-muted">
-          {result.total} 件のアイテム
+          {t("categoryItemCount", { count: result.total })}
         </p>
       </div>
 
       {result.items.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {result.items.map((item: Record<string, unknown>) => (
+          {result.items.map((item) => (
             <KnowledgeCard
-              key={item.id as string}
-              id={item.id as string}
-              listing_type={item.listing_type as ListingType}
-              title={item.title as string}
-              description={item.description as string}
-              content_type={item.content_type as "prompt" | "tool_def" | "dataset" | "api" | "general"}
-              price_sol={item.price_sol as number | null}
-              price_usdc={item.price_usdc as number | null}
-              seller={item.seller as { display_name: string | null }}
-              category={item.category as { name: string } | null}
-              tags={item.tags as string[]}
-              average_rating={item.average_rating as number | null}
-              purchase_count={item.purchase_count as number}
+              key={item.id}
+              id={item.id}
+              listing_type={item.listing_type}
+              title={item.title}
+              description={item.description}
+              content_type={item.content_type}
+              price_sol={item.price_sol}
+              price_usdc={item.price_usdc}
+              seller={item.seller ?? { display_name: null }}
+              category={item.category}
+              tags={item.tags}
+              average_rating={item.average_rating}
+              purchase_count={item.purchase_count}
             />
           ))}
         </div>

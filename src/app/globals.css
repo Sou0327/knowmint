@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ===== DQ Theme: Dark Mode (Native DQ) ===== */
+/* ===== DQ Theme: Dark Mode (Neo-Retro RPG) ===== */
 :root {
   --background: #0a0a2e;
   --foreground: #f0f0f0;
@@ -11,8 +11,8 @@
   --dq-hover: #1e1e5c;
 
   --dq-text: #f0f0f0;
-  --dq-text-sub: #a0a0c0;
-  --dq-text-muted: #606080;
+  --dq-text-sub: #b8b8d8;
+  --dq-text-muted: #9090b8;
 
   --dq-gold: #f5c542;
   --dq-cyan: #40c0e0;
@@ -22,7 +22,7 @@
   --dq-purple: #a040e0;
 
   --dq-border-outer: #e0e0e0;
-  --dq-border: #404060;
+  --dq-border: #3a3a5a;
 
   color-scheme: dark;
 }
@@ -39,10 +39,10 @@
     --dq-hover: #ede8dc;
 
     --dq-text: #1a1a2e;
-    --dq-text-sub: #404060;
-    --dq-text-muted: #808090;
+    --dq-text-sub: #3a3a58;
+    --dq-text-muted: #5a5a72;
 
-    --dq-gold: #8a6508;
+    --dq-gold: #7a5506;
     --dq-cyan: #0a7ca8;
     --dq-red: #c03030;
     --dq-green: #2a8a2a;
@@ -66,8 +66,8 @@
   --dq-hover: #1e1e5c;
 
   --dq-text: #f0f0f0;
-  --dq-text-sub: #a0a0c0;
-  --dq-text-muted: #606080;
+  --dq-text-sub: #b8b8d8;
+  --dq-text-muted: #9090b8;
 
   --dq-gold: #f5c542;
   --dq-cyan: #40c0e0;
@@ -77,7 +77,7 @@
   --dq-purple: #a040e0;
 
   --dq-border-outer: #e0e0e0;
-  --dq-border: #404060;
+  --dq-border: #3a3a5a;
 }
 
 .light {
@@ -90,10 +90,10 @@
   --dq-hover: #ede8dc;
 
   --dq-text: #1a1a2e;
-  --dq-text-sub: #404060;
-  --dq-text-muted: #808090;
+  --dq-text-sub: #3a3a58;
+  --dq-text-muted: #5a5a72;
 
-  --dq-gold: #8a6508;
+  --dq-gold: #7a5506;
   --dq-cyan: #0a7ca8;
   --dq-red: #c03030;
   --dq-green: #2a8a2a;
@@ -127,7 +127,8 @@
   --color-dq-border-outer: var(--dq-border-outer);
   --color-dq-border: var(--dq-border);
 
-  --font-sans: var(--font-dotgothic), var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-geist-sans), sans-serif;
+  --font-display: var(--font-dotgothic), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
 
@@ -138,7 +139,10 @@
   outline-offset: 3px;
   border-radius: 2px;
   background-color: var(--dq-window-bg);
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(245, 197, 66, 0.04);
 }
 
 @utility dq-window-sm {
@@ -147,7 +151,9 @@
   outline-offset: 2px;
   border-radius: 2px;
   background-color: var(--dq-window-bg);
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 2px 16px rgba(0, 0, 0, 0.25);
 }
 
 /* ===== DQ Cursor Blink Animation ===== */
@@ -160,14 +166,63 @@
   animation: dq-blink 1s step-end infinite;
 }
 
+/* ===== Text Glow Utilities ===== */
+@utility text-glow-gold {
+  text-shadow: 0 0 24px rgba(245, 197, 66, 0.3), 0 0 48px rgba(245, 197, 66, 0.1);
+}
+
+@utility text-glow-cyan {
+  text-shadow: 0 0 24px rgba(64, 192, 224, 0.3), 0 0 48px rgba(64, 192, 224, 0.1);
+}
+
+/* ===== DQ Window Hover Effect ===== */
+.dq-window-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.dq-window-hover:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(245, 197, 66, 0.12);
+  transform: translateY(-2px);
+}
+
+.dq-window-hover:focus-visible {
+  outline: 2px solid var(--dq-gold);
+  outline-offset: 2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(245, 197, 66, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dq-window-hover {
+    transition: none;
+  }
+  .dq-window-hover:hover {
+    transform: none;
+  }
+  .dq-cursor {
+    animation: none;
+  }
+}
+
 /* ===== Base Styles ===== */
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display font: DotGothic16 for headings/branding with pixel rendering */
+.font-display {
   font-family: var(--font-dotgothic), var(--font-geist-sans), sans-serif;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: unset;
-  font-smooth: never;
 }
 
 /* Legal pages use Geist for readability */

@@ -8,11 +8,10 @@ import { apiError, apiPaginated, API_ERRORS } from "@/lib/api/response";
  */
 export const GET = withApiAuth(async (request, user) => {
   const { searchParams } = new URL(request.url);
-  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
-  const perPage = Math.min(
-    100,
-    Math.max(1, parseInt(searchParams.get("per_page") ?? "20", 10))
-  );
+  const rawPage = parseInt(searchParams.get("page") ?? "1", 10);
+  const rawPerPage = parseInt(searchParams.get("per_page") ?? "20", 10);
+  const page = Math.min(1000, Math.max(1, Number.isFinite(rawPage) ? rawPage : 1));
+  const perPage = Math.min(100, Math.max(1, Number.isFinite(rawPerPage) ? rawPerPage : 20));
 
   const from = (page - 1) * perPage;
   const to = from + perPage - 1;
@@ -33,7 +32,7 @@ export const GET = withApiAuth(async (request, user) => {
     .range(from, to);
 
   if (error) {
-    console.error("Failed to fetch purchases:", error);
+    console.error("[purchases] fetch failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 

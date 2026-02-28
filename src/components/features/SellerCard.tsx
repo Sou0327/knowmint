@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import { getTranslations } from "next-intl/server";
+import { TRUST_HIGH_THRESHOLD, TRUST_THRESHOLD } from "@/types/knowledge.types";
 import FollowButton from "./FollowButton";
 
 interface Props {
@@ -17,31 +18,16 @@ interface Props {
   heading?: string;
 }
 
-function TrustBadge({ score }: { score: number | null | undefined }) {
-  if (score == null || score < 0.5) return null;
-  if (score >= 0.8) {
-    return (
-      <span className="inline-flex items-center rounded-sm border border-dq-green/40 bg-dq-green/20 px-2 py-0.5 text-xs font-medium text-dq-green">
-        高信頼
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center rounded-sm border border-dq-yellow/40 bg-dq-yellow/20 px-2 py-0.5 text-xs font-medium text-dq-yellow">
-      信頼
-    </span>
-  );
-}
-
 export default async function SellerCard({
   seller,
   isFollowing,
   followerCount,
   heading,
 }: Props) {
-  const [t, tCommon] = await Promise.all([
+  const [t, tCommon, tProfile] = await Promise.all([
     getTranslations("Knowledge"),
     getTranslations("Common"),
+    getTranslations("Profile"),
   ]);
   const resolvedHeading = heading ?? t("seller");
 
@@ -62,11 +48,20 @@ export default async function SellerCard({
             >
               {seller.display_name || tCommon("anonymousUser")}
             </Link>
-            <TrustBadge score={seller.trust_score} />
+            {seller.trust_score != null && seller.trust_score >= TRUST_HIGH_THRESHOLD && (
+              <span className="inline-flex items-center rounded-sm border border-dq-green/40 bg-dq-green/20 px-2 py-0.5 text-xs font-medium text-dq-green">
+                {tProfile("trustHigh")}
+              </span>
+            )}
+            {seller.trust_score != null && seller.trust_score >= TRUST_THRESHOLD && seller.trust_score < TRUST_HIGH_THRESHOLD && (
+              <span className="inline-flex items-center rounded-sm border border-dq-yellow/40 bg-dq-yellow/20 px-2 py-0.5 text-xs font-medium text-dq-yellow">
+                {tProfile("trust")}
+              </span>
+            )}
           </div>
           {seller.user_type && (
             <p className="mt-0.5 text-xs text-dq-text-muted">
-              {seller.user_type === "agent" ? "AIエージェント" : "人間"}
+              {seller.user_type === "agent" ? tProfile("userTypeAgent") : tProfile("userTypeHuman")}
             </p>
           )}
           {seller.bio && (

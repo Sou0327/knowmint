@@ -9,9 +9,9 @@ import Card from "@/components/ui/Card";
 import { createClient } from "@/lib/supabase/client";
 import { deleteListing, publishListing } from "../../list/actions";
 import {
-  CONTENT_TYPE_LABELS,
-  STATUS_LABELS,
-  LISTING_TYPE_LABELS,
+  getContentDisplayLabel,
+  getStatusLabel,
+  getListingTypeLabel,
 } from "@/types/knowledge.types";
 import type { KnowledgeItem, Category, KnowledgeStatus } from "@/types/database.types";
 
@@ -34,6 +34,7 @@ export default function DashboardListingsPage() {
   const tCommon = useTranslations("Common");
   const tListing = useTranslations("Listing");
   const tKnowledge = useTranslations("Knowledge");
+  const tTypes = useTranslations("Types");
   const [listings, setListings] = useState<ListingWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,7 +86,7 @@ export default function DashboardListingsPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-dq-text">
+        <h1 className="text-2xl font-bold font-display text-dq-text">
           {t("listings")}
         </h1>
         <Link href="/list">
@@ -115,11 +116,11 @@ export default function DashboardListingsPage() {
                       {item.title}
                     </h2>
                     <Badge variant={STATUS_VARIANT[item.status]}>
-                      {STATUS_LABELS[item.status]}
+                      {getStatusLabel(item.status, tTypes)}
                     </Badge>
-                    <Badge>{CONTENT_TYPE_LABELS[item.content_type]}</Badge>
+                    <Badge>{getContentDisplayLabel(item.content_type, tTypes)}</Badge>
                     <Badge variant={item.listing_type === "request" ? "warning" : "success"}>
-                      {LISTING_TYPE_LABELS[item.listing_type]}
+                      {getListingTypeLabel(item.listing_type, tTypes)}
                     </Badge>
                   </div>
                   <p className="mt-1 line-clamp-2 text-sm text-dq-text-sub">

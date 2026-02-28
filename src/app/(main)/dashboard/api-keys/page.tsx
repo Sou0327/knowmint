@@ -6,7 +6,7 @@ export default async function ApiKeysPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-dq-text">
+      <h1 className="mb-6 text-2xl font-bold font-display text-dq-text">
         {t("title")}
       </h1>
       <ApiKeyManager />

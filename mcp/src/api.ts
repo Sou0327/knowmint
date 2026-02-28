@@ -10,7 +10,7 @@ const DEFAULT_BASE_URL = "https://knowmint.shop";
 const FETCH_TIMEOUT_MS = 30_000;
 
 export interface KmConfig {
-  apiKey: string;
+  apiKey: string | null;
   baseUrl: string;
 }
 
@@ -85,11 +85,13 @@ export async function loadConfig(): Promise<KmConfig> {
   }
 
   const rawKey = process.env["KM_API_KEY"] ?? fileConfig["apiKey"] ?? null;
-  if (!rawKey) {
-    fatal("No API key configured. Set KM_API_KEY env var, or run `km login` to save credentials.");
+
+  // apiKey が未設定でも起動可能 (km_register / km_wallet_login で後から取得)
+  let apiKey: string | null = null;
+  if (rawKey) {
+    apiKey = validateApiKey(rawKey);
   }
 
-  const apiKey = validateApiKey(rawKey);
   const rawUrl = process.env["KM_BASE_URL"] ?? fileConfig["baseUrl"] ?? DEFAULT_BASE_URL;
   const baseUrl = validateBaseUrl(rawUrl);
 
@@ -125,20 +127,46 @@ function sanitizeServerError(status: number, json: unknown): string {
 }
 
 function buildHeaders(config: KmConfig): Record<string, string> {
-  return {
-    Authorization: `Bearer ${config.apiKey}`,
-    Accept: "application/json",
-  };
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (config.apiKey) {
+    headers["Authorization"] = `Bearer ${config.apiKey}`;
+  }
+  return headers;
+}
+
+/**
+ * config を ~/.km/config.json に永続化する。
+ */
+export async function saveConfig(config: KmConfig): Promise<void> {
+  await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  const data: Record<string, unknown> = { baseUrl: config.baseUrl };
+  if (config.apiKey) data["apiKey"] = config.apiKey;
+  await fs.writeFile(CONFIG_PATH, JSON.stringify(data, null, 2), {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+  await fs.chmod(CONFIG_DIR, 0o700);
+  await fs.chmod(CONFIG_PATH, 0o600);
 }
 
 function withTimeout(signal?: AbortSignal): { signal: AbortSignal; cleanup: () => void } {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  // 親シグナルがあれば連鎖
-  signal?.addEventListener("abort", () => controller.abort());
+  // 親シグナルが既に aborted なら即時中断
+  if (signal?.aborted) {
+    controller.abort(signal.reason);
+  }
+  // 親シグナルがあれば連鎖 (cleanup でリスナー解除してメモリリーク防止)
+  const onAbort = () => controller.abort();
+  if (signal && !signal.aborted) {
+    signal.addEventListener("abort", onAbort);
+  }
   return {
     signal: controller.signal,
-    cleanup: () => clearTimeout(timer),
+    cleanup: () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+    },
   };
 }
 
@@ -182,6 +210,7 @@ export async function apiRequestWithPayment<T>(
   apiPath: string,
   extraHeaders?: Record<string, string>
 ): Promise<T | PaymentRequiredResponse> {
+  requireApiKey(config);
   const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
   const headers: Record<string, string> = { ...buildHeaders(config), ...extraHeaders };
   const { signal, cleanup } = withTimeout();
@@ -213,12 +242,55 @@ export async function apiRequestWithPayment<T>(
   }
 }
 
+function requireApiKey(config: KmConfig): void {
+  if (!config.apiKey) {
+    throw new KmApiError(
+      "No API key configured. Run km_register or km_wallet_login first.",
+      null,
+      "no_api_key"
+    );
+  }
+}
+
+/**
+ * 認証不要 (public) エンドポイントへのリクエスト。
+ * Authorization ヘッダーを付けない。
+ */
+export async function apiRequestPublic<T>(
+  baseUrl: string,
+  apiPath: string,
+  method: string = "POST",
+  body?: unknown
+): Promise<T> {
+  const url = `${baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
+  const headers: Record<string, string> = { Accept: "application/json" };
+  const { signal, cleanup } = withTimeout();
+
+  try {
+    const init: RequestInit = { method, headers, signal };
+    if (body !== undefined) {
+      headers["Content-Type"] = "application/json";
+      init.body = JSON.stringify(body);
+    }
+    const response = await fetch(url, init);
+    return await parseResponse<T>(response);
+  } catch (e) {
+    if ((e as { name?: string }).name === "AbortError") {
+      throw new KmApiError(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s`, null);
+    }
+    throw e;
+  } finally {
+    cleanup();
+  }
+}
+
 export async function apiRequest<T>(
   config: KmConfig,
   apiPath: string,
   method: string = "GET",
   body?: unknown
 ): Promise<T> {
+  requireApiKey(config);
   const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
   const headers = buildHeaders(config);
   const { signal, cleanup } = withTimeout();
@@ -245,6 +317,7 @@ export async function apiRequestPaginated<T>(
   config: KmConfig,
   apiPath: string
 ): Promise<{ data: T[]; pagination: unknown }> {
+  requireApiKey(config);
   const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
   const headers = buildHeaders(config);
   const { signal, cleanup } = withTimeout();

@@ -12,8 +12,7 @@ import ReviewList from "@/components/features/ReviewList";
 import RecommendationSection from "@/components/features/RecommendationSection";
 import { getKnowledgeById, getKnowledgeForMetadata } from "@/lib/knowledge/queries";
 import { getRecommendations } from "@/lib/recommendations/queries";
-import { CONTENT_TYPE_LABELS, LISTING_TYPE_LABELS } from "@/types/knowledge.types";
-import type { ContentType, ListingType } from "@/types/database.types";
+import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.types";
 import { JsonLd } from "@/components/seo/JsonLd";
 
 interface Props {
@@ -42,10 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function KnowledgeDetailPage({ params }: Props) {
   const { id } = await params;
-  const [item, recommendations, t] = await Promise.all([
+  const [item, recommendations, t, tTypes] = await Promise.all([
     getKnowledgeById(id),
     getRecommendations(id),
     getTranslations("Knowledge"),
+    getTranslations("Types"),
   ]);
 
   if (!item) {
@@ -55,23 +55,18 @@ export default async function KnowledgeDetailPage({ params }: Props) {
   const avgRating = item.average_rating
     ? Number(item.average_rating).toFixed(1)
     : null;
-  const listingType = (item.listing_type as ListingType) || "offer";
+  const listingType = item.listing_type || "offer";
   const isRequest = listingType === "request";
 
-  type SellerData = {
-    id: string;
-    display_name: string | null;
-    avatar_url: string | null;
-    bio: string | null;
-    user_type: "human" | "agent";
-    wallet_address: string | null;
+  const rawSeller = item.seller ?? {
+    id: "",
+    display_name: null,
+    avatar_url: null,
+    bio: null,
+    user_type: "human" as const,
+    wallet_address: null,
   };
-  const sellerRaw = item.seller;
-  // Supabase nested join の型推論制限のため最小ランタイムガードを追加
-  const seller: SellerData =
-    sellerRaw !== null && typeof sellerRaw === "object" && !Array.isArray(sellerRaw)
-      ? (sellerRaw as SellerData)
-      : { id: "", display_name: null, avatar_url: null, bio: null, user_type: "human", wallet_address: null };
+  const seller = { ...rawSeller, user_type: rawSeller.user_type as "human" | "agent" };
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -99,19 +94,19 @@ export default async function KnowledgeDetailPage({ params }: Props) {
           <div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <Badge variant={isRequest ? "warning" : "success"}>
-                {LISTING_TYPE_LABELS[listingType]}
+                {getListingTypeLabel(listingType, tTypes)}
               </Badge>
-              <Badge>{CONTENT_TYPE_LABELS[item.content_type as ContentType]}</Badge>
+              <Badge>{getContentDisplayLabel(item.content_type, tTypes)}</Badge>
               {item.category && (
                 <Link
-                  href={`/category/${(item.category as unknown as { slug: string }).slug}`}
+                  href={`/category/${item.category.slug}`}
                   className="text-sm text-dq-cyan hover:text-dq-gold"
                 >
-                  {(item.category as unknown as { name: string }).name}
+                  {item.category.name}
                 </Link>
               )}
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-dq-text sm:text-4xl">
+            <h1 className="text-3xl font-bold font-display tracking-tight text-dq-text sm:text-4xl">
               {item.title}
             </h1>
             <div className="mt-2 flex items-center text-sm text-dq-text-muted">
@@ -126,7 +121,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
           </div>
 
           <div>
-            <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
+            <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold font-display text-dq-gold">
               {t("description")}
             </h2>
             <p className="whitespace-pre-wrap leading-relaxed text-dq-text-sub">
@@ -134,9 +129,9 @@ export default async function KnowledgeDetailPage({ params }: Props) {
             </p>
           </div>
 
-          {item.tags && (item.tags as string[]).length > 0 && (
+          {item.tags && item.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {(item.tags as string[]).map((tag: string) => (
+              {item.tags.map((tag) => (
                 <Link
                   key={tag}
                   href={`/search?q=${encodeURIComponent(tag)}`}
@@ -150,11 +145,11 @@ export default async function KnowledgeDetailPage({ params }: Props) {
 
           {item.preview_content && (
             <div>
-              <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
+              <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold font-display text-dq-gold">
                 {t("preview")}
               </h2>
               <ContentPreview
-                contentType={item.content_type as ContentType}
+                contentType={item.content_type}
                 content={item.preview_content}
               />
             </div>
@@ -165,17 +160,10 @@ export default async function KnowledgeDetailPage({ params }: Props) {
             <h2 className="mb-4 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
               {t("reviews")}
             </h2>
-            <ReviewList reviews={(item.reviews as unknown as Array<{
-              id: string;
-              rating: number;
-              comment: string | null;
-              created_at: string;
-              reviewer: {
-                id: string;
-                display_name: string | null;
-                avatar_url: string | null;
-              };
-            }>) || []} />
+            <ReviewList reviews={item.reviews.map((r) => ({
+              ...r,
+              reviewer: r.reviewer ?? { id: "", display_name: null, avatar_url: null },
+            }))} />
           </div>
         </div>
 
@@ -190,7 +178,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
                   {isRequest ? t("rewardEstimate") : t("price")}
                 </p>
                 {item.price_sol !== null && (
-                  <p className="text-2xl font-bold text-dq-gold">
+                  <p className="text-2xl font-bold font-display text-dq-gold">
                     {item.price_sol} SOL
                   </p>
                 )}

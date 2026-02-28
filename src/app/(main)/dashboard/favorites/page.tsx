@@ -5,47 +5,6 @@ import { getTranslations } from "next-intl/server";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
-import type { ContentType, ListingType } from "@/types/database.types";
-
-interface FavoriteKnowledgeItem {
-  id: string;
-  listing_type: ListingType;
-  title: string;
-  description: string;
-  content_type: ContentType;
-  price_sol: number | null;
-  price_usdc: number | null;
-  tags: string[];
-  average_rating: number | null;
-  purchase_count: number;
-  seller: { display_name: string | null } | { display_name: string | null }[];
-  category: { name: string } | { name: string }[] | null;
-}
-
-interface FavoriteRow {
-  id: string;
-  knowledge_item: FavoriteKnowledgeItem | FavoriteKnowledgeItem[] | null;
-}
-
-function normalizeItem(
-  raw: FavoriteKnowledgeItem | FavoriteKnowledgeItem[] | null
-): FavoriteKnowledgeItem | null {
-  if (!raw) return null;
-  return Array.isArray(raw) ? raw[0] ?? null : raw;
-}
-
-function normalizeSeller(
-  seller: FavoriteKnowledgeItem["seller"]
-): { display_name: string | null } {
-  return Array.isArray(seller) ? seller[0] ?? { display_name: null } : seller;
-}
-
-function normalizeCategory(
-  category: FavoriteKnowledgeItem["category"]
-): { name: string } | null {
-  if (!category) return null;
-  return Array.isArray(category) ? category[0] ?? null : category;
-}
 
 export const dynamic = "force-dynamic";
 
@@ -56,13 +15,13 @@ export default async function DashboardFavoritesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const favorites = (await getFavorites(user.id)) as unknown as FavoriteRow[];
+  const favorites = await getFavorites(user.id);
   const t = await getTranslations("Favorites");
   const tCommon = await getTranslations("Common");
 
   return (
     <div className="mx-auto max-w-6xl">
-      <h1 className="mb-6 text-2xl font-bold text-dq-text">
+      <h1 className="mb-6 text-2xl font-bold font-display text-dq-text">
         {t("title")}
       </h1>
 
@@ -112,7 +71,7 @@ export default async function DashboardFavoritesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {favorites.map((fav) => {
-            const item = normalizeItem(fav.knowledge_item);
+            const item = fav.knowledge_item;
             if (!item) return null;
             return (
               <KnowledgeCard
@@ -124,8 +83,8 @@ export default async function DashboardFavoritesPage() {
                 content_type={item.content_type}
                 price_sol={item.price_sol}
                 price_usdc={item.price_usdc}
-                seller={normalizeSeller(item.seller)}
-                category={normalizeCategory(item.category)}
+                seller={item.seller ?? { display_name: null }}
+                category={item.category}
                 tags={item.tags}
                 average_rating={item.average_rating}
                 purchase_count={item.purchase_count}

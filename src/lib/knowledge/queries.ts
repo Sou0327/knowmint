@@ -1,7 +1,63 @@
 import { createClient } from "@/lib/supabase/server";
 import type { KnowledgeSearchParams } from "@/types/knowledge.types";
+import type { ContentType, ListingType, KnowledgeStatus, UserType } from "@/types/database.types";
 
-export async function getPublishedKnowledge(params: KnowledgeSearchParams = {}) {
+// ── 戻り値型定義 ──────────────────────────────────
+
+/** カード表示用 (一覧・カテゴリ・検索) */
+export interface KnowledgeCardRow {
+  id: string;
+  seller_id: string;
+  listing_type: ListingType;
+  title: string;
+  description: string;
+  content_type: ContentType;
+  price_sol: number | null;
+  price_usdc: number | null;
+  preview_content: string | null;
+  category_id: string | null;
+  tags: string[];
+  status: KnowledgeStatus;
+  view_count: number;
+  purchase_count: number;
+  average_rating: number | null;
+  created_at: string;
+  updated_at: string;
+  seller: { id: string; display_name: string | null; avatar_url: string | null; trust_score: number | null } | null;
+  category: { id: string; name: string; slug: string } | null;
+}
+
+/** 詳細ページ用 */
+export interface KnowledgeDetailRow extends Omit<KnowledgeCardRow, "seller"> {
+  seller: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    trust_score: number | null;
+    bio: string | null;
+    user_type: UserType;
+    wallet_address: string | null;
+  } | null;
+  reviews: Array<{
+    id: string;
+    rating: number;
+    comment: string | null;
+    created_at: string;
+    reviewer: { id: string; display_name: string | null; avatar_url: string | null } | null;
+  }>;
+}
+
+import { toSingle } from "@/lib/supabase/utils";
+
+// ── クエリ関数 ─────────────────────────────────────
+
+export async function getPublishedKnowledge(params: KnowledgeSearchParams = {}): Promise<{
+  data: KnowledgeCardRow[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}> {
   const supabase = await createClient();
   const {
     query,
@@ -89,13 +145,18 @@ export async function getPublishedKnowledge(params: KnowledgeSearchParams = {}) 
     return { data: [], total: 0, page, per_page, total_pages: 0 };
   }
 
-  let resultData = data ?? [];
+  // nested join を正規化
+  let resultData: KnowledgeCardRow[] = (data ?? []).map((row) => ({
+    ...row,
+    seller: toSingle(row.seller),
+    category: toSingle(row.category),
+  })) as KnowledgeCardRow[];
 
   if (isTrustScoreSort) {
     // seller.trust_score 降順でソート (null は末尾)
     resultData = [...resultData].sort((a, b) => {
-      const scoreA = (a as { seller?: { trust_score?: number | null } }).seller?.trust_score ?? -1;
-      const scoreB = (b as { seller?: { trust_score?: number | null } }).seller?.trust_score ?? -1;
+      const scoreA = a.seller?.trust_score ?? -1;
+      const scoreB = b.seller?.trust_score ?? -1;
       return scoreB - scoreA;
     });
     const from = (page - 1) * per_page;
@@ -128,10 +189,15 @@ export async function getKnowledgeForMetadata(id: string) {
     .eq("id", id)
     .eq("status", "published")
     .maybeSingle();
-  return data;
+  if (!data) return null;
+  return {
+    ...data,
+    seller: toSingle(data.seller),
+    category: toSingle(data.category),
+  };
 }
 
-export async function getKnowledgeById(id: string) {
+export async function getKnowledgeById(id: string): Promise<KnowledgeDetailRow | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -145,13 +211,22 @@ export async function getKnowledgeById(id: string) {
     .eq("id", id)
     .single();
 
-  if (error) return null;
+  if (error || !data) return null;
 
   // Increment view count via SECURITY DEFINER RPC (Admin クライアント使用: service_role 権限が必要)
   const { getAdminClient: getAdmin } = await import("@/lib/supabase/admin");
   getAdmin().rpc("increment_view_count", { item_id: id }).then(() => {}, () => {});
 
-  return data;
+  // nested join を正規化
+  return {
+    ...data,
+    seller: toSingle(data.seller),
+    category: toSingle(data.category),
+    reviews: (data.reviews ?? []).map((r) => ({
+      ...r,
+      reviewer: toSingle(r.reviewer),
+    })),
+  } as KnowledgeDetailRow;
 }
 
 export async function getCategories() {
@@ -163,7 +238,13 @@ export async function getCategories() {
   return data ?? [];
 }
 
-export async function getKnowledgeByCategory(slug: string, page = 1, perPage = 12) {
+export async function getKnowledgeByCategory(slug: string, page = 1, perPage = 12): Promise<{
+  category: { id: string; name: string; slug: string } | null;
+  items: KnowledgeCardRow[];
+  total: number;
+  page: number;
+  total_pages: number;
+}> {
   const supabase = await createClient();
 
   // Get category
@@ -187,10 +268,16 @@ export async function getKnowledgeByCategory(slug: string, page = 1, perPage = 1
     .order("created_at", { ascending: false })
     .range(from, from + perPage - 1);
 
+  const items: KnowledgeCardRow[] = (data ?? []).map((row) => ({
+    ...row,
+    seller: toSingle(row.seller),
+    category: toSingle(row.category),
+  })) as KnowledgeCardRow[];
+
   const total = count ?? 0;
   return {
     category,
-    items: data ?? [],
+    items,
     total,
     page,
     total_pages: Math.ceil(total / perPage),

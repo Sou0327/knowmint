@@ -13,7 +13,7 @@ type ReportStatus = typeof VALID_STATUSES[number];
 export const GET = withApiAuth(async (request) => {
   const { searchParams } = new URL(request.url);
   const statusRaw = searchParams.get("status") ?? "pending";
-  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const page = Math.min(1000, Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1));
   const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") ?? "20", 10) || 20));
 
   if (!(VALID_STATUSES as readonly string[]).includes(statusRaw)) {

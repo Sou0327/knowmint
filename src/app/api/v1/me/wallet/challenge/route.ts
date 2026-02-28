@@ -1,10 +1,16 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
-import { randomBytes } from "crypto";
 import { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 import { buildSiwsMessage } from "@/lib/siws/message";
+
+/** Web Crypto API で 32 バイトの hex nonce を生成 (CF Workers / Node.js 両対応) */
+function generateHexNonce(): string {
+  const buf = new Uint8Array(32);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const BodySchema = z.object({
   wallet: z.string().min(32).max(44),
@@ -53,7 +59,7 @@ export const POST = withApiAuth(async (request, user) => {
   const admin = getAdminClient();
 
   // Generate cryptographically secure nonce (lowercase hex to match Zod in verify)
-  const nonce = randomBytes(32).toString("hex");
+  const nonce = generateHexNonce();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
   // Upsert challenge (user+wallet → one active challenge at a time)

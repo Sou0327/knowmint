@@ -3,9 +3,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { buildSiwsMessage } from "@/lib/siws/message";
-import { randomBytes } from "crypto";
 import { PublicKey } from "@solana/web3.js";
 import { ed25519 } from "@noble/curves/ed25519";
+
+/** Web Crypto API で 32 バイトの hex nonce を生成 (CF Workers / Node.js 両対応) */
+function generateHexNonce(): string {
+  const buf = new Uint8Array(32);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 /**
  * SIWS チャレンジ発行 Server Action
@@ -32,10 +38,16 @@ export async function requestWalletChallenge(
     return { success: false, error: "Wallet address must be in canonical base58 format" };
   }
 
-  const nonce = randomBytes(32).toString("hex");
+  const nonce = generateHexNonce();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-  const admin = getAdminClient();
+  let admin;
+  try {
+    admin = getAdminClient();
+  } catch (err) {
+    console.error("[wallet action] admin client init failed:", err);
+    return { success: false, error: "サーバー設定エラーが発生しました" };
+  }
   const { error: upsertError } = await admin
     .from("wallet_challenges")
     .upsert(
@@ -79,24 +91,39 @@ export async function verifyWalletSignature(
     return { success: false, error: "Wallet address must be in canonical base58 format" };
   }
 
+  // Input length validation (API route は Zod で制限済み、Server Action は手動チェック)
+  if (signatureBase64.length > 200) {
+    return { success: false, error: "Signature too long" };
+  }
+
   // nonce format validation
   if (!/^[0-9a-f]{64}$/.test(nonce)) {
     return { success: false, error: "Invalid nonce format" };
   }
 
-  // Ed25519 署名検証
+  // Ed25519 署名検証 (Buffer 非依存 — CF Workers / Node.js 両対応)
   const message = buildSiwsMessage({ wallet, userId: user.id, nonce });
   try {
     const messageBytes = new TextEncoder().encode(message);
-    // base64 → 64 bytes
-    const sigBuf = Buffer.from(signatureBase64, "base64");
-    if (sigBuf.length !== 64) {
+    // base64 → Uint8Array (Buffer 不使用)
+    let binaryStr: string;
+    try {
+      binaryStr = atob(signatureBase64);
+    } catch {
+      return { success: false, error: "Invalid base64 encoding" };
+    }
+    if (binaryStr.length !== 64) {
       return { success: false, error: "Signature must decode to 64 bytes" };
     }
-    if (sigBuf.toString("base64") !== signatureBase64) {
+    // canonical base64 チェック: 再エンコードして一致するか
+    const sigBytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      sigBytes[i] = binaryStr.charCodeAt(i);
+    }
+    const reEncoded = btoa(String.fromCharCode(...sigBytes));
+    if (reEncoded !== signatureBase64) {
       return { success: false, error: "Non-canonical base64 encoding" };
     }
-    const sigBytes = new Uint8Array(sigBuf);
     const pubkeyBytes = new PublicKey(wallet).toBytes();
     const valid = ed25519.verify(sigBytes, messageBytes, pubkeyBytes);
     if (!valid) {
@@ -108,7 +135,13 @@ export async function verifyWalletSignature(
   }
 
   // Atomically consume challenge + update profile via RPC
-  const admin = getAdminClient();
+  let admin;
+  try {
+    admin = getAdminClient();
+  } catch (err) {
+    console.error("[wallet action] admin client init failed:", err);
+    return { success: false, error: "サーバー設定エラーが発生しました" };
+  }
   const { data: rpcResult, error: rpcError } = await admin.rpc("consume_wallet_challenge", {
     p_nonce: nonce,
     p_user_id: user.id,

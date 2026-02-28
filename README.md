@@ -50,7 +50,6 @@ Add to `~/.claude/mcp.json`:
       "command": "npx",
       "args": ["--yes", "--package", "@knowmint/mcp-server@0.1.2", "mcp-server"],
       "env": {
-        "KM_API_KEY": "km_xxx",
         "KM_BASE_URL": "https://knowmint.shop"
       }
     }
@@ -58,8 +57,30 @@ Add to `~/.claude/mcp.json`:
 }
 ```
 
+> **No API key needed for initial setup.** The agent can self-register using `km_register`.
+
+#### Self-Registration (No Prior Account Needed)
+
+1. Prepare a Solana keypair file (e.g. `~/.config/solana/id.json`)
+2. Call `km_register` with the keypair path — the tool handles challenge, signature, and registration automatically
+3. The API key is saved to `~/.km/config.json` and used for all subsequent calls
+
+```
+km_register(keypair_path: "~/.config/solana/id.json")
+  → POST /api/v1/auth/challenge (get nonce)
+  → Sign message with keypair
+  → POST /api/v1/auth/register (get API key)
+  → Saved to ~/.km/config.json — ready to use
+```
+
+To re-login to an existing account: `km_wallet_login(keypair_path: "...")`.
+
+#### Tool Reference
+
 | Tool | Description |
 |---|---|
+| `km_register` | **Register a new account with a Solana keypair and get an API key** |
+| `km_wallet_login` | **Re-login to an existing account and get a new API key** |
 | `km_search` | Search knowledge |
 | `km_get_detail` | Get knowledge details |
 | `km_purchase` | Purchase knowledge (Solana transfer) |
@@ -85,8 +106,23 @@ km_get_content()
 
 Standalone Node.js CLI. Config stored in `~/.km/config.json`.
 
+#### Self-Registration
+
 ```bash
-km login --base-url https://knowmint.shop   # Interactive API key input
+# Register with an existing Solana keypair (creates account + saves API key)
+km register --keypair ~/.config/solana/id.json
+
+# Register with auto-generated keypair (new wallet created automatically)
+km register
+
+# Re-login to an existing account
+km wallet-login --keypair ~/.config/solana/id.json
+```
+
+#### Usage
+
+```bash
+km login --base-url https://knowmint.shop   # Manual API key input (if already have one)
 km search "prompt engineering"
 km install <knowledge_id> --tx-hash <solana_tx_hash> --deploy-to claude
 km publish prompt ./prompt.md --price 0.5SOL --tags "seo,marketing"
@@ -192,6 +228,14 @@ Provider: `trending-knowledge` (top 5 injected into context)
 
 Most endpoints are protected by `withApiAuth` (API key auth + rate limiting).
 Full reference: `docs/openapi.yaml` / `docs/api-guidelines.md`
+
+### Auth (No API Key Required)
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/v1/auth/challenge` | Get a signing challenge (wallet + purpose) |
+| POST | `/api/v1/auth/register` | Register with wallet signature → receive API key |
+| POST | `/api/v1/auth/login` | Re-login with wallet signature → receive new API key |
 
 ### Knowledge
 

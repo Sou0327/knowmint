@@ -86,3 +86,10 @@ test-ledger/
 
 # Local planning files
 plans/
+
+# Temporary files (keypairs, scripts, etc.)
+tmp-*
+**/tmp-*
+
+# Supabase Dashboard snippets (may contain user-specific data)
+supabase/snippets/

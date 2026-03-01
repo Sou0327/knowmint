@@ -192,8 +192,8 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
         );
       }
 
-      // Record the confirmed purchase
-      const { error: insertErr } = await admin.from("transactions").insert({
+      // Record as pending then confirm via RPC (purchase_count atomic increment)
+      const { data: insertedTx, error: insertErr } = await admin.from("transactions").insert({
         buyer_id: user.userId,
         seller_id: item.seller_id,
         knowledge_item_id: id,
@@ -201,10 +201,10 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
         token,
         chain: "solana" as const,
         tx_hash: payment.txHash,
-        status: "confirmed" as const,
+        status: "pending" as const,
         protocol_fee: 0,
         fee_vault_address: null,
-      });
+      }).select("id").single();
 
       if (insertErr) {
         if (insertErr.code === "23505") {
@@ -233,6 +233,15 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
           // [Fix-2] Non-duplicate errors → fail-close; never serve content without a record
           console.error("[content] x402 record transaction failed:", { userId: user.userId, itemId: id, error: insertErr });
           return apiError(API_ERRORS.INTERNAL_ERROR);
+        }
+      } else {
+        // Confirm via RPC to atomically increment purchase_count
+        const { error: confirmErr } = await admin.rpc("confirm_transaction", {
+          tx_id: insertedTx.id,
+        });
+        if (confirmErr) {
+          console.error("[content] x402 confirm_transaction failed:", { userId: user.userId, itemId: id, error: confirmErr });
+          // continue serving content — transaction is recorded, count will be fixed by cron
         }
       }
     }

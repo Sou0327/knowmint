@@ -201,8 +201,8 @@ export default function SalesPage() {
       ) : (
         <>
           {/* Revenue by Token */}
-          <div className="mb-6 grid gap-4 sm:grid-cols-3">
-            {(["SOL", "USDC", "ETH"] as Token[]).map((token) => {
+          <div className="mb-6 grid gap-4 sm:grid-cols-1 max-w-sm">
+            {(["SOL"] as Token[]).map((token) => {
               const r = revenueByToken.find((rv) => rv.token === token);
               return (
                 <Card key={token} padding="md">

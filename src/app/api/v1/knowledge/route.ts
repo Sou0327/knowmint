@@ -95,6 +95,7 @@ export const GET = withApiAuth(async (request) => {
   if (query) {
     queryBuilder = queryBuilder.textSearch("search_vector", query, {
       type: "websearch",
+      config: "simple",
     });
   }
   if (category) {

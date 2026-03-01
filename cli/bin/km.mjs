@@ -474,6 +474,8 @@ async function cmdSearch(args) {
   }
 
   const config = await loadConfig();
+  const baseUrlFlag = getFlag(flags, "base-url");
+  if (baseUrlFlag) config.baseUrl = normalizeBaseUrl(String(baseUrlFlag));
   const page = toInt(getFlag(flags, "page"), 1);
   const perPage = toInt(getFlag(flags, "per-page", "per_page"), 20);
   const params = new URLSearchParams({
@@ -523,6 +525,8 @@ async function cmdInstall(args) {
   }
 
   const config = await loadConfig();
+  const baseUrlFlag = getFlag(flags, "base-url");
+  if (baseUrlFlag) config.baseUrl = normalizeBaseUrl(String(baseUrlFlag));
   const txHash = String(getFlag(flags, "tx-hash") ?? "").trim();
   const token = String(getFlag(flags, "token") ?? "SOL").toUpperCase();
   const chain = String(getFlag(flags, "chain") ?? "solana");
@@ -666,6 +670,8 @@ async function cmdPublish(args) {
   };
 
   const config = await loadConfig();
+  const baseUrlFlag = getFlag(flags, "base-url");
+  if (baseUrlFlag) config.baseUrl = normalizeBaseUrl(String(baseUrlFlag));
   const createResult = await apiJson(config, "/api/v1/knowledge", "POST", createBody);
   const created = unwrapData(createResult);
   const knowledgeId = created.id;
@@ -723,6 +729,8 @@ async function cmdMyPurchases(args) {
   });
 
   const config = await loadConfig();
+  const baseUrlFlag = getFlag(flags, "base-url");
+  if (baseUrlFlag) config.baseUrl = normalizeBaseUrl(String(baseUrlFlag));
   const result = await apiJson(config, `/api/v1/me/purchases?${params.toString()}`);
 
   if (getFlag(flags, "json")) {
@@ -764,6 +772,8 @@ async function cmdVersions(args) {
   }
 
   const config = await loadConfig();
+  const baseUrlFlag = getFlag(flags, "base-url");
+  if (baseUrlFlag) config.baseUrl = normalizeBaseUrl(String(baseUrlFlag));
   const page = getFlag(flags, "page") ?? "1";
   const perPage = getFlag(flags, "per-page") ?? "20";
   const qs = new URLSearchParams({ page: String(page), per_page: String(perPage) });
@@ -806,6 +816,8 @@ async function cmdMyListings(args) {
   });
 
   const config = await loadConfig();
+  const baseUrlFlag = getFlag(flags, "base-url");
+  if (baseUrlFlag) config.baseUrl = normalizeBaseUrl(String(baseUrlFlag));
   const result = await apiJson(config, `/api/v1/me/listings?${params.toString()}`);
 
   if (getFlag(flags, "json")) {

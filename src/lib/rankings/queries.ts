@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database.types";
 
 export interface TopSeller {
   id: string;
@@ -10,8 +12,11 @@ export interface TopSeller {
   trust_score: number | null;
 }
 
-export async function getTopSellers(limit = 10): Promise<TopSeller[]> {
-  const supabase = await createClient();
+export async function getTopSellers(
+  limit = 10,
+  client?: SupabaseClient<Database>
+): Promise<TopSeller[]> {
+  const supabase = client ?? (await createClient());
 
   // Get sellers with confirmed transaction counts
   const { data: transactions } = await supabase

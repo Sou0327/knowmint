@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { KnowledgeSearchParams } from "@/types/knowledge.types";
-import type { ContentType, ListingType, KnowledgeStatus, UserType } from "@/types/database.types";
+import type { ContentType, ListingType, KnowledgeStatus, UserType, Database } from "@/types/database.types";
 
 // ── 戻り値型定義 ──────────────────────────────────
 
@@ -51,14 +52,17 @@ import { toSingle } from "@/lib/supabase/utils";
 
 // ── クエリ関数 ─────────────────────────────────────
 
-export async function getPublishedKnowledge(params: KnowledgeSearchParams = {}): Promise<{
+export async function getPublishedKnowledge(
+  params: KnowledgeSearchParams = {},
+  client?: SupabaseClient<Database>
+): Promise<{
   data: KnowledgeCardRow[];
   total: number;
   page: number;
   per_page: number;
   total_pages: number;
 }> {
-  const supabase = await createClient();
+  const supabase = client ?? (await createClient());
   const {
     query,
     category,
@@ -232,8 +236,8 @@ export async function getKnowledgeById(id: string): Promise<KnowledgeDetailRow |
   } as KnowledgeDetailRow;
 }
 
-export async function getCategories() {
-  const supabase = await createClient();
+export async function getCategories(client?: SupabaseClient<Database>) {
+  const supabase = client ?? (await createClient());
   const { data } = await supabase
     .from("categories")
     .select("id, name, slug, icon")

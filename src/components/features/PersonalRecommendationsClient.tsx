@@ -11,24 +11,22 @@ interface Props {
 
 export default function PersonalRecommendationsClient({ title }: Props) {
   const { user } = useAuth();
-  const [recs, setRecs] = useState<RecommendationRow[]>([]);
+  // userId を recs と一緒に管理し、ユーザー切替時に古いデータが表示されないようにする
+  const [recsState, setRecsState] = useState<{
+    userId: string | null;
+    data: RecommendationRow[];
+  }>({ userId: null, data: [] });
   const fetchedForRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (!user) {
-      // ログアウト時にクリア (非同期で setState を呼ぶことで cascading render を回避)
-      Promise.resolve().then(() => {
-        setRecs([]);
-        fetchedForRef.current = null;
-      }, () => {});
-      return;
-    }
+  // 現在のユーザーと userId が一致する場合のみ表示
+  const recs = recsState.userId === (user?.id ?? null) ? recsState.data : [];
 
-    // 同じユーザーの fetch は重複実行しない
+  useEffect(() => {
+    if (!user) return;
     if (fetchedForRef.current === user.id) return;
 
     const controller = new AbortController();
-    fetchedForRef.current = user.id;
+    let committed = false;
 
     fetch("/api/v1/me/recommendations", { signal: controller.signal })
       .then(
@@ -36,11 +34,20 @@ export default function PersonalRecommendationsClient({ title }: Props) {
         () => undefined
       )
       .then((d: { data?: RecommendationRow[] } | undefined) => {
-        if (d?.data) setRecs(d.data);
-      }, () => {});
+        if (d?.data) {
+          committed = true;
+          fetchedForRef.current = user.id;
+          setRecsState({ userId: user.id, data: d.data });
+        } else if (!controller.signal.aborted) {
+          fetchedForRef.current = null;
+        }
+      }, () => {
+        if (!controller.signal.aborted) fetchedForRef.current = null;
+      });
 
     return () => {
       controller.abort();
+      if (!committed) fetchedForRef.current = null;
     };
   }, [user]);
 

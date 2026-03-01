@@ -1,16 +1,37 @@
+import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
 import Link from "next/link";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import PersonalRecommendationsClient from "@/components/features/PersonalRecommendationsClient";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
 import { getTopSellers } from "@/lib/rankings/queries";
+import { getAdminClient } from "@/lib/supabase/admin";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
 import { JsonLd } from "@/components/seo/JsonLd";
 import HowItWorksSection from "@/components/features/HowItWorksSection";
 import { getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
 
-export const revalidate = 60;
+// 公開データのみキャッシュ (cookies() 不使用の Admin クライアントを使用)
+// dynamic rendering のままでも DB クエリを 60 秒間キャッシュし TTFB を削減
+const getCachedHomeData = unstable_cache(
+  async () => {
+    const admin = getAdminClient();
+    const [newest, popular, categories, topSellers] = await Promise.all([
+      getPublishedKnowledge({ sort_by: "newest", per_page: 6 }, admin),
+      getPublishedKnowledge({ sort_by: "popular", per_page: 6 }, admin),
+      getCategories(admin),
+      getTopSellers(5, admin),
+    ]);
+    // カテゴリは常に存在するはず。空ならDB障害とみなしキャッシュしない
+    if (categories.length === 0) {
+      throw new Error("home data unavailable: categories empty");
+    }
+    return { newest, popular, categories, topSellers };
+  },
+  ["home-data"],
+  { revalidate: 60 }
+);
 
 export default async function HomePage() {
   const [tHome, tCommon, tNav, tTypes] = await Promise.all([
@@ -20,12 +41,13 @@ export default async function HomePage() {
     getTranslations("Types"),
   ]);
 
-  const [newest, popular, categories, topSellers] = await Promise.all([
-    getPublishedKnowledge({ sort_by: "newest", per_page: 6 }),
-    getPublishedKnowledge({ sort_by: "popular", per_page: 6 }),
-    getCategories(),
-    getTopSellers(5),
-  ]);
+  // DB 障害時はキャッシュせずに空データでフォールバック
+  const { newest, popular, categories, topSellers } = await getCachedHomeData().catch(() => ({
+    newest: { data: [], total: 0, page: 1, per_page: 6, total_pages: 0 },
+    popular: { data: [], total: 0, page: 1, per_page: 6, total_pages: 0 },
+    categories: [] as Awaited<ReturnType<typeof getCategories>>,
+    topSellers: [] as Awaited<ReturnType<typeof getTopSellers>>,
+  }));
 
   const websiteJsonLd = {
     "@context": "https://schema.org",

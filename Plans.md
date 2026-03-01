@@ -118,11 +118,13 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 - [ ] Card → shadcn/ui Card に置換 `cc:TODO`
 - [ ] 自前 `src/components/ui/` の旧コンポーネント削除 `cc:TODO`
 
-### C.3 ダークモード手動切り替え
+### C.3 ダークモード手動切り替え `cc:完了` (2026-03-02)
 
-- [ ] Tailwind を `class` strategy に変更 `cc:TODO`
-- [ ] テーマトグルコンポーネント追加 (Header) `cc:TODO`
-- [ ] `localStorage` でテーマ永続化 `cc:TODO`
+- [x] Tailwind v4 `@custom-variant dark` でクラスベース dark mode 有効化 `cc:完了`
+- [x] ThemeToggle コンポーネント追加 (Header デスクトップ + モバイル両方) `cc:完了`
+- [x] `localStorage` でテーマ永続化 + FOUC 防止スクリプト (head 内) `cc:完了`
+  - `useSyncExternalStore` ベース、OS テーマ追従、別タブ同期、matchMedia 非対応環境フォールバック
+  - Codex ISSUES_FOUND: 0 (3ラウンド)
 
 ---
 

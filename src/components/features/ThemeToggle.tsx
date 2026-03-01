@@ -32,26 +32,37 @@ function getServerSnapshot(): Theme {
   return 'dark';
 }
 
-function setDomTheme(theme: Theme) {
-  document.documentElement.classList.remove('dark', 'light');
-  document.documentElement.classList.add(theme);
+function setDomTheme(theme: Theme): boolean {
+  const root = document.documentElement;
+  // 目的テーマのみ付いている正常状態なら no-op
+  if (root.classList.contains(theme) && !root.classList.contains(theme === 'dark' ? 'light' : 'dark')) {
+    return false;
+  }
+  root.classList.remove('dark', 'light');
+  root.classList.add(theme);
+  return true;
 }
 
 function subscribe(callback: () => void): () => void {
-  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  // matchMedia 非対応環境用の fallback mq (OS追従なし)
+  const hasMatchMedia = typeof window.matchMedia === 'function';
+  const mq = hasMatchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
   // OS テーマ変更: localStorage に保存値がない場合のみ追従し DOM も更新
+  // DOM が実際に変わった場合のみ callback() を呼ぶ (不要な再レンダー防止)
   const handleMqChange = () => {
+    if (!mq) return;
+    let changed = false;
     try {
       const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
       if (stored !== 'dark' && stored !== 'light') {
-        setDomTheme(getOsTheme(mq));
+        changed = setDomTheme(getOsTheme(mq));
       }
     } catch {
       // localStorage 不可: OS テーマに追従
-      setDomTheme(getOsTheme(mq));
+      changed = setDomTheme(getOsTheme(mq));
     }
-    callback();
+    if (changed) callback();
   };
 
   // 別タブでの localStorage 変更 / 削除 / clear
@@ -59,23 +70,38 @@ function subscribe(callback: () => void): () => void {
   const handleStorage = (e: StorageEvent) => {
     if (e.key !== null && e.key !== STORAGE_KEY) return;
     const newTheme = e.newValue;
-    if (newTheme === 'dark' || newTheme === 'light') {
-      setDomTheme(newTheme);
-    } else {
-      // 削除 / クリア → OS 追従
-      setDomTheme(getOsTheme(mq));
-    }
-    callback();
+    const fallback: Theme = mq ? getOsTheme(mq) : 'dark';
+    const changed = newTheme === 'dark' || newTheme === 'light'
+      ? setDomTheme(newTheme)
+      : setDomTheme(fallback); // 削除 / クリア → OS 追従
+    if (changed) callback();
   };
 
   window.addEventListener('km-theme-change', callback);
   window.addEventListener('storage', handleStorage);
-  mq.addEventListener('change', handleMqChange);
+
+  // MediaQueryList.addEventListener は Safari 14+ / Chrome 79+ から対応。
+  // 旧環境では deprecated の addListener にフォールバック。
+  if (mq) {
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', handleMqChange);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (mq as any).addListener(handleMqChange);
+    }
+  }
 
   return () => {
     window.removeEventListener('km-theme-change', callback);
     window.removeEventListener('storage', handleStorage);
-    mq.removeEventListener('change', handleMqChange);
+    if (mq) {
+      if (typeof mq.removeEventListener === 'function') {
+        mq.removeEventListener('change', handleMqChange);
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mq as any).removeListener(handleMqChange);
+      }
+    }
   };
 }
 

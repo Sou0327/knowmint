@@ -444,7 +444,7 @@ export type Database = {
     Functions: {
       confirm_transaction: {
         Args: { tx_id: string };
-        Returns: undefined;
+        Returns: number;
       };
       increment_view_count: {
         Args: { item_id: string };

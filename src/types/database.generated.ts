@@ -865,7 +865,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      confirm_transaction: { Args: { tx_id: string }; Returns: undefined }
+      confirm_transaction: { Args: { tx_id: string }; Returns: number }
       consume_auth_challenge: {
         Args: { p_nonce: string; p_purpose: string; p_wallet: string }
         Returns: string

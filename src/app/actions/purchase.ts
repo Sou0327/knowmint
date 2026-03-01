@@ -85,14 +85,19 @@ export async function recordPurchase(
       }
       // pending: 再 confirm を試行
       if (existing.status === "pending") {
-        const { error: retryError } = await admin.rpc("confirm_transaction", {
+        const { data: retryCount, error: retryError } = await admin.rpc("confirm_transaction", {
           tx_id: existing.id,
         });
         if (retryError) {
           console.error("[recordPurchase] retry confirm failed", { txId: existing.id, error: retryError });
           return { success: false, error: "Transaction confirmation retry failed" };
         }
-        // RPC は 0 件更新でもエラーにならないため、再読込で status を検証
+        // RPC が 1 を返した場合のみ実際に確認済みになった (0 = 別リクエストが先行)
+        // purchase_count インクリメントは RPC 内部で原子的に完了している
+        if (retryCount === 1) {
+          return { success: true };
+        }
+        // 0 の場合: 別の並行リクエストが先に confirm した可能性 → 再読込で確認
         const { data: recheckTx, error: recheckError } = await admin
           .from("transactions")
           .select("status")
@@ -103,6 +108,7 @@ export async function recordPurchase(
           return { success: false, error: "Database error" };
         }
         if (recheckTx?.status === "confirmed") {
+          // 別リクエストが confirm+increment 済み → 重複カウントしない
           return { success: true };
         }
         return { success: false, error: "Transaction confirmation retry failed" };
@@ -235,14 +241,28 @@ export async function recordPurchase(
     return { success: false, error: "Failed to record purchase" };
   }
 
-  // confirm_transaction RPC で pending → confirmed に昇格
-  const { error: confirmError } = await admin.rpc("confirm_transaction", {
+  // confirm_transaction RPC で pending → confirmed に昇格 + purchase_count を原子的インクリメント
+  // RPC は実際に遷移した件数 (0 or 1) を返す
+  const { data: confirmCount, error: confirmError } = await admin.rpc("confirm_transaction", {
     tx_id: transaction.id,
   });
 
   if (confirmError) {
     console.error("[recordPurchase] confirm_transaction rpc failed", { userId: user.id, knowledgeId, error: confirmError });
     return { success: false, error: "Transaction confirmation failed" };
+  }
+
+  if (confirmCount !== 1) {
+    // 0: pending でなかった (別の並行リクエストが先行した可能性) → 再読込で確認
+    const { data: recheckTx } = await admin
+      .from("transactions")
+      .select("status")
+      .eq("id", transaction.id)
+      .single();
+    if (recheckTx?.status !== "confirmed") {
+      console.error("[recordPurchase] confirm_transaction updated 0 rows and status not confirmed", { userId: user.id, knowledgeId, txId: transaction.id });
+      return { success: false, error: "Transaction confirmation failed" };
+    }
   }
 
   // 売り手へ購入完了メール送信 (fire-and-forget)

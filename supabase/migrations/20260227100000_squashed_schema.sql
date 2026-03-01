@@ -473,16 +473,32 @@ REVOKE ALL ON FUNCTION public.increment_purchase_count(uuid) FROM authenticated;
 GRANT  EXECUTE ON FUNCTION public.increment_purchase_count(uuid) TO service_role;
 
 -- 5.6 confirm_transaction
+-- RETURNS integer: 実際に pending→confirmed に遷移した件数 (0 or 1)
+-- 遷移した場合のみ knowledge_items.purchase_count を原子的インクリメント
 CREATE OR REPLACE FUNCTION confirm_transaction(tx_id UUID)
-RETURNS void
+RETURNS integer
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = pg_catalog, public
 AS $$
+DECLARE
+  updated_count integer;
+  v_item_id UUID;
 BEGIN
   UPDATE transactions
   SET status = 'confirmed', updated_at = NOW()
-  WHERE id = tx_id AND status = 'pending';
+  WHERE id = tx_id AND status = 'pending'
+  RETURNING knowledge_item_id INTO v_item_id;
+
+  GET DIAGNOSTICS updated_count = ROW_COUNT;
+
+  IF updated_count > 0 THEN
+    UPDATE knowledge_items
+    SET purchase_count = purchase_count + 1
+    WHERE id = v_item_id;
+  END IF;
+
+  RETURN updated_count;
 END;
 $$;
 

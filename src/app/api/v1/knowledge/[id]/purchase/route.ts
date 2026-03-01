@@ -147,14 +147,18 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
       }
       // pending: 再 confirm を試行
       if (existingByHash.status === "pending") {
-        const { error: retryError } = await admin.rpc("confirm_transaction", {
+        const { data: retryCount, error: retryError } = await admin.rpc("confirm_transaction", {
           tx_id: existingByHash.id,
         });
         if (retryError) {
           console.error("[purchase] retry confirm failed:", { txId: existingByHash.id, error: retryError });
           return apiError(API_ERRORS.BAD_REQUEST, "Transaction confirmation retry failed");
         }
-        // RPC は 0 件更新でもエラーにならないため、再読込で status を検証
+        if (retryCount === 1) {
+          // purchase_count インクリメントは RPC 内部で完了。再読込不要
+          return apiSuccess({ ...existingByHash, status: 'confirmed' as const });
+        }
+        // 0 の場合: 別の並行リクエストが先行した可能性 → 再読込で確認
         const { data: retriedTx, error: recheckError } = await admin
           .from("transactions")
           .select(TX_SELECT_COLUMNS)
@@ -270,8 +274,9 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
-  // Confirm transaction via RPC
-  const { error: confirmError } = await admin.rpc("confirm_transaction", {
+  // Confirm transaction via RPC (purchase_count インクリメントも原子的に実行)
+  // RPC は実際に pending→confirmed に遷移した件数 (0 or 1) を返す
+  const { data: confirmCount, error: confirmError } = await admin.rpc("confirm_transaction", {
     tx_id: transaction.id,
   });
 
@@ -284,17 +289,43 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     );
   }
 
-  // Increment purchase count (fire-and-forget with error handler) (D1)
-  admin
-    .rpc("increment_purchase_count", { item_id: id })
-    .then(
-      () => {},
-      (err: unknown) =>
-        console.error("[purchase] increment purchase count failed:", { itemId: id, error: err })
+  if (confirmCount !== 1) {
+    // 0: pending でなかった (別の並行リクエストが先行した可能性) → 再読込で確認
+    const { data: recheckTx, error: recheckError } = await admin
+      .from("transactions")
+      .select(TX_SELECT_COLUMNS)
+      .eq("id", transaction.id)
+      .single();
+    if (recheckError || !recheckTx) {
+      console.error("[purchase] recheck failed after 0-row confirm", { userId: user.userId, itemId: id, txId: transaction.id });
+      return apiError(API_ERRORS.INTERNAL_ERROR);
+    }
+    if (recheckTx.status !== "confirmed") {
+      console.error("[purchase] confirm_transaction updated 0 rows and status not confirmed", { userId: user.userId, itemId: id, txId: transaction.id });
+      return apiError(API_ERRORS.BAD_REQUEST, "Transaction confirmation failed");
+    }
+    // 並行リクエストが先行: send effects and return
+    notifyPurchase(
+      item.seller_id,
+      walletProfiles.find((p) => p.id === user.userId)?.display_name || "購入者",
+      { id: item.id, title: item.title },
+      expectedAmount,
+      token
+    ).catch((err: unknown) =>
+      console.error("[purchase] send notification failed:", { userId: item.seller_id, itemId: id, error: err })
     );
+    fireWebhookEvent(user.userId, "purchase.completed", {
+      knowledge_id: id,
+      transaction_id: transaction.id,
+      amount: expectedAmount,
+      token,
+    }).catch((err: unknown) => console.error("[purchase] webhook dispatch failed:", { userId: user.userId, itemId: id, error: err }));
+    logAuditEvent({ userId: user.userId, action: "purchase.completed", resourceType: "knowledge_item", resourceId: id, metadata: { txHash: tx_hash.trim() } });
+    return apiSuccess(recheckTx);
+  }
 
+  // Happy path: confirmCount === 1, purchase_count は RPC 内部で原子的に完了
   // Notify seller about the purchase (fire-and-forget)
-  // item.title is already fetched in the initial SELECT — no extra DB round-trip needed
   notifyPurchase(
     item.seller_id,
     walletProfiles.find((p) => p.id === user.userId)?.display_name || "購入者",
@@ -305,8 +336,6 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     console.error("[purchase] send notification failed:", { userId: item.seller_id, itemId: id, error: err })
   );
 
-  // Fire webhook event and audit log BEFORE refetch to avoid permanent side-effect loss
-  // if the refetch fails (idempotent retry would hit existingByHash.status === "confirmed" path)
   fireWebhookEvent(user.userId, "purchase.completed", {
     knowledge_id: id,
     transaction_id: transaction.id,
@@ -322,17 +351,6 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     metadata: { txHash: tx_hash.trim() },
   });
 
-  // Fetch updated transaction (confirmed status)
-  const { data: confirmedTx, error: refetchError } = await admin
-    .from("transactions")
-    .select(TX_SELECT_COLUMNS)
-    .eq("id", transaction.id)
-    .single();
-
-  if (refetchError || !confirmedTx) {
-    console.error("[purchase] refetch confirmed tx failed:", { txId: transaction.id, error: refetchError });
-    return apiError(API_ERRORS.INTERNAL_ERROR);
-  }
-
-  return apiSuccess(confirmedTx);
+  // INSERT 済みの transaction から confirmed 状態を構築 (余分な再 SELECT を回避)
+  return apiSuccess({ ...transaction, status: 'confirmed' as const });
 }, { requiredPermissions: ["write"] });

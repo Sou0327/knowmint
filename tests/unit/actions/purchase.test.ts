@@ -149,7 +149,7 @@ function setupHappyPath() {
     { data: { id: TX_ROW_ID }, error: null }, // 5: insert single
   ];
   state.rpcResults = [
-    { data: null, error: null }, // confirm_transaction
+    { data: 1, error: null }, // confirm_transaction: 実際に pending→confirmed に遷移した件数
   ];
 }
 
@@ -223,24 +223,34 @@ describe("recordPurchase() tests", () => {
       expect(result.success).toBe(true);
     });
 
-    it("existing tx same buyer/item pending → retry confirm → recheck confirmed → { success: true }", async () => {
+    it("existing tx same buyer/item pending → retry confirm (RPC=1) → early return { success: true }", async () => {
+      state.adminCallResults = [
+        { data: null, error: null },
+        { data: { id: TX_ROW_ID, buyer_id: USER_ID, knowledge_item_id: KNOWLEDGE_ID, status: "pending" }, error: null },
+      ];
+      state.rpcResults = [{ data: 1, error: null }]; // RPC returned 1 → confirmed
+      const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "solana", "SOL", true);
+      expect(result.success).toBe(true);
+    });
+
+    it("existing tx same buyer/item pending → retry confirm (RPC=0) → recheck confirmed → { success: true }", async () => {
       state.adminCallResults = [
         { data: null, error: null },
         { data: { id: TX_ROW_ID, buyer_id: USER_ID, knowledge_item_id: KNOWLEDGE_ID, status: "pending" }, error: null },
         { data: { status: "confirmed" }, error: null },
       ];
-      state.rpcResults = [{ data: null, error: null }];
+      state.rpcResults = [{ data: 0, error: null }]; // concurrent request confirmed first
       const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "solana", "SOL", true);
       expect(result.success).toBe(true);
     });
 
-    it("existing tx same buyer/item pending → retry confirm RPC → recheck not confirmed → { success: false }", async () => {
+    it("existing tx same buyer/item pending → retry confirm (RPC=0) → recheck not confirmed → { success: false }", async () => {
       state.adminCallResults = [
         { data: null, error: null },
         { data: { id: TX_ROW_ID, buyer_id: USER_ID, knowledge_item_id: KNOWLEDGE_ID, status: "pending" }, error: null },
         { data: { status: "pending" }, error: null },
       ];
-      state.rpcResults = [{ data: null, error: null }];
+      state.rpcResults = [{ data: 0, error: null }]; // 0 rows updated, status still pending
       const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "solana", "SOL", true);
       expect(result.success).toBe(false);
       expect(result.error).toBe("Transaction confirmation retry failed");

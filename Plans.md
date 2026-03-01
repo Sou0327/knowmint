@@ -9,8 +9,10 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A すべて `cc:DONE`
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
+Phase 26 (CLIデモ GIF + HowItWorks): `plans/archive-phase26-ui1.md`
+Phase UI-1 (Xリンク + Lighthouse): `plans/archive-phase26-ui1.md`
 Phase R (OSS公開): `plans/archive-phase-r-a.md`
 Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-r-a.md`
 
@@ -39,6 +41,29 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 - [ ] Phantom をdevnet切り替え + faucet.solana.com でSOL取得 `cc:TODO`
 - [ ] 本番で購入フロー E2E 確認（検索→詳細→購入→コンテンツ取得） `cc:TODO`
 - [ ] **テスト完了後**: GitHub Variables/Secrets を mainnet に戻して再デプロイ（Show HN 前に必須） `cc:TODO`
+
+---
+
+## Phase DEMO-WEB: WebUI 購入フロー GIF 作成 [P1 — Show HN 必須]
+
+> 現在の demo GIF はターミナル録画（asciinema）のみで、実際の DQ スタイル Web UI が一切映っていない。
+> Show HN 訪問者はプロダクトの見た目を最初の3秒で判断する。WebUI GIF は必須。
+> **前提**: PROD-TEST 完了後（devnet で実データが存在する状態）に実施。
+
+- [ ] 事前準備: ナレッジアイテム 10件以上を本番に出品（デモ映えするコンテンツ） `cc:TODO`
+- [ ] 画面録画: ブラウザで購入フルフロー録画（検索→詳細→購入モーダル→Solana TX→コンテンツ表示） `cc:TODO`
+  - ツール: QuickTime（Mac）または OBS
+  - 解像度: 1280×800 推奨（HN サイドバー幅を考慮）
+  - 長さ: 30〜45秒以内
+- [ ] GIF 変換: `ffmpeg` で mp4→gif 変換、`gifsicle` で最適化（目標 < 5MB） `cc:TODO`
+  ```bash
+  ffmpeg -i recording.mov -vf "fps=15,scale=1280:-1" -loop 0 webui-demo.gif
+  gifsicle --optimize=3 webui-demo.gif -o webui-demo-opt.gif
+  ```
+- [ ] README 更新: 現行の CLI GIF の上に WebUI GIF を追加（2段構成） `cc:TODO`
+  - 上段: WebUI GIF（人間・投資家向け）
+  - 下段: 既存 CLI GIF（エンジニア・エージェント向け）
+- [ ] OGP 確認: GitHub の README プレビューで GIF が正しく表示されることを確認 `cc:TODO`
 
 ---
 
@@ -101,18 +126,6 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 
 ---
 
-## Phase 26: 自律購入デモ動画 [P1 — 訴求コンテンツ]
-
-> 「AIエージェントが知識を自律購入した」実証動画。最強のマーケティング素材。
-> 前提: Phase 40 (自律オンボーディング) 完了済。着手可能。
-
-- [x] 26.1 デモシナリオ設計 + `scripts/demo/autonomous-purchase-demo.mjs` 作成 `cc:完了`
-- [x] 26.2 Claude Code + MCP でデモ実行・キャプチャ `cc:完了`
-- [x] 26.3 `asciinema rec` → GIF → README 埋め込み `cc:完了` / SNS投稿はユーザー手動
-- [x] 26.4 Web UI トップに「How it works for AI Agents」セクション `cc:完了`
-
----
-
 ## Phase 33: 品質担保機能 [P1]
 
 > 無料tier: 証拠フィールド必須化 + ティア型プレビュー。
@@ -166,27 +179,6 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 
 ---
 
-## Phase UI-1: フッター X リンク追加 + Lighthouse 監査 [P2] (2026-03-01)
-
-> SNS 導線追加とパフォーマンス・アクセシビリティの現状把握。
-
-### UI-1.1 フッター X リンク追加
-
-- [x] `Footer.tsx` の Brand セクション下に X (Twitter) リンクを追加 `cc:完了`
-  - URL: https://x.com/gensou_ongaku
-  - `target="_blank" rel="noopener noreferrer"` 必須
-  - DQ スタイル (`text-dq-cyan hover:text-dq-gold`) 維持
-  - X アイコン（SVG またはテキスト）を付ける
-
-### UI-1.2 Lighthouse 監査
-
-- [x] `lighthouse` CLI でローカル (`localhost:3000`) を計測 `cc:完了`
-  - 計測対象: トップ・ナレッジ詳細・検索ページ（3ページ）
-  - スコア記録: Performance / Accessibility / Best Practices / SEO
-- [x] 指摘 (スコア < 80) があれば修正タスクを追加 `cc:完了`
-
----
-
 ## 削除済みフェーズ (理由付き)
 
 | Phase | 削除理由 |
@@ -201,13 +193,3 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 ## 将来フェーズ (未スケジュール)
 
 - Request Listing 復活・強化, pgvector セマンティック検索, LangChain/AutoGen/CrewAI プラグイン対応
-
-## 技術スタック
-
-| レイヤー | 技術 |
-| --- | --- |
-| Frontend | Next.js 16 (App Router), TypeScript, Tailwind CSS v4 |
-| Backend/DB | Supabase (PostgreSQL, Auth, Storage, RLS) |
-| 決済 | Solana のみ (EVM 対応は Phase A で死コード削除) |
-| MCP | `@modelcontextprotocol/sdk` (TypeScript) |
-| デプロイ | Cloudflare Workers (opennextjs-cloudflare) |

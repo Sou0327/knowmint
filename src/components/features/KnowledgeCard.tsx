@@ -1,8 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import type { BadgeProps } from "@/components/ui/Badge";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.types";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
 import type { ContentType, ListingType } from "@/types/database.types";
@@ -29,7 +31,7 @@ interface KnowledgeCardProps {
   purchase_count: number;
 }
 
-export default async function KnowledgeCard({
+export default function KnowledgeCard({
   id,
   listing_type,
   title,
@@ -42,9 +44,9 @@ export default async function KnowledgeCard({
   average_rating,
   purchase_count,
 }: KnowledgeCardProps) {
-  const t = await getTranslations("Knowledge");
-  const tCommon = await getTranslations("Common");
-  const tTypes = await getTranslations("Types");
+  const t = useTranslations("Knowledge");
+  const tCommon = useTranslations("Common");
+  const tTypes = useTranslations("Types");
   const listingType = listing_type || "offer";
 
   return (

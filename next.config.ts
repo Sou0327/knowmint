@@ -44,10 +44,10 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.solana.com wss://*.solana.com https://api.mainnet-beta.solana.com https://cloudflareinsights.com${isDev ? " http://127.0.0.1:54321 ws://127.0.0.1:54321 http://127.0.0.1:8899 ws://127.0.0.1:8899" : ""}`,
-              "font-src 'self' https://fonts.gstatic.com",
+              "font-src 'self'",
               "frame-ancestors 'none'",
             ].join("; "),
           },

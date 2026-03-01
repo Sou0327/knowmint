@@ -22,12 +22,16 @@ interface Props {
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { q } = await searchParams;
+  const { q, category, type, listing_type, sort, page } = await searchParams;
   const t = await getTranslations("Search");
   const title = q ? t("searchMetaTitle", { query: q }) : t("title");
+  // パラメータ付き検索結果は重複コンテンツ回避のため noindex
+  // ベースの /search ページのみインデックス可 + canonical 明示
+  const hasParams = [q, category, type, listing_type, sort, page].some((v) => v !== undefined);
   return {
     title,
-    robots: { index: false, follow: true },
+    alternates: { canonical: "/search" },
+    ...(hasParams ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -196,7 +200,6 @@ export default async function SearchPage({ searchParams }: Props) {
                   description={item.description}
                   content_type={item.content_type}
                   price_sol={item.price_sol}
-                  price_usdc={item.price_usdc}
                   seller={item.seller ?? { display_name: null }}
                   category={item.category}
                   tags={item.tags}

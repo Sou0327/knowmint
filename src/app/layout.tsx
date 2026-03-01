@@ -68,6 +68,8 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
+      {/* テーマ初期化: localStorage → OS preference の順で適用。FOUC を防ぐためインライン実行 */}
+      <script dangerouslySetInnerHTML={{ __html: `(function(){var t='dark';try{var s=localStorage.getItem('km-theme');t=(s==='dark'||s==='light')?s:window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}catch(e){}document.documentElement.classList.add(t);})();` }} />
       <body
         className={`${dotGothic.variable} ${geistSans.variable} ${geistMono.variable}`}
       >

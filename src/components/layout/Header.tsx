@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import NotificationBell from '@/components/features/NotificationBell';
 import WalletButton from '@/components/features/WalletButton';
 import LanguageToggle from '@/components/i18n/LanguageToggle';
+import { ThemeToggle } from '@/components/features/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
@@ -121,6 +122,7 @@ export function Header() {
 
           {/* Right side: Wallet & User Menu */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <LanguageToggle compact />
             <WalletButton />
             <NotificationBell />
@@ -348,6 +350,7 @@ export function Header() {
               <div className="mt-2 flex items-center gap-3">
                 <WalletButton />
                 <LanguageToggle compact />
+                <ThemeToggle />
               </div>
             </nav>
           </div>

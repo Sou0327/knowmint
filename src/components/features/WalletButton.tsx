@@ -16,7 +16,7 @@ export default function WalletButton({ showTabs: _showTabs = false }: WalletButt
   const t = useTranslations("Wallet");
   const { connected, publicKey, disconnect, connecting, signMessage } = useWallet();
   const { setVisible } = useWalletModal();
-  const { profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile, loading: authLoading } = useAuth();
 
   const [siwsError, setSiwsError] = useState<string | null>(null);
   const [siwsPending, setSiwsPending] = useState(false);
@@ -24,6 +24,7 @@ export default function WalletButton({ showTabs: _showTabs = false }: WalletButt
 
   useEffect(() => {
     if (
+      authLoading ||
       !connected ||
       !publicKey ||
       !signMessage ||
@@ -80,7 +81,7 @@ export default function WalletButton({ showTabs: _showTabs = false }: WalletButt
       setSiwsPending(false);
       siwsRunning.current = false;
     });
-  }, [connected, publicKey, signMessage, profile?.wallet_address, refreshProfile]);
+  }, [authLoading, connected, publicKey, signMessage, profile?.wallet_address, refreshProfile]);
 
   useEffect(() => {
     if (!connected) {

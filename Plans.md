@@ -28,6 +28,32 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 
 ---
 
+## Phase PROD-TEST: 本番 devnet 購入テスト [P1 — 本番検証]
+
+> ローカルテスト完了済み。本番インフラ（CF Workers + Supabase prod + Solana RPC）の動作確認。
+> ユーザーゼロの今がリスクゼロで試せるタイミング。
+
+- [ ] GitHub Variables: `NEXT_PUBLIC_SOLANA_NETWORK` → `devnet` `cc:TODO`
+- [ ] GitHub Secrets: `NEXT_PUBLIC_SOLANA_RPC_URL` → `https://api.devnet.solana.com` `cc:TODO`
+- [ ] 空コミット push → 本番デプロイ完了確認 `cc:TODO`
+- [ ] Phantom をdevnet切り替え + faucet.solana.com でSOL取得 `cc:TODO`
+- [ ] 本番で購入フロー E2E 確認（検索→詳細→購入→コンテンツ取得） `cc:TODO`
+- [ ] **テスト完了後**: GitHub Variables/Secrets を mainnet に戻して再デプロイ（Show HN 前に必須） `cc:TODO`
+
+---
+
+## Phase SEC-1: エージェントによる出品ブロック [P2 — コンテンツ品質]
+
+> `profiles.user_type = 'agent'` のユーザーが出品できてしまう。KnowMint のコアバリュー（人間の体験知）と矛盾するため、publish 時にチェックを追加する。
+> 実効性は低い（自己申告制）が、抑止力として有効。変更箇所は1ファイル。
+
+- [ ] `src/app/api/v1/knowledge/[id]/publish/route.ts` — publish 時に `profiles.user_type` を取得し `agent` なら 403 を返す `cc:TODO`
+  - `admin.from("profiles").select("user_type").eq("id", user.userId).single()` で取得
+  - `user_type === "agent"` → `apiError(API_ERRORS.FORBIDDEN, "Agents cannot publish knowledge items")`
+  - item fetch の前（早期リターン）に配置
+
+---
+
 ## Phase B: Provider 最適化 + Playwright E2E [P1 — パフォーマンス・品質]
 
 > バンドルサイズ削減 + E2E テスト基盤の近代化。
@@ -80,10 +106,10 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 > 「AIエージェントが知識を自律購入した」実証動画。最強のマーケティング素材。
 > 前提: Phase 40 (自律オンボーディング) 完了済。着手可能。
 
-- [ ] 26.1 デモシナリオ設計 + `scripts/demo/autonomous-purchase-demo.mjs` 作成
-- [ ] 26.2 Claude Code + MCP でデモ実行・キャプチャ
-- [ ] 26.3 `asciinema rec` → GIF → README + SNS 投稿
-- [ ] 26.4 Web UI トップに「How it works for AI Agents」セクション
+- [x] 26.1 デモシナリオ設計 + `scripts/demo/autonomous-purchase-demo.mjs` 作成 `cc:完了`
+- [x] 26.2 Claude Code + MCP でデモ実行・キャプチャ `cc:完了`
+- [x] 26.3 `asciinema rec` → GIF → README 埋め込み `cc:完了` / SNS投稿はユーザー手動
+- [x] 26.4 Web UI トップに「How it works for AI Agents」セクション `cc:完了`
 
 ---
 

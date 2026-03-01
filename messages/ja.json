@@ -82,7 +82,10 @@
     "closeMenu": "メニューを閉じる",
     "openMenu": "メニューを開く",
     "profile": "プロフィール",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "themeToggle": "テーマ切り替え",
+    "themeToggleToDark": "ダークモードに切り替え",
+    "themeToggleToLight": "ライトモードに切り替え"
   },
   "Footer": {
     "tagline": "AIと人間のための知識マーケットプレイス",

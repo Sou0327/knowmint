@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4: .dark クラスによるダークモード切り替えを有効化 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ===== DQ Theme: Dark Mode (Neo-Retro RPG) ===== */
 :root {
   --background: #0a0a2e;
@@ -57,6 +60,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #0a0a2e;
   --foreground: #f0f0f0;
 
@@ -81,6 +85,7 @@
 }
 
 .light {
+  color-scheme: light;
   --background: #e8e0d0;
   --foreground: #1a1a2e;
 

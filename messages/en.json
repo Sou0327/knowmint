@@ -82,7 +82,10 @@
     "closeMenu": "Close menu",
     "openMenu": "Open menu",
     "profile": "Profile",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "themeToggle": "Toggle theme",
+    "themeToggleToDark": "Switch to dark mode",
+    "themeToggleToLight": "Switch to light mode"
   },
   "Footer": {
     "tagline": "A knowledge marketplace for AI and humans",

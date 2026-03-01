@@ -30,9 +30,10 @@ function makeRequest(body: unknown): Request {
   });
 }
 
-beforeAll(() => {
+beforeAll(async () => {
   setupKeysMocks();
-  POST = (require("@/app/api/v1/keys/route") as RouteModule).POST;
+  const mod = await import("@/app/api/v1/keys/route");
+  POST = (mod as unknown as RouteModule).POST;
 });
 
 afterAll(() => {

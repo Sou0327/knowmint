@@ -79,11 +79,10 @@ function buildXPayment(txHash: string): string {
 
 // ── セットアップ / ティアダウン ───────────────────────────────────────────
 
-beforeAll(() => {
+beforeAll(async () => {
   setupContentMocks();
-  GET = (
-    require("@/app/api/v1/knowledge/[id]/content/route") as RouteModule
-  ).GET;
+  const mod = await import("@/app/api/v1/knowledge/[id]/content/route");
+  GET = (mod as unknown as RouteModule).GET;
 });
 
 afterAll(() => {

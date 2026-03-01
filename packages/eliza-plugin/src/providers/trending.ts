@@ -8,7 +8,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const cacheByKey = new Map<string, { text: string; at: number }>();
 
 /** In-flight request dedup per apiKey */
-let inflightByKey = new Map<string, Promise<ProviderResult>>();
+const inflightByKey = new Map<string, Promise<ProviderResult>>();
 
 function formatTrending(items: SearchItem[]): string {
   if (items.length === 0) return "";

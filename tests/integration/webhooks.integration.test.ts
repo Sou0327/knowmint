@@ -31,9 +31,10 @@ function makeRequest(body: unknown): Request {
   });
 }
 
-beforeAll(() => {
+beforeAll(async () => {
   setupWebhooksMocks();
-  POST = (require("@/app/api/v1/webhooks/route") as RouteModule).POST;
+  const mod = await import("@/app/api/v1/webhooks/route");
+  POST = (mod as unknown as RouteModule).POST;
 });
 
 afterAll(() => {

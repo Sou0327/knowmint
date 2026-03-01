@@ -29,9 +29,10 @@ function makeRequest(body: unknown): Request {
   });
 }
 
-beforeAll(() => {
+beforeAll(async () => {
   setupKnowledgeMocks();
-  POST = (require("@/app/api/v1/knowledge/route") as RouteModule).POST;
+  const mod = await import("@/app/api/v1/knowledge/route");
+  POST = (mod as unknown as RouteModule).POST;
 });
 
 afterAll(() => {

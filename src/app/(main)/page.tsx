@@ -1,17 +1,16 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
-import RecommendationSection from "@/components/features/RecommendationSection";
+import PersonalRecommendationsClient from "@/components/features/PersonalRecommendationsClient";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
-import { getPersonalRecommendations } from "@/lib/recommendations/queries";
 import { getTopSellers } from "@/lib/rankings/queries";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
-import { createClient } from "@/lib/supabase/server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import HowItWorksSection from "@/components/features/HowItWorksSection";
 import { getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [tHome, tCommon, tNav, tTypes] = await Promise.all([
@@ -21,14 +20,10 @@ export default async function HomePage() {
     getTranslations("Types"),
   ]);
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const [newest, popular, categories, personalRecs, topSellers] = await Promise.all([
+  const [newest, popular, categories, topSellers] = await Promise.all([
     getPublishedKnowledge({ sort_by: "newest", per_page: 6 }),
     getPublishedKnowledge({ sort_by: "popular", per_page: 6 }),
     getCategories(),
-    user ? getPersonalRecommendations(user.id) : Promise.resolve([]),
     getTopSellers(5),
   ]);
 
@@ -80,10 +75,10 @@ export default async function HomePage() {
       {/* How It Works for AI Agents */}
       <HowItWorksSection />
 
-      {/* Personal Recommendations */}
-      {personalRecs.length > 0 && (
-        <RecommendationSection title={tHome("recommended")} items={personalRecs} />
-      )}
+      {/* Personal Recommendations (client-side, login users only) */}
+      <Suspense fallback={null}>
+        <PersonalRecommendationsClient title={tHome("recommended")} />
+      </Suspense>
 
       {/* Categories */}
       <section>

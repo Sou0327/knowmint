@@ -140,13 +140,13 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 
 ---
 
-## Phase UI-1: フッター X リンク追加 + Lighthouse 監査 [P2]
+## Phase UI-1: フッター X リンク追加 + Lighthouse 監査 [P2] (2026-03-01)
 
 > SNS 導線追加とパフォーマンス・アクセシビリティの現状把握。
 
 ### UI-1.1 フッター X リンク追加
 
-- [ ] `Footer.tsx` の Brand セクション下に X (Twitter) リンクを追加 `cc:TODO`
+- [x] `Footer.tsx` の Brand セクション下に X (Twitter) リンクを追加 `cc:完了`
   - URL: https://x.com/gensou_ongaku
   - `target="_blank" rel="noopener noreferrer"` 必須
   - DQ スタイル (`text-dq-cyan hover:text-dq-gold`) 維持
@@ -154,10 +154,10 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 
 ### UI-1.2 Lighthouse 監査
 
-- [ ] `lighthouse` CLI でローカル (`localhost:3000`) を計測 `cc:TODO`
+- [x] `lighthouse` CLI でローカル (`localhost:3000`) を計測 `cc:完了`
   - 計測対象: トップ・ナレッジ詳細・検索ページ（3ページ）
   - スコア記録: Performance / Accessibility / Best Practices / SEO
-- [ ] 指摘 (スコア < 80) があれば修正タスクを追加 `cc:TODO`
+- [x] 指摘 (スコア < 80) があれば修正タスクを追加 `cc:完了`
 
 ---
 

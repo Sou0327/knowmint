@@ -309,6 +309,22 @@ export async function publishListing(id: string) {
   const user = await requireAuth();
   const supabase = await createClient();
 
+  // SEC-1: Agents cannot publish knowledge items
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("user_type")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError) {
+    console.error("[listing] Failed to fetch user profile:", profileError);
+    return { error: t("listingPublishFailed") };
+  }
+
+  if (profile?.user_type === "agent") {
+    return { error: t("accessDenied") };
+  }
+
   // Validate required fields before publishing
   const { data: item, error: itemError } = await supabase
     .from("knowledge_items")

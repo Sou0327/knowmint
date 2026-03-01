@@ -20,6 +20,22 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
   const { id } = await context!.params;
   const admin = getAdminClient();
 
+  // SEC-1: Agents cannot publish knowledge items
+  const { data: profile, error: profileError } = await admin
+    .from("profiles")
+    .select("user_type")
+    .eq("id", user.userId)
+    .single();
+
+  if (profileError) {
+    console.error("[publish] Failed to fetch user profile:", profileError);
+    return apiError(API_ERRORS.INTERNAL_ERROR);
+  }
+
+  if (profile?.user_type === "agent") {
+    return apiError(API_ERRORS.FORBIDDEN, "Agents cannot publish knowledge items");
+  }
+
   const { data: item, error: fetchError } = await admin
     .from("knowledge_items")
     .select(ITEM_SELECT_COLUMNS)

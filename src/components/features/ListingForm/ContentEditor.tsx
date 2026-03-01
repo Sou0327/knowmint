@@ -54,6 +54,7 @@ export default function ContentEditor({
   };
 
   const placeholders = PLACEHOLDER_MAP[contentType];
+  const isCodeType = contentType === "tool_def" || contentType === "api";
   const isRequest = listingType === "request";
 
   if (isRequest) {
@@ -121,6 +122,7 @@ export default function ContentEditor({
           rows={6}
           placeholder={placeholders.preview}
           error={errors.preview_content}
+          hint={isCodeType ? undefined : t("markdownHint")}
         />
       </div>
 
@@ -137,6 +139,7 @@ export default function ContentEditor({
           rows={12}
           placeholder={placeholders.full}
           error={errors.full_content}
+          hint={isCodeType ? undefined : t("markdownHint")}
         />
       </div>
     </div>

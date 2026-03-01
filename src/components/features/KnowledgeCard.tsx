@@ -4,6 +4,7 @@ import Badge from "@/components/ui/Badge";
 import type { BadgeProps } from "@/components/ui/Badge";
 import { getTranslations } from "next-intl/server";
 import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.types";
+import { getCategoryDisplayName } from "@/lib/i18n/category";
 import type { ContentType, ListingType } from "@/types/database.types";
 
 const BADGE_VARIANT: Record<ContentType, BadgeProps["variant"]> = {
@@ -23,7 +24,7 @@ interface KnowledgeCardProps {
   price_sol: number | null;
   price_usdc: number | null;
   seller: { display_name: string | null };
-  category: { name: string } | null;
+  category: { name: string; slug: string } | null;
   tags: string[];
   average_rating: number | null;
   purchase_count: number;
@@ -63,7 +64,7 @@ export default async function KnowledgeCard({
             </div>
             {category && (
               <span className="text-xs text-dq-text-muted">
-                {category.name}
+                {getCategoryDisplayName(tTypes, category.slug, category.name)}
               </span>
             )}
           </div>

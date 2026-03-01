@@ -45,7 +45,10 @@
     "next-intl": "^4.8.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.7.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "viem": "^2.46.1",
     "wagmi": "^3.4.3",
     "zod": "^3.25.76"

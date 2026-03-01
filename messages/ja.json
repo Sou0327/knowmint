@@ -44,9 +44,9 @@
     },
     "category": {
       "business": "ビジネス・仕事",
-      "technology": "テクノロジー・IT",
-      "design": "デザイン・クリエイティブ",
-      "learning": "学習・教育",
+      "technology-it": "テクノロジー・IT",
+      "design-creative": "デザイン・クリエイティブ",
+      "education-learning": "学習・教育",
       "lifestyle": "ライフスタイル"
     },
     "status": {
@@ -570,6 +570,7 @@
     "updateFailed": "更新処理に失敗しました",
     "confirmUpdate": "確認・更新",
     "createFailed": "出品の作成に失敗しました",
+    "markdownHint": "Markdown記法が使えます（見出し、リスト、コードブロック、テーブル等）",
     "placeholder": {
       "promptPreview": "プロンプトの概要や使い方を記載...",
       "promptFull": "完全なプロンプトテキストを入力...",

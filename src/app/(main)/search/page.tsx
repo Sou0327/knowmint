@@ -5,6 +5,7 @@ import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
 import Link from "next/link";
 import type { ContentType, ListingType } from "@/types/database.types";
 import { getTranslations } from "next-intl/server";
+import { getCategoryDisplayName } from "@/lib/i18n/category";
 
 export const dynamic = "force-dynamic";
 import { CONTENT_TYPES, getContentDisplayLabel } from "@/types/knowledge.types";
@@ -111,7 +112,7 @@ export default async function SearchPage({ searchParams }: Props) {
                           : "text-dq-text-sub hover:bg-dq-surface hover:text-dq-gold"
                       }`}
                     >
-                      {cat.name}
+                      {getCategoryDisplayName(tTypes, cat.slug, cat.name)}
                     </Link>
                   </li>
                 ))}

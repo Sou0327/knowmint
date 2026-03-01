@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { getCategoryDisplayName } from '@/lib/i18n/category';
 
 interface Category {
   id: string;
@@ -17,6 +18,7 @@ interface SidebarProps {
 
 export function Sidebar({ categories, currentSlug }: SidebarProps) {
   const t = useTranslations('Home');
+  const tTypes = useTranslations('Types');
   return (
     <aside className="w-full md:w-64 bg-dq-window-bg border-r-2 border-dq-border">
       <div className="p-4">
@@ -42,10 +44,10 @@ export function Sidebar({ categories, currentSlug }: SidebarProps) {
                     {isActive && (
                       <span className="dq-cursor text-dq-gold">▶</span>
                     )}
-                    <span className="text-xl" role="img" aria-label={category.name}>
+                    <span className="text-xl" role="img" aria-label={getCategoryDisplayName(tTypes, category.slug, category.name)}>
                       {category.icon}
                     </span>
-                    <span className="text-sm font-medium">{category.name}</span>
+                    <span className="text-sm font-medium">{getCategoryDisplayName(tTypes, category.slug, category.name)}</span>
                   </Link>
                 </li>
               );

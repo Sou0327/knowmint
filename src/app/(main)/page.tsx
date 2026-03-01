@@ -9,14 +9,16 @@ import { createClient } from "@/lib/supabase/server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import HowItWorksSection from "@/components/features/HowItWorksSection";
 import { getTranslations } from "next-intl/server";
+import { getCategoryDisplayName } from "@/lib/i18n/category";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [tHome, tCommon, tNav] = await Promise.all([
+  const [tHome, tCommon, tNav, tTypes] = await Promise.all([
     getTranslations("Home"),
     getTranslations("Common"),
     getTranslations("Nav"),
+    getTranslations("Types"),
   ]);
 
   const supabase = await createClient();
@@ -99,7 +101,7 @@ export default async function HomePage() {
               className="group rounded-sm dq-window-sm dq-window-hover p-4 text-center"
             >
               <span className="text-sm font-medium text-dq-text-sub transition-colors group-hover:text-dq-gold">
-                {cat.name}
+                {getCategoryDisplayName(tTypes, cat.slug, cat.name)}
               </span>
             </Link>
           ))}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import { getKnowledgeByCategory } from "@/lib/knowledge/queries";
 import { getTranslations } from "next-intl/server";
+import { getCategoryDisplayName } from "@/lib/i18n/category";
 
 export const dynamic = "force-dynamic";
 
@@ -22,18 +23,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq("slug", slug)
     .maybeSingle<{ name: string }>();
   if (!category) return {};
-  const t = await getTranslations("Search");
-  const title = t("categoryMetaTitle", { name: category.name });
+  const [t, tTypes] = await Promise.all([
+    getTranslations("Search"),
+    getTranslations("Types"),
+  ]);
+  const displayName = getCategoryDisplayName(tTypes, slug, category.name);
+  const title = t("categoryMetaTitle", { name: displayName });
   return {
     title,
-    description: t("categoryMetaDescription", { name: category.name }),
+    description: t("categoryMetaDescription", { name: displayName }),
     openGraph: { title, type: "website" },
     alternates: { canonical: `/category/${slug}` },
   };
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const t = await getTranslations("Search");
+  const [t, tTypes] = await Promise.all([
+    getTranslations("Search"),
+    getTranslations("Types"),
+  ]);
 
   const { slug } = await params;
   const { page: pageStr } = await searchParams;
@@ -55,7 +63,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           ← {t("backToTop")}
         </Link>
         <h1 className="mt-2 text-2xl font-bold font-display text-dq-text">
-          {result.category.name}
+          {getCategoryDisplayName(tTypes, slug, result.category.name)}
         </h1>
         <p className="text-sm text-dq-text-muted">
           {t("categoryItemCount", { count: result.total })}

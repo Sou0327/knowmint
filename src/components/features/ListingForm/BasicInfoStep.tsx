@@ -8,10 +8,12 @@ import Select from "@/components/ui/Select";
 import type { ContentType, ListingType } from "@/types/database.types";
 import { CONTENT_TYPES, getContentDisplayLabel } from "@/types/knowledge.types";
 import type { KnowledgeMetadataForm } from "@/types/knowledge.types";
+import { getCategoryDisplayName } from "@/lib/i18n/category";
 
 interface Category {
   id: string;
   name: string;
+  slug: string;
 }
 
 interface BasicInfoData {
@@ -49,7 +51,7 @@ export default function BasicInfoStep({
 
   const categoryOptions = [
     { value: "", label: t("selectCategory") },
-    ...categories.map((c) => ({ value: c.id, label: c.name })),
+    ...categories.map((c) => ({ value: c.id, label: getCategoryDisplayName(tTypes, c.slug, c.name) })),
   ];
 
   const domainOptions = [

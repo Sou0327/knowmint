@@ -397,8 +397,8 @@ export async function getMyListings() {
 }
 
 export async function fetchCategories(): Promise<
-  { id: string; name: string }[]
+  { id: string; name: string; slug: string }[]
 > {
   const categories = await getCategories();
-  return categories.map((c) => ({ id: c.id, name: c.name }));
+  return categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug }));
 }

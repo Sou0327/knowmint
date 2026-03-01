@@ -44,9 +44,9 @@
     },
     "category": {
       "business": "Business / Work",
-      "technology": "Technology / IT",
-      "design": "Design / Creative",
-      "learning": "Learning / Education",
+      "technology-it": "Technology / IT",
+      "design-creative": "Design / Creative",
+      "education-learning": "Learning / Education",
       "lifestyle": "Lifestyle"
     },
     "status": {
@@ -570,6 +570,7 @@
     "updateFailed": "Failed to update",
     "confirmUpdate": "Confirm & Update",
     "createFailed": "Failed to create listing",
+    "markdownHint": "Markdown formatting supported (headings, lists, code blocks, tables, etc.)",
     "placeholder": {
       "promptPreview": "Write prompt overview and usage...",
       "promptFull": "Enter full prompt text...",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { getCategoryDisplayName } from "@/lib/i18n/category";
 import Badge from "@/components/ui/Badge";
 import ContentPreview from "@/components/features/ContentPreview";
 import { PurchaseSection } from "@/components/features/PurchaseSection";
@@ -102,7 +103,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
                   href={`/category/${item.category.slug}`}
                   className="text-sm text-dq-cyan hover:text-dq-gold"
                 >
-                  {item.category.name}
+                  {getCategoryDisplayName(tTypes, item.category.slug, item.category.name)}
                 </Link>
               )}
             </div>

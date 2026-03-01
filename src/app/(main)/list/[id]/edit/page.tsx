@@ -77,7 +77,7 @@ export default function EditListingPage() {
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialForm);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>(
     []
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -94,7 +94,7 @@ export default function EditListingPage() {
       try {
         const supabase = createClient();
         const [{ data: categoryData }, { data: authData }] = await Promise.all([
-          supabase.from("categories").select("id, name"),
+          supabase.from("categories").select("id, name, slug").order("created_at").order("id"),
           supabase.auth.getUser(),
         ]);
 

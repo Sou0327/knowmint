@@ -4,12 +4,14 @@ import { useTranslations } from "next-intl";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.types";
+import { getCategoryDisplayName } from "@/lib/i18n/category";
 import type { ContentType, ListingType } from "@/types/database.types";
 import type { RequestContentInput } from "@/lib/knowledge/requestContent";
 
 interface Category {
   id: string;
   name: string;
+  slug: string;
 }
 
 interface PreviewData {
@@ -58,7 +60,7 @@ export default function PreviewStep({ data, categories }: Props) {
 
           {category && (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {category.name}
+              {getCategoryDisplayName(tTypes, category.slug, category.name)}
             </p>
           )}
 

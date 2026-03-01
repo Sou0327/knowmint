@@ -234,7 +234,8 @@ export async function getCategories() {
   const { data } = await supabase
     .from("categories")
     .select("id, name, slug, icon")
-    .order("name");
+    .order("created_at")
+    .order("id");
   return data ?? [];
 }
 

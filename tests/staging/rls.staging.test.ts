@@ -11,8 +11,7 @@
  * 実行方法:
  *   npm run test:staging
  */
-import * as assert from "node:assert/strict";
-import { describe, it, before } from "mocha";
+import { expect, describe, it, beforeAll } from "vitest";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const STAGING_URL = process.env.STAGING_SUPABASE_URL;
@@ -21,17 +20,12 @@ const STAGING_SERVICE_KEY = process.env.STAGING_SERVICE_ROLE_KEY;
 
 const SKIP = !STAGING_URL;
 
-describe("Staging RLS 検証", function () {
-  this.timeout(30000);
-
+describe("Staging RLS 検証", () => {
   let anonClient: SupabaseClient;
   let serviceClient: SupabaseClient;
 
-  before(function () {
-    if (SKIP) {
-      this.skip();
-      return;
-    }
+  beforeAll(() => {
+    if (SKIP) return;
     if (!STAGING_ANON_KEY) {
       throw new Error(
         "STAGING_SUPABASE_ANON_KEY is required when STAGING_SUPABASE_URL is set"
@@ -50,9 +44,7 @@ describe("Staging RLS 検証", function () {
   // ── knowledge_item_contents アクセス制御 ────────────────────────────────
 
   describe("knowledge_item_contents アクセス制御", () => {
-    it("anon client → knowledge_item_contents に行が見えない (RLS で空配列)", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("anon client → knowledge_item_contents に行が見えない (RLS で空配列)", async () => {
       const { data, error } = await anonClient
         .from("knowledge_item_contents")
         .select("id")
@@ -66,40 +58,35 @@ describe("Staging RLS 検証", function () {
         const msg = (error.message ?? "").toLowerCase();
         if (msg.includes("permission") || msg.includes("denied")) return;
 
-        assert.fail(
+        throw new Error(
           `Unexpected DB error (check staging config): ${JSON.stringify(error)}`
         );
       }
 
       // エラーなし → RLS が正しく機能していれば 0 行が返る
-      assert.ok(
+      expect(
         Array.isArray(data) && data.length === 0,
         `Expected RLS to return empty array for anon, got ${data?.length} rows`
-      );
+      ).toBeTruthy();
     });
 
-    it("service_role client → knowledge_item_contents にアクセス可能", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("service_role client → knowledge_item_contents にアクセス可能", async () => {
       const { error } = await serviceClient
         .from("knowledge_item_contents")
         .select("id")
         .limit(1);
 
-      assert.equal(
+      expect(
         error,
-        null,
         `service_role should be able to access knowledge_item_contents: ${JSON.stringify(error)}`
-      );
+      ).toBeNull();
     });
   });
 
   // ── 未購入ユーザーのコンテンツアクセス制御 ─────────────────────────────
 
   describe("未購入ユーザーのコンテンツアクセス", () => {
-    it("anon で knowledge_item_contents を照会 → 0 行 (RLS が購入者以外を遮断)", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("anon で knowledge_item_contents を照会 → 0 行 (RLS が購入者以外を遮断)", async () => {
       // knowledge_item_contents にデータがある行を service_role で取得
       // (content が存在する item のみを対象にして "0 行 = data なし" の偽陽性を防ぐ)
       const { data: contents, error: contentsErr } = await serviceClient
@@ -109,14 +96,13 @@ describe("Staging RLS 検証", function () {
         .limit(1);
 
       if (contentsErr) {
-        assert.fail(
+        throw new Error(
           `Failed to fetch contents (check staging config): ${JSON.stringify(contentsErr)}`
         );
       }
 
       if (!contents || contents.length === 0) {
-        this.skip(); // コンテンツデータなし → スキップ
-        return;
+        return; // コンテンツデータなし → スキップ相当 (パス扱い)
       }
 
       const itemId = contents[0].knowledge_item_id as string;
@@ -134,53 +120,49 @@ describe("Staging RLS 検証", function () {
           error.code === "42501" ||
           msg.includes("permission") ||
           msg.includes("denied");
-        assert.ok(
+        expect(
           isPermission,
           `Expected permission denied, got unexpected error: ${JSON.stringify(error)}`
-        );
+        ).toBeTruthy();
         return;
       }
 
-      assert.ok(
+      expect(
         Array.isArray(data) && data.length === 0,
         `Expected RLS to hide contents for item ${itemId} from anon, got: ${data?.length} rows`
-      );
+      ).toBeTruthy();
     });
   });
 
   // ── confirm_transaction RPC アクセス制御 ────────────────────────────────
 
   describe("confirm_transaction RPC アクセス制御", () => {
-    it("anon client で confirm_transaction → permission denied (42501)", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("anon client で confirm_transaction → permission denied (42501)", async () => {
       // 存在しない UUID で呼ぶ — permission エラーが先に返るはず (Phase 21 で REVOKE 済み)
       const { error } = await anonClient.rpc("confirm_transaction", {
         tx_id: "00000000-0000-0000-0000-000000000000",
       });
 
-      assert.ok(
+      expect(
         error != null,
         "Expected error when calling confirm_transaction as anon, but got no error"
-      );
+      ).toBeTruthy();
 
-      const msg = (error.message ?? "").toLowerCase();
+      const msg = (error!.message ?? "").toLowerCase();
       const isPermissionDenied =
-        error.code === "42501" ||
+        error!.code === "42501" ||
         msg.includes("permission") ||
         msg.includes("denied") ||
         msg.includes("not allowed") ||
         msg.includes("execute");
 
-      assert.ok(
+      expect(
         isPermissionDenied,
-        `Expected permission denied (42501), got code=${error.code}, message="${error.message}"`
-      );
+        `Expected permission denied (42501), got code=${error!.code}, message="${error!.message}"`
+      ).toBeTruthy();
     });
 
-    it("service_role で confirm_transaction → 42501 以外 (関数は実行できる)", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("service_role で confirm_transaction → 42501 以外 (関数は実行できる)", async () => {
       // service_role なら関数自体は実行できる。存在しない TX の場合はエラーなし (0件UPDATE)
       const { error } = await serviceClient.rpc("confirm_transaction", {
         tx_id: "00000000-0000-0000-0000-000000000000",
@@ -188,24 +170,22 @@ describe("Staging RLS 検証", function () {
 
       // エラーがある場合、42501 でないこと AND 関数未定義エラーでないことを確認
       if (error != null) {
-        assert.notEqual(
+        expect(
           error.code,
-          "42501",
           `service_role must not get permission denied (42501): ${JSON.stringify(error)}`
-        );
+        ).not.toBe("42501");
         // PGRST202 = function not found — RPC 定義が欠落していることを示すため失敗
-        assert.notEqual(
+        expect(
           error.code,
-          "PGRST202",
           `confirm_transaction function not found in staging DB. ` +
             `Run migrations first. error=${JSON.stringify(error)}`
-        );
+        ).not.toBe("PGRST202");
         const msg = (error.message ?? "").toLowerCase();
-        assert.ok(
+        expect(
           !msg.includes("permission denied") &&
             !msg.includes("not allowed to execute"),
           `service_role must not get permission denied. error=${JSON.stringify(error)}`
-        );
+        ).toBeTruthy();
       }
       // エラーなし (0件 UPDATE で正常終了) も合格
     });

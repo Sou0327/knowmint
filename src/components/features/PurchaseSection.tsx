@@ -5,13 +5,11 @@ import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import PurchaseModal from "@/components/features/PurchaseModal";
 import { recordPurchase } from "@/app/actions/purchase";
-import type { Token } from "@/types/database.types";
 
 interface Props {
   knowledgeId: string;
   title: string;
   priceSol: number | null;
-  priceUsdc: number | null;
   sellerWallet: string | null;
   isRequest: boolean;
 }
@@ -20,7 +18,6 @@ export function PurchaseSection({
   knowledgeId,
   title,
   priceSol,
-  priceUsdc,
   sellerWallet,
   isRequest,
 }: Props) {
@@ -28,12 +25,8 @@ export function PurchaseSection({
   const [isOpen, setIsOpen] = useState(false);
 
   // DB 記録完了後にモーダルを閉じる。失敗時は throw して PurchaseModal の setError で表示。
-  const handlePurchaseComplete = async (
-    txHash: string,
-    chain: "solana" | "base" | "ethereum",
-    token: Token
-  ): Promise<void> => {
-    const result = await recordPurchase(knowledgeId, txHash, chain, token, true);
+  const handlePurchaseComplete = async (txHash: string): Promise<void> => {
+    const result = await recordPurchase(knowledgeId, txHash, "solana", "SOL", true);
     if (!result.success) {
       throw new Error(result.error ?? "Purchase failed");
     }
@@ -64,7 +57,6 @@ export function PurchaseSection({
         knowledgeId={knowledgeId}
         title={title}
         priceSol={priceSol}
-        priceUsdc={priceUsdc}
         sellerWallet={sellerWallet}
         onPurchaseComplete={handlePurchaseComplete}
       />

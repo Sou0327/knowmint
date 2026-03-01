@@ -3,8 +3,6 @@ import { Geist, Geist_Mono, DotGothic16 } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SolanaWalletProvider } from "@/contexts/WalletContext";
-import { EVMWalletProvider } from "@/contexts/EVMWalletContext";
-import { ChainProvider } from "@/contexts/ChainContext";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import type { Locale } from "@/i18n/request";
@@ -76,9 +74,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AuthProvider>
             <SolanaWalletProvider>
-              <EVMWalletProvider>
-                <ChainProvider>{children}</ChainProvider>
-              </EVMWalletProvider>
+              {children}
             </SolanaWalletProvider>
           </AuthProvider>
         </NextIntlClientProvider>

@@ -5,8 +5,7 @@
  * IP リテラル URL で DNS 解決不要にテストする。
  * withApiAuth はモック化。
  */
-import * as assert from "node:assert/strict";
-import { describe, it, before, after } from "mocha";
+import { expect, describe, it, beforeAll, afterAll } from "vitest";
 import {
   setupWebhooksMocks,
   teardownWebhooksMocks,
@@ -32,12 +31,12 @@ function makeRequest(body: unknown): Request {
   });
 }
 
-before(() => {
+beforeAll(() => {
   setupWebhooksMocks();
   POST = (require("@/app/api/v1/webhooks/route") as RouteModule).POST;
 });
 
-after(() => {
+afterAll(() => {
   teardownWebhooksMocks();
 });
 
@@ -51,7 +50,7 @@ describe("POST /api/v1/webhooks — SSRF 保護", () => {
         events: ["purchase.completed"],
       })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it('"https://192.168.1.1/hook" → 400 (private IP)', async () => {
@@ -61,7 +60,7 @@ describe("POST /api/v1/webhooks — SSRF 保護", () => {
         events: ["purchase.completed"],
       })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it('"https://10.0.0.1/hook" → 400 (private IP)', async () => {
@@ -71,7 +70,7 @@ describe("POST /api/v1/webhooks — SSRF 保護", () => {
         events: ["purchase.completed"],
       })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 });
 
@@ -85,24 +84,24 @@ describe("POST /api/v1/webhooks — events バリデーション", () => {
         events: ["invalid.event"],
       })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
     const json = (await res.json()) as {
       success: boolean;
       error: { code: string };
     };
-    assert.equal(json.error.code, "bad_request");
+    expect(json.error.code).toBe("bad_request");
   });
 
   it("events: [] (空配列) → 400", async () => {
     const res = await POST(
       makeRequest({ url: "https://example.com/hook", events: [] })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it("events 省略 → 400", async () => {
     const res = await POST(makeRequest({ url: "https://example.com/hook" }));
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 });
 
@@ -113,7 +112,7 @@ describe("POST /api/v1/webhooks — url バリデーション", () => {
     const res = await POST(
       makeRequest({ events: ["purchase.completed"] })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it('"http://" (非 HTTPS) → 400', async () => {
@@ -123,7 +122,7 @@ describe("POST /api/v1/webhooks — url バリデーション", () => {
         events: ["purchase.completed"],
       })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 });
 
@@ -137,9 +136,9 @@ describe("POST /api/v1/webhooks — 権限チェック", () => {
       const res = await POST(
         makeRequest({ url: "https://8.8.8.8/hook", events: ["purchase.completed"] })
       );
-      assert.equal(res.status, 403);
+      expect(res.status).toBe(403);
       const json = (await res.json()) as { success: boolean; error: { code: string } };
-      assert.equal(json.error.code, "forbidden");
+      expect(json.error.code).toBe("forbidden");
     } finally {
       mockAuth.user = originalUser;
     }
@@ -167,6 +166,6 @@ describe("POST /api/v1/webhooks — 正常系（モック DB）", () => {
         events: ["purchase.completed"],
       })
     );
-    assert.ok(res.status >= 200 && res.status < 300);
+    expect(res.status >= 200 && res.status < 300).toBeTruthy();
   });
 });

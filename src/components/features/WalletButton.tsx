@@ -4,9 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
-import { useChain } from "@/contexts/ChainContext";
 import { useAuth } from "@/contexts/AuthContext";
-import EVMWalletButton from "./EVMWalletButton";
 import { requestWalletChallenge, verifyWalletSignature } from "@/app/actions/wallet";
 import { useTranslations } from "next-intl";
 
@@ -14,11 +12,10 @@ interface WalletButtonProps {
   showTabs?: boolean;
 }
 
-export default function WalletButton({ showTabs = false }: WalletButtonProps) {
+export default function WalletButton({ showTabs: _showTabs = false }: WalletButtonProps) {
   const t = useTranslations("Wallet");
   const { connected, publicKey, disconnect, connecting, signMessage } = useWallet();
   const { setVisible } = useWalletModal();
-  const { selectedChain, setSelectedChain } = useChain();
   const { profile, refreshProfile } = useAuth();
 
   const [siwsError, setSiwsError] = useState<string | null>(null);
@@ -27,7 +24,6 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
 
   useEffect(() => {
     if (
-      selectedChain !== "solana" ||
       !connected ||
       !publicKey ||
       !signMessage ||
@@ -84,7 +80,7 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
       setSiwsPending(false);
       siwsRunning.current = false;
     });
-  }, [connected, publicKey, signMessage, selectedChain, profile?.wallet_address, refreshProfile]);
+  }, [connected, publicKey, signMessage, profile?.wallet_address, refreshProfile]);
 
   useEffect(() => {
     if (!connected) {
@@ -93,24 +89,28 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
     }
   }, [connected]);
 
-  const solanaWallet = connected && publicKey ? (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-dq-text-sub">
-          {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
-        </span>
-        {siwsPending && (
-          <span className="text-xs text-dq-cyan">{t("signingPending")}</span>
+  if (connected && publicKey) {
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-dq-text-sub">
+            {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+          </span>
+          {siwsPending && (
+            <span className="text-xs text-dq-cyan">{t("signingPending")}</span>
+          )}
+          <Button variant="outline" size="sm" onClick={() => disconnect()}>
+            {t("disconnect")}
+          </Button>
+        </div>
+        {siwsError && (
+          <p className="text-xs text-dq-red">{siwsError}</p>
         )}
-        <Button variant="outline" size="sm" onClick={() => disconnect()}>
-          {t("disconnect")}
-        </Button>
       </div>
-      {siwsError && (
-        <p className="text-xs text-dq-red">{siwsError}</p>
-      )}
-    </div>
-  ) : (
+    );
+  }
+
+  return (
     <Button
       variant="primary"
       size="sm"
@@ -119,39 +119,5 @@ export default function WalletButton({ showTabs = false }: WalletButtonProps) {
     >
       {t("connect")}
     </Button>
-  );
-
-  if (!showTabs) {
-    return selectedChain === "solana" ? solanaWallet : <EVMWalletButton />;
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex gap-2 border-b-2 border-dq-border">
-        <button
-          type="button"
-          onClick={() => setSelectedChain("solana")}
-          className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-            selectedChain === "solana"
-              ? "border-b-2 border-dq-gold text-dq-gold"
-              : "text-dq-text-muted hover:text-dq-text-sub"
-          }`}
-        >
-          Solana
-        </button>
-        <button
-          type="button"
-          onClick={() => setSelectedChain("base")}
-          className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-            selectedChain !== "solana"
-              ? "border-b-2 border-dq-gold text-dq-gold"
-              : "text-dq-text-muted hover:text-dq-text-sub"
-          }`}
-        >
-          EVM
-        </button>
-      </div>
-      {selectedChain === "solana" ? solanaWallet : <EVMWalletButton />}
-    </div>
   );
 }

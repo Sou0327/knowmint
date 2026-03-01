@@ -24,7 +24,6 @@ interface PreviewData {
   preview_content: string;
   request_content: RequestContentInput;
   price_sol: string;
-  price_usdc: string;
 }
 
 interface Props {
@@ -136,11 +135,6 @@ export default function PreviewStep({ data, categories }: Props) {
               {data.price_sol && (
                 <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                   {data.price_sol} SOL
-                </span>
-              )}
-              {data.price_usdc && (
-                <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                  {data.price_usdc} USDC
                 </span>
               )}
             </div>

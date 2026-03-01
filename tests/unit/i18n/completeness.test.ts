@@ -1,5 +1,4 @@
-import * as assert from "node:assert/strict";
-import { describe, it, before } from "mocha";
+import { expect, describe, it, beforeAll } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -106,8 +105,8 @@ function findRawDuplicateKeys(raw: string, label: string): string[] {
 }
 
 describe("i18n key completeness", () => {
-  // Parse JSON lazily inside before() — after raw duplicate check can run first
-  before(() => {
+  // Parse JSON lazily inside beforeAll() — after raw duplicate check can run first
+  beforeAll(() => {
     en = JSON.parse(enRaw) as Record<string, unknown>;
     ja = JSON.parse(jaRaw) as Record<string, unknown>;
   });
@@ -118,11 +117,7 @@ describe("i18n key completeness", () => {
     const enDupes = findRawDuplicateKeys(enRaw, "en.json");
     const jaDupes = findRawDuplicateKeys(jaRaw, "ja.json");
 
-    assert.deepStrictEqual(
-      [...enDupes, ...jaDupes],
-      [],
-      `Duplicate keys in raw JSON:\n${[...enDupes, ...jaDupes].join("\n")}`
-    );
+    expect([...enDupes, ...jaDupes]).toEqual([]);
   });
 
   // --- Parsed-JSON checks ---
@@ -131,22 +126,14 @@ describe("i18n key completeness", () => {
     const enKeys = flattenKeys(en);
     const jaKeySet = new Set(flattenKeys(ja));
     const enOnly = enKeys.filter((k) => !jaKeySet.has(k));
-    assert.deepStrictEqual(
-      enOnly,
-      [],
-      `Keys in en.json but not in ja.json: ${enOnly.join(", ")}`
-    );
+    expect(enOnly).toEqual([]);
   });
 
   it("ja keys not in en should be zero", () => {
     const jaKeys = flattenKeys(ja);
     const enKeySet = new Set(flattenKeys(en));
     const jaOnly = jaKeys.filter((k) => !enKeySet.has(k));
-    assert.deepStrictEqual(
-      jaOnly,
-      [],
-      `Keys in ja.json but not in en.json: ${jaOnly.join(", ")}`
-    );
+    expect(jaOnly).toEqual([]);
   });
 
   it("all namespaces exist in both files", () => {
@@ -158,34 +145,18 @@ describe("i18n key completeness", () => {
     const enOnlyNS = enNS.filter((ns) => !jaNSSet.has(ns));
     const jaOnlyNS = jaNS.filter((ns) => !enNSSet.has(ns));
 
-    assert.deepStrictEqual(
-      enOnlyNS,
-      [],
-      `Namespaces in en.json but not in ja.json: ${enOnlyNS.join(", ")}`
-    );
-    assert.deepStrictEqual(
-      jaOnlyNS,
-      [],
-      `Namespaces in ja.json but not in en.json: ${jaOnlyNS.join(", ")}`
-    );
+    expect(enOnlyNS).toEqual([]);
+    expect(jaOnlyNS).toEqual([]);
   });
 
   it("en has no empty/null/undefined values", () => {
     const empties = findEmptyValues(en);
-    assert.deepStrictEqual(
-      empties,
-      [],
-      `Empty/null/undefined values in en.json: ${empties.join(", ")}`
-    );
+    expect(empties).toEqual([]);
   });
 
   it("ja has no empty/null/undefined values", () => {
     const empties = findEmptyValues(ja);
-    assert.deepStrictEqual(
-      empties,
-      [],
-      `Empty/null/undefined values in ja.json: ${empties.join(", ")}`
-    );
+    expect(empties).toEqual([]);
   });
 
   it("each namespace has the same number of keys in both files", () => {
@@ -214,11 +185,7 @@ describe("i18n key completeness", () => {
       }
     }
 
-    assert.deepStrictEqual(
-      mismatches,
-      [],
-      `Namespaces with differing key counts:\n${mismatches.join("\n")}`
-    );
+    expect(mismatches).toEqual([]);
   });
 
   it("nested structure depth matches between en and ja", () => {
@@ -251,10 +218,6 @@ describe("i18n key completeness", () => {
       }
     }
 
-    assert.deepStrictEqual(
-      typeMismatches,
-      [],
-      `Keys with mismatched types between en.json and ja.json:\n${typeMismatches.join("\n")}`
-    );
+    expect(typeMismatches).toEqual([]);
   });
 });

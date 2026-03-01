@@ -312,7 +312,7 @@ export async function publishListing(id: string) {
   // Validate required fields before publishing
   const { data: item, error: itemError } = await supabase
     .from("knowledge_items")
-    .select("listing_type, title, description, price_sol, price_usdc, status")
+    .select("listing_type, title, description, price_sol, status")
     .eq("id", id)
     .eq("seller_id", user.id)
     .maybeSingle();
@@ -334,8 +334,7 @@ export async function publishListing(id: string) {
   }
 
   const hasPriceSol = item.price_sol != null && item.price_sol > 0;
-  const hasPriceUsdc = item.price_usdc != null && item.price_usdc > 0;
-  if (!hasPriceSol && !hasPriceUsdc) {
+  if (!hasPriceSol) {
     if (item.listing_type === "request") {
       return { error: t("rewardRequired") };
     }

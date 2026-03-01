@@ -52,9 +52,10 @@ export const GET = withApiAuth(async (_request, user, _rateLimit, context) => {
     .limit(20);
 
   // Increment view_count (fire-and-forget with .catch) (D1)
-  supabase
-    .rpc("increment_view_count", { item_id: id })
-    .then(() => {}, () => {});
+  void (async () => {
+    const { error: e } = await supabase.rpc("increment_view_count", { item_id: id });
+    if (e) console.error("[knowledge-api] increment_view_count failed:", e.message, e.code);
+  })().catch((e: unknown) => console.error("[knowledge-api] increment_view_count failed:", e));
 
   return apiSuccess({
     ...knowledgeItem,

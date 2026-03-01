@@ -93,3 +93,6 @@ tmp-*
 
 # Supabase Dashboard snippets (may contain user-specific data)
 supabase/snippets/
+
+# Content drafts (unpublished listing content)
+drafts/

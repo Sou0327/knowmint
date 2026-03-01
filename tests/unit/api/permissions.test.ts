@@ -1,33 +1,32 @@
-import * as assert from "node:assert/strict";
-import { describe, it } from "mocha";
+import { expect, describe, it } from "vitest";
 import { ALLOWED_PERMISSIONS } from "@/lib/api/permissions";
 
 describe("ALLOWED_PERMISSIONS", () => {
   it("3 要素であること", () => {
-    assert.equal(ALLOWED_PERMISSIONS.length, 3);
+    expect(ALLOWED_PERMISSIONS.length).toBe(3);
   });
 
   it('"read" が含まれること', () => {
-    assert.ok((ALLOWED_PERMISSIONS as readonly string[]).includes("read"));
+    expect((ALLOWED_PERMISSIONS as readonly string[]).includes("read")).toBeTruthy();
   });
 
   it('"write" が含まれること', () => {
-    assert.ok((ALLOWED_PERMISSIONS as readonly string[]).includes("write"));
+    expect((ALLOWED_PERMISSIONS as readonly string[]).includes("write")).toBeTruthy();
   });
 
   it('"admin" が含まれること', () => {
-    assert.ok((ALLOWED_PERMISSIONS as readonly string[]).includes("admin"));
+    expect((ALLOWED_PERMISSIONS as readonly string[]).includes("admin")).toBeTruthy();
   });
 
   it('"superuser" は含まれないこと', () => {
-    assert.ok(!(ALLOWED_PERMISSIONS as readonly string[]).includes("superuser"));
+    expect((ALLOWED_PERMISSIONS as readonly string[]).includes("superuser")).toBeFalsy();
   });
 
   it('"delete" は含まれないこと', () => {
-    assert.ok(!(ALLOWED_PERMISSIONS as readonly string[]).includes("delete"));
+    expect((ALLOWED_PERMISSIONS as readonly string[]).includes("delete")).toBeFalsy();
   });
 
   it('空文字列は含まれないこと', () => {
-    assert.ok(!(ALLOWED_PERMISSIONS as readonly string[]).includes(""));
+    expect((ALLOWED_PERMISSIONS as readonly string[]).includes("")).toBeFalsy();
   });
 });

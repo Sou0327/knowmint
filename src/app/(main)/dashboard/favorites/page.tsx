@@ -82,7 +82,6 @@ export default async function DashboardFavoritesPage() {
                 description={item.description}
                 content_type={item.content_type}
                 price_sol={item.price_sol}
-                price_usdc={item.price_usdc}
                 seller={item.seller ?? { display_name: null }}
                 category={item.category}
                 tags={item.tags}

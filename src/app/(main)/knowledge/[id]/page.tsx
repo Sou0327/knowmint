@@ -183,17 +183,11 @@ export default async function KnowledgeDetailPage({ params }: Props) {
                     {item.price_sol} SOL
                   </p>
                 )}
-                {item.price_usdc !== null && (
-                  <p className="text-lg text-dq-text-sub">
-                    {item.price_usdc} USDC
-                  </p>
-                )}
               </div>
               <PurchaseSection
                 knowledgeId={item.id}
                 title={item.title}
                 priceSol={item.price_sol}
-                priceUsdc={item.price_usdc}
                 sellerWallet={seller.wallet_address}
                 isRequest={isRequest}
               />

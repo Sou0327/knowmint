@@ -7,18 +7,14 @@ import type { ListingType } from "@/types/database.types";
 interface Props {
   listingType: ListingType;
   priceSol: string;
-  priceUsdc: string;
   onPriceSolChange: (value: string) => void;
-  onPriceUsdcChange: (value: string) => void;
   errors: Record<string, string>;
 }
 
 export default function PricingStep({
   listingType,
   priceSol,
-  priceUsdc,
   onPriceSolChange,
-  onPriceUsdcChange,
   errors,
 }: Props) {
   const t = useTranslations("Listing");
@@ -42,19 +38,7 @@ export default function PricingStep({
         hint={isRequest ? t("rewardSolDesc") : t("priceSolDesc")}
       />
 
-      <Input
-        label={isRequest ? t("rewardUsdc") : t("priceUsdc")}
-        type="number"
-        value={priceUsdc}
-        onChange={(e) => onPriceUsdcChange(e.target.value)}
-        placeholder="0.00"
-        min="0"
-        step="0.01"
-        error={errors.price_usdc}
-        hint={isRequest ? t("rewardUsdcDesc") : t("priceUsdcDesc")}
-      />
-
-      {!priceSol && !priceUsdc && (
+      {!priceSol && (
         <p className="text-sm text-yellow-600 dark:text-yellow-400">
           {isRequest ? t("rewardSetRequired") : t("priceSetRequired")}
         </p>

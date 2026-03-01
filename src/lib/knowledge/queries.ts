@@ -215,7 +215,10 @@ export async function getKnowledgeById(id: string): Promise<KnowledgeDetailRow |
 
   // Increment view count via SECURITY DEFINER RPC (Admin クライアント使用: service_role 権限が必要)
   const { getAdminClient: getAdmin } = await import("@/lib/supabase/admin");
-  getAdmin().rpc("increment_view_count", { item_id: id }).then(() => {}, () => {});
+  void (async () => {
+    const { error: e } = await getAdmin().rpc("increment_view_count", { item_id: id });
+    if (e) console.error("[knowledge] increment_view_count failed:", e.message, e.code);
+  })().catch((e: unknown) => console.error("[knowledge] increment_view_count failed:", e));
 
   // nested join を正規化
   return {

@@ -4,8 +4,7 @@
  * withApiAuth をモック化してルートのバリデーションロジックを直接テストする。
  * Supabase への実接続は不要。
  */
-import * as assert from "node:assert/strict";
-import { describe, it, before, after } from "mocha";
+import { expect, describe, it, beforeAll, afterAll } from "vitest";
 import {
   setupKnowledgeMocks,
   teardownKnowledgeMocks,
@@ -30,12 +29,12 @@ function makeRequest(body: unknown): Request {
   });
 }
 
-before(() => {
+beforeAll(() => {
   setupKnowledgeMocks();
   POST = (require("@/app/api/v1/knowledge/route") as RouteModule).POST;
 });
 
-after(() => {
+afterAll(() => {
   teardownKnowledgeMocks();
 });
 
@@ -51,13 +50,13 @@ describe("POST /api/v1/knowledge — full_content サイズ", () => {
         full_content: "x".repeat(500_001),
       })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
     const json = (await res.json()) as {
       success: boolean;
       error: { code: string };
     };
-    assert.equal(json.success, false);
-    assert.equal(json.error.code, "bad_request");
+    expect(json.success).toBe(false);
+    expect(json.error.code).toBe("bad_request");
   });
 
   it("500,000 文字 → 2xx (Supabase insert が呼ばれる)", async () => {
@@ -70,7 +69,7 @@ describe("POST /api/v1/knowledge — full_content サイズ", () => {
         full_content: "x".repeat(500_000),
       })
     );
-    assert.ok(res.status >= 200 && res.status < 300);
+    expect(res.status >= 200 && res.status < 300).toBeTruthy();
   });
 });
 
@@ -85,7 +84,7 @@ describe("POST /api/v1/knowledge — content_type バリデーション", () => 
         content_type: "invalid",
       })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it('"prompt" → 2xx', async () => {
@@ -97,7 +96,7 @@ describe("POST /api/v1/knowledge — content_type バリデーション", () => 
         content_type: "prompt",
       })
     );
-    assert.ok(res.status >= 200 && res.status < 300);
+    expect(res.status >= 200 && res.status < 300).toBeTruthy();
   });
 
   it('"tool_def" → 2xx', async () => {
@@ -109,7 +108,7 @@ describe("POST /api/v1/knowledge — content_type バリデーション", () => 
         content_type: "tool_def",
       })
     );
-    assert.ok(res.status >= 200 && res.status < 300);
+    expect(res.status >= 200 && res.status < 300).toBeTruthy();
   });
 });
 
@@ -120,13 +119,13 @@ describe("POST /api/v1/knowledge — 必須フィールド", () => {
     const res = await POST(
       makeRequest({ description: "Desc", content_type: "prompt" })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it("description 省略 → 400", async () => {
     const res = await POST(
       makeRequest({ title: "Test", content_type: "prompt" })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 });

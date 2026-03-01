@@ -3,9 +3,7 @@
 ## ウォレット統合
 
 - **Solana**: `contexts/WalletContext.tsx` → `@solana/wallet-adapter-react` (Phantom, Solflare)
-- **EVM**: `contexts/EVMWalletContext.tsx` → `wagmi` v3 + `viem` (Base, Ethereum / MetaMask, Coinbase Wallet)
-- **チェーン選択**: `contexts/ChainContext.tsx` で管理
-- **EVM 購入 API**: 未対応 (UI のみ)。`chain !== "solana"` → BAD_REQUEST
+- **EVM**: 未対応。`chain !== "solana"` → BAD_REQUEST
 
 ## CLI ツール (`cli/bin/km.mjs`)
 

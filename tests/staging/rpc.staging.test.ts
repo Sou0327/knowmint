@@ -11,8 +11,7 @@
  * 実行方法:
  *   npm run test:staging
  */
-import * as assert from "node:assert/strict";
-import { describe, it, before } from "mocha";
+import { expect, describe, it, beforeAll } from "vitest";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const STAGING_URL = process.env.STAGING_SUPABASE_URL;
@@ -20,16 +19,11 @@ const STAGING_SERVICE_KEY = process.env.STAGING_SERVICE_ROLE_KEY;
 
 const SKIP = !STAGING_URL;
 
-describe("Staging RPC / DB 整合性", function () {
-  this.timeout(30000);
-
+describe("Staging RPC / DB 整合性", () => {
   let serviceClient: SupabaseClient;
 
-  before(function () {
-    if (SKIP) {
-      this.skip();
-      return;
-    }
+  beforeAll(() => {
+    if (SKIP) return;
     if (!STAGING_SERVICE_KEY) {
       throw new Error(
         "STAGING_SERVICE_ROLE_KEY is required when STAGING_SUPABASE_URL is set"
@@ -41,64 +35,55 @@ describe("Staging RPC / DB 整合性", function () {
   // ── DB 接続確認 ─────────────────────────────────────────────────────────
 
   describe("DB 接続", () => {
-    it("staging DB に接続できること (health check)", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("staging DB に接続できること (health check)", async () => {
       const { error } = await serviceClient
         .from("knowledge_items")
         .select("id")
         .limit(1);
 
-      assert.equal(
+      expect(
         error,
-        null,
         `DB connection or query failed: ${JSON.stringify(error)}`
-      );
+      ).toBeNull();
     });
   });
 
   // ── シードデータ存在確認 ─────────────────────────────────────────────────
 
   describe("シードデータ存在確認", () => {
-    it("knowledge_items に published のシードデータが存在すること", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("knowledge_items に published のシードデータが存在すること", async () => {
       const { data, error } = await serviceClient
         .from("knowledge_items")
         .select("id, title, status")
         .eq("status", "published")
         .limit(5);
 
-      assert.equal(error, null, `Query failed: ${JSON.stringify(error)}`);
-      assert.ok(
+      expect(error, `Query failed: ${JSON.stringify(error)}`).toBeNull();
+      expect(
         Array.isArray(data) && data.length > 0,
         "Expected at least one published knowledge_item. Run: npx ts-node scripts/seed/staging-seed.ts"
-      );
+      ).toBeTruthy();
     });
 
-    it("profiles に wallet_address 付きのシードデータが存在すること", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("profiles に wallet_address 付きのシードデータが存在すること", async () => {
       const { data, error } = await serviceClient
         .from("profiles")
         .select("id, wallet_address")
         .not("wallet_address", "is", null)
         .limit(5);
 
-      assert.equal(error, null, `Query failed: ${JSON.stringify(error)}`);
-      assert.ok(
+      expect(error, `Query failed: ${JSON.stringify(error)}`).toBeNull();
+      expect(
         Array.isArray(data) && data.length > 0,
         "Expected at least one profile with wallet_address. Run: npx ts-node scripts/seed/staging-seed.ts"
-      );
+      ).toBeTruthy();
     });
   });
 
   // ── テーブルスキーマ確認 ─────────────────────────────────────────────────
 
   describe("テーブルスキーマ確認", () => {
-    it("transactions テーブルに必須カラムが存在すること", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("transactions テーブルに必須カラムが存在すること", async () => {
       // limit(0) でデータなしのクエリを実行しカラムが存在するか確認
       const { error } = await serviceClient
         .from("transactions")
@@ -107,35 +92,29 @@ describe("Staging RPC / DB 整合性", function () {
         )
         .limit(0);
 
-      assert.equal(
+      expect(
         error,
-        null,
         `Schema check failed (missing column?): ${JSON.stringify(error)}`
-      );
+      ).toBeNull();
     });
 
-    it("knowledge_item_contents テーブルに必須カラムが存在すること", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("knowledge_item_contents テーブルに必須カラムが存在すること", async () => {
       const { error } = await serviceClient
         .from("knowledge_item_contents")
         .select("id, knowledge_item_id, full_content")
         .limit(0);
 
-      assert.equal(
+      expect(
         error,
-        null,
         `Schema check failed (missing column?): ${JSON.stringify(error)}`
-      );
+      ).toBeNull();
     });
   });
 
   // ── profiles.wallet_address UNIQUE 制約 ─────────────────────────────────
 
   describe("profiles.wallet_address UNIQUE 制約", () => {
-    it("同一 wallet_address への UPDATE → 23505 unique constraint violation", async function () {
-      if (SKIP) return this.skip();
-
+    it.skipIf(SKIP)("同一 wallet_address への UPDATE → 23505 unique constraint violation", async () => {
       // profiles.id は auth.users.id の FK なので INSERT は不可。
       // 代わりに 2 つの既存 profile を使い、一方の wallet_address を他方と同じ値に
       // UPDATE することで UNIQUE 制約を検証する。
@@ -146,14 +125,13 @@ describe("Staging RPC / DB 整合性", function () {
         .limit(2);
 
       if (fetchErr) {
-        assert.fail(
+        throw new Error(
           `Failed to fetch profiles (check staging config): ${JSON.stringify(fetchErr)}`
         );
       }
 
       if (!profiles || profiles.length < 2) {
-        this.skip(); // シードデータが不足 → スキップ
-        return;
+        return; // シードデータが不足 → スキップ相当 (パス扱い)
       }
 
       const [target, source] = profiles as {
@@ -175,16 +153,15 @@ describe("Staging RPC / DB 整合性", function () {
           .eq("id", target.id);
       }
 
-      assert.ok(
+      expect(
         updateErr != null,
         "Expected unique constraint violation but UPDATE succeeded"
-      );
-      assert.equal(
+      ).toBeTruthy();
+      expect(
         updateErr?.code,
-        "23505",
         `Expected error code 23505 (wallet_address unique violation), ` +
           `got: ${updateErr?.code} — ${updateErr?.message}`
-      );
+      ).toBe("23505");
     });
   });
 });

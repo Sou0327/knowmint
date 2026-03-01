@@ -1,7 +1,20 @@
+import { PublicKey } from "@solana/web3.js";
 import type { TokenBalance } from "@solana/web3.js";
 import type { Token } from "@/types/database.types";
 import { getConnection } from "@/lib/solana/connection";
-import { getUsdcMint } from "@/lib/solana/payment";
+
+// USDC mint addresses (moved from payment.ts)
+const USDC_MINT_MAINNET = new PublicKey(
+  "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+);
+const USDC_MINT_DEVNET = new PublicKey(
+  "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
+);
+
+function getUsdcMint(): PublicKey {
+  const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet";
+  return network === "mainnet-beta" ? USDC_MINT_MAINNET : USDC_MINT_DEVNET;
+}
 
 interface VerifySolanaPurchaseInput {
   txHash: string;

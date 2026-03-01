@@ -22,7 +22,6 @@ interface KnowledgeCardProps {
   description: string;
   content_type: ContentType;
   price_sol: number | null;
-  price_usdc: number | null;
   seller: { display_name: string | null };
   category: { name: string; slug: string } | null;
   tags: string[];
@@ -37,7 +36,6 @@ export default async function KnowledgeCard({
   description,
   content_type,
   price_sol,
-  price_usdc,
   seller,
   category,
   tags,
@@ -101,14 +99,6 @@ export default async function KnowledgeCard({
               {price_sol !== null && (
                 <span className="text-lg font-bold tracking-tight text-dq-gold">
                   {price_sol} <span className="text-sm font-semibold">SOL</span>
-                </span>
-              )}
-              {price_usdc !== null && price_sol !== null && (
-                <span className="mx-1 text-dq-text-muted">/</span>
-              )}
-              {price_usdc !== null && (
-                <span className="text-sm text-dq-text-sub">
-                  {price_usdc} USDC
                 </span>
               )}
             </div>

@@ -1,5 +1,4 @@
-import * as assert from "node:assert/strict";
-import { describe, it } from "mocha";
+import { expect, describe, it } from "vitest";
 import {
   normalizeRequestContent,
   buildRequestFullContent,
@@ -9,8 +8,8 @@ import {
 describe("normalizeRequestContent()", () => {
   it("undefined フィールド → 空文字列になること", () => {
     const r = normalizeRequestContent({ needed_info: "info", background: "bg" });
-    assert.equal(r.delivery_conditions, "");
-    assert.equal(r.notes, "");
+    expect(r.delivery_conditions).toBe("");
+    expect(r.notes).toBe("");
   });
 
   it("前後スペースがトリムされること", () => {
@@ -18,8 +17,8 @@ describe("normalizeRequestContent()", () => {
       needed_info: "  info  ",
       background: "  bg  ",
     });
-    assert.equal(r.needed_info, "info");
-    assert.equal(r.background, "bg");
+    expect(r.needed_info).toBe("info");
+    expect(r.background).toBe("bg");
   });
 });
 
@@ -31,8 +30,8 @@ describe("buildRequestFullContent()", () => {
       delivery_conditions: "",
       notes: "",
     });
-    assert.ok(r.includes("some info"));
-    assert.ok(r.includes("some background"));
+    expect(r.includes("some info")).toBeTruthy();
+    expect(r.includes("some background")).toBeTruthy();
   });
 
   it("delivery_conditions が空のときセクションが省略されること", () => {
@@ -42,7 +41,7 @@ describe("buildRequestFullContent()", () => {
       delivery_conditions: "",
       notes: "",
     });
-    assert.ok(!r.includes("## 納品条件"));
+    expect(r.includes("## 納品条件")).toBeFalsy();
   });
 
   it("notes が空のときセクションが省略されること", () => {
@@ -52,7 +51,7 @@ describe("buildRequestFullContent()", () => {
       delivery_conditions: "",
       notes: "",
     });
-    assert.ok(!r.includes("## 補足"));
+    expect(r.includes("## 補足")).toBeFalsy();
   });
 
   it("非空の delivery_conditions → '## 納品条件' セクションが含まれること", () => {
@@ -62,8 +61,8 @@ describe("buildRequestFullContent()", () => {
       delivery_conditions: "some conditions",
       notes: "",
     });
-    assert.ok(r.includes("## 納品条件"));
-    assert.ok(r.includes("some conditions"));
+    expect(r.includes("## 納品条件")).toBeTruthy();
+    expect(r.includes("some conditions")).toBeTruthy();
   });
 });
 
@@ -77,26 +76,26 @@ describe("parseRequestFullContent()", () => {
     };
     const built = buildRequestFullContent(original);
     const parsed = parseRequestFullContent(built);
-    assert.equal(parsed.needed_info, original.needed_info);
-    assert.equal(parsed.background, original.background);
-    assert.equal(parsed.delivery_conditions, original.delivery_conditions);
-    assert.equal(parsed.notes, original.notes);
+    expect(parsed.needed_info).toBe(original.needed_info);
+    expect(parsed.background).toBe(original.background);
+    expect(parsed.delivery_conditions).toBe(original.delivery_conditions);
+    expect(parsed.notes).toBe(original.notes);
   });
 
   it("null → 空の ParsedContent を返すこと", () => {
     const r = parseRequestFullContent(null);
-    assert.equal(r.needed_info, "");
-    assert.equal(r.background, "");
+    expect(r.needed_info).toBe("");
+    expect(r.background).toBe("");
   });
 
   it("undefined → 空の ParsedContent を返すこと", () => {
     const r = parseRequestFullContent(undefined);
-    assert.equal(r.needed_info, "");
+    expect(r.needed_info).toBe("");
   });
 
   it("セクションなしテキスト → needed_info にフォールバックすること", () => {
     const r = parseRequestFullContent("some plain text");
-    assert.equal(r.needed_info, "some plain text");
-    assert.equal(r.background, "");
+    expect(r.needed_info).toBe("some plain text");
+    expect(r.background).toBe("");
   });
 });

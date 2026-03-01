@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 KnowMint — 人間の暗黙知・体験知をAIエージェントに販売できるナレッジマーケットプレイス。
-仮想通貨(Solana→マルチチェーン)で決済。3つのアクセスレイヤー: Web UI / CLI (`km`) / REST API+MCP。
+仮想通貨 (Solana) で決済。3つのアクセスレイヤー: Web UI / CLI (`km`) / REST API+MCP。
 
 人間が体験知・暗黙知を出品 → AIエージェント(OpenClaw等)が自律発見・購入。買い手→売り手 P2P 直接送金(秘密鍵は運営非保有)。
 
@@ -19,7 +19,7 @@ npm run km -- <command>  # CLI ツール (cli/bin/km.mjs)
 npm run km-mcp           # MCP サーバー (stdio) ※ Node.js 22.6+ 必須
 npm run build:cf         # Cloudflare Workers ビルド
 npm run deploy:cf        # Cloudflare Workers デプロイ
-npm run test:unit             # Unit テスト (111件)
+npm run test:unit             # Unit テスト (202件)
 npm run test:staging          # Staging 統合テスト
 npm run test:e2e:cli-flow     # CLI E2E テスト
 npm run test:e2e:fake-tx      # 偽トランザクション拒否テスト
@@ -30,7 +30,7 @@ npm run test:e2e:ui           # Maestro UI E2E (18フロー)
 
 ## Architecture
 
-Next.js 16 App Router + Supabase + Solana/EVM マルチチェーン決済。詳細は @docs/architecture.md 参照。
+Next.js 16 App Router + Supabase + Solana 決済。詳細は @docs/architecture.md 参照。
 
 ### Supabase クライアント使い分け (重要)
 

@@ -1,17 +1,32 @@
-import * as assert from "node:assert/strict";
-import { describe, it, before, after, beforeEach } from "mocha";
+import { vi, expect, describe, it, beforeAll, afterAll, beforeEach } from "vitest";
 import type { WebhookSub, WebhookPayload } from "@/lib/webhooks/dispatch";
 
 // ---------------------------------------------------------------------------
-// Mock state
+// Mock state (hoisted so mock factories can access it)
 // ---------------------------------------------------------------------------
-const mockDispatch = {
+const mockDispatch = vi.hoisted(() => ({
   results: [] as Array<{ success: boolean; statusCode?: number; error?: string }>,
   callCount: 0,
-};
+}));
 
-let capturedDelays: number[] = [];
-const originalSetTimeout = globalThis.setTimeout;
+vi.mock("@/lib/webhooks/dispatch", () => ({
+  dispatchWebhook: async (_sub: unknown, _payload: unknown) => {
+    mockDispatch.callCount++;
+    return mockDispatch.results.shift() ?? { success: false, error: "no_more_results" };
+  },
+}));
+
+vi.mock("@/lib/supabase/admin", () => ({
+  getAdminClient: () => ({
+    from: () => ({
+      insert: () => ({
+        then: (_onFulfilled: unknown, _onRejected: unknown) => Promise.resolve(),
+      }),
+    }),
+  }),
+}));
+
+import { dispatchWithRetry } from "@/lib/webhooks/retry";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -28,34 +43,13 @@ const dummyPayload: WebhookPayload = {
   timestamp: "2026-02-22T00:00:00Z",
 };
 
+let capturedDelays: number[] = [];
+const originalSetTimeout = globalThis.setTimeout;
+
 // ---------------------------------------------------------------------------
 // Setup / Teardown
 // ---------------------------------------------------------------------------
-before(() => {
-  // 1. Inject mock for the dispatch module
-  const dispatchPath = require.resolve("@/lib/webhooks/dispatch");
-  require.cache[dispatchPath] = {
-    id: dispatchPath,
-    filename: dispatchPath,
-    loaded: true,
-    exports: {
-      dispatchWebhook: async (_sub: unknown, _payload: unknown) => {
-        mockDispatch.callCount++;
-        return mockDispatch.results.shift() ?? { success: false, error: "no_more_results" };
-      },
-    },
-    parent: null,
-    children: [],
-    paths: [],
-  } as unknown as NodeJS.Module;
-
-  // 2. Clear retry module cache so it picks up the mocked dispatch
-  try {
-    delete require.cache[require.resolve("@/lib/webhooks/retry")];
-  } catch {
-    // ignore
-  }
-
+beforeAll(() => {
   // 3. Stub setTimeout to skip real delays
   (globalThis as unknown as Record<string, unknown>).setTimeout = (fn: () => void, ms: number) => {
     capturedDelays.push(ms);
@@ -64,19 +58,8 @@ before(() => {
   };
 });
 
-after(() => {
-  // Restore globals and module cache
+afterAll(() => {
   globalThis.setTimeout = originalSetTimeout;
-  try {
-    delete require.cache[require.resolve("@/lib/webhooks/dispatch")];
-  } catch {
-    // ignore
-  }
-  try {
-    delete require.cache[require.resolve("@/lib/webhooks/retry")];
-  } catch {
-    // ignore
-  }
 });
 
 beforeEach(() => {
@@ -86,34 +69,25 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// Helper: load retry module fresh each call (cache already cleared in before())
-// ---------------------------------------------------------------------------
-function getDispatchWithRetry(): typeof import("@/lib/webhooks/retry").dispatchWithRetry {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require("@/lib/webhooks/retry").dispatchWithRetry;
-}
-
-// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe("dispatchWithRetry()", () => {
   describe("成功ケース", () => {
     it("1回目成功 → callCount=1, capturedDelays=[]", async () => {
       mockDispatch.results = [{ success: true }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
 
     it("1回失敗 → 2回目成功 → callCount=2, delays.length=1, delays[0] ≈ 1000ms", async () => {
       mockDispatch.results = [{ success: false, statusCode: 500 }, { success: true }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 2);
-      assert.equal(capturedDelays.length, 1);
-      assert.ok(
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(2);
+      expect(capturedDelays.length).toBe(1);
+      expect(
         capturedDelays[0] >= 900 && capturedDelays[0] <= 1100,
-        `Expected delay ≈ 1000ms, got ${capturedDelays[0]}ms`
-      );
+      ).toBeTruthy();
     });
 
     it("2回失敗 → 3回目成功 → callCount=3, delays.length=2, delays[0] ≈ 1000ms, delays[1] ≈ 2000ms", async () => {
@@ -122,87 +96,85 @@ describe("dispatchWithRetry()", () => {
         { success: false, statusCode: 503 },
         { success: true },
       ];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 3);
-      assert.equal(capturedDelays.length, 2);
-      assert.ok(
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(3);
+      expect(capturedDelays.length).toBe(2);
+      expect(
         capturedDelays[0] >= 900 && capturedDelays[0] <= 1100,
-        `Expected delays[0] ≈ 1000ms, got ${capturedDelays[0]}ms`
-      );
-      assert.ok(
+      ).toBeTruthy();
+      expect(
         capturedDelays[1] >= 1800 && capturedDelays[1] <= 2200,
-        `Expected delays[1] ≈ 2000ms, got ${capturedDelays[1]}ms`
-      );
+      ).toBeTruthy();
     });
   });
 
   describe("永続エラー（リトライなし）", () => {
     it('error: "no_signing_secret" → 1回で終了', async () => {
       mockDispatch.results = [{ success: false, error: "no_signing_secret" }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
 
     it('error: "decrypt_failed" → 1回で終了', async () => {
       mockDispatch.results = [{ success: false, error: "decrypt_failed" }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
 
     it('error: "ssrf_rejected" → 1回で終了', async () => {
       mockDispatch.results = [{ success: false, error: "ssrf_rejected" }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
 
     it("statusCode: 400 → 1回で終了", async () => {
       mockDispatch.results = [{ success: false, statusCode: 400 }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
 
     it("statusCode: 403 → 1回で終了", async () => {
       mockDispatch.results = [{ success: false, statusCode: 403 }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
 
     it("statusCode: 422 → 1回で終了", async () => {
       mockDispatch.results = [{ success: false, statusCode: 422 }];
-      await getDispatchWithRetry()(dummySub, dummyPayload);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
   });
 
   describe("リトライ対象エラー", () => {
     it("statusCode: 429 → リトライする (maxRetries=2 で callCount=2)", async () => {
       mockDispatch.results = [{ success: false, statusCode: 429 }, { success: true }];
-      await getDispatchWithRetry()(dummySub, dummyPayload, 2);
-      assert.equal(mockDispatch.callCount, 2);
+      await dispatchWithRetry(dummySub, dummyPayload, 2);
+      expect(mockDispatch.callCount).toBe(2);
     });
 
     it("statusCode: 500 → リトライする", async () => {
       mockDispatch.results = [{ success: false, statusCode: 500 }, { success: true }];
-      await getDispatchWithRetry()(dummySub, dummyPayload, 2);
-      assert.equal(mockDispatch.callCount, 2);
+      await dispatchWithRetry(dummySub, dummyPayload, 2);
+      expect(mockDispatch.callCount).toBe(2);
     });
 
     it("statusCode: 503 → リトライする", async () => {
       mockDispatch.results = [{ success: false, statusCode: 503 }, { success: true }];
-      await getDispatchWithRetry()(dummySub, dummyPayload, 2);
-      assert.equal(mockDispatch.callCount, 2);
+      await dispatchWithRetry(dummySub, dummyPayload, 2);
+      expect(mockDispatch.callCount).toBe(2);
     });
 
     it('error: "timeout" → リトライする', async () => {
       mockDispatch.results = [{ success: false, error: "timeout" }, { success: true }];
-      await getDispatchWithRetry()(dummySub, dummyPayload, 2);
-      assert.equal(mockDispatch.callCount, 2);
+      await dispatchWithRetry(dummySub, dummyPayload, 2);
+      expect(mockDispatch.callCount).toBe(2);
     });
   });
 
@@ -213,18 +185,18 @@ describe("dispatchWithRetry()", () => {
         { success: false, statusCode: 503 },
         { success: false, statusCode: 503 },
       ];
-      await getDispatchWithRetry()(dummySub, dummyPayload, 3);
-      assert.equal(mockDispatch.callCount, 3);
-      assert.equal(capturedDelays.length, 2);
+      await dispatchWithRetry(dummySub, dummyPayload, 3);
+      expect(mockDispatch.callCount).toBe(3);
+      expect(capturedDelays.length).toBe(2);
     });
   });
 
   describe("maxRetries カスタマイズ", () => {
     it("maxRetries=1 → callCount=1, delays=[]", async () => {
       mockDispatch.results = [{ success: false, statusCode: 500 }];
-      await getDispatchWithRetry()(dummySub, dummyPayload, 1);
-      assert.equal(mockDispatch.callCount, 1);
-      assert.deepEqual(capturedDelays, []);
+      await dispatchWithRetry(dummySub, dummyPayload, 1);
+      expect(mockDispatch.callCount).toBe(1);
+      expect(capturedDelays).toEqual([]);
     });
   });
 
@@ -235,12 +207,9 @@ describe("dispatchWithRetry()", () => {
         { success: false, statusCode: 503 },
         { success: false, statusCode: 503 },
       ];
-      await getDispatchWithRetry()(dummySub, dummyPayload, 3);
-      assert.equal(capturedDelays.length, 2, "3回失敗で2回の遅延が発生するはず");
-      assert.ok(
-        capturedDelays[1] > capturedDelays[0],
-        `Expected delays[1](${capturedDelays[1]}) > delays[0](${capturedDelays[0]})`
-      );
+      await dispatchWithRetry(dummySub, dummyPayload, 3);
+      expect(capturedDelays.length).toBe(2);
+      expect(capturedDelays[1] > capturedDelays[0]).toBeTruthy();
     });
   });
 });

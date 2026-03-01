@@ -9,7 +9,6 @@ export interface RecommendationRow {
   description: string;
   content_type: ContentType;
   price_sol: number | null;
-  price_usdc: number | null;
   tags: string[];
   average_rating: number | null;
   purchase_count: number;
@@ -18,7 +17,7 @@ export interface RecommendationRow {
 }
 
 const RECOMMENDATION_SELECT =
-  "id, listing_type, title, description, content_type, price_sol, price_usdc, tags, average_rating, purchase_count, seller:profiles!seller_id(id, display_name, avatar_url), category:categories(id, name, slug)" as const;
+  "id, listing_type, title, description, content_type, price_sol, tags, average_rating, purchase_count, seller:profiles!seller_id(id, display_name, avatar_url), category:categories(id, name, slug)" as const;
 
 import { toSingle } from "@/lib/supabase/utils";
 

@@ -9,69 +9,22 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45 すべて `cc:DONE`
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
+Phase R (OSS公開): `plans/archive-phase-r-a.md`
+Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-r-a.md`
+
+**R.3 手動TODO**: GitHub Description/Topics/Website URL 設定 (knowmint.shop)
 
 ---
 
-## Phase R: OSS 公開準備 [P0 — 今すぐ] 🚨
+## Phase OB-1: エラー可視性強化 [P2 — 可観測性]
 
-> リポジトリは既に Public。日本語 README のまま公開中。即対応。
+> Codex レビューで発見したサイレントエラー抑制の残件。障害時の原因調査を困難にしている。
 
-### R.1 README.md 英語リライト
-
-- [ ] README.md を英語で全面リライト `cc:TODO`
-  - Hero: タグライン + (GIF placeholder)
-  - Why KnowMint: 3行で価値提案
-  - For AI Agents: MCP / CLI / x402 の使い方
-  - For Humans: Web UI の概要
-  - Quick Start: clone → env → supabase start → npm run dev
-  - Agent Plugins: AgentKit + ElizaOS（コード例付き）
-  - API Overview: 主要エンドポイントのみ（詳細は docs/ 参照）
-  - Tech Stack: テーブル
-  - Contributing: 簡潔に
-  - License: MIT
-- [ ] 旧 README の日本語ローカルテストガイドを `docs/local-devnet-guide.md` に移動 `cc:TODO`
-- [ ] README 内の古い記述を修正 (EVM 言及削除、Mocha → Vitest、テスト数更新) `cc:TODO`
-
-### R.2 LICENSE ファイル追加
-
-- [ ] MIT LICENSE ファイルをルートに作成 `cc:TODO`
-
-### R.3 リポジトリメタデータ
-
-- [ ] GitHub の Description / Topics / Website URL を設定（手動） `cc:TODO`
-  - Description: "Knowledge marketplace where AI agents autonomously buy human expertise"
-  - Topics: `ai-agent`, `mcp`, `solana`, `x402`, `marketplace`, `knowledge`
-  - Website: knowmint.shop (あれば)
-
----
-
-## Phase A: 死コード削除 + テスト統一 [P0 — 技術的負債]
-
-> 「やらないことを決める」フェーズ。EVM 死コード全削除 + mocha 廃止で即効のコードベース軽量化。
-
-### A.1 EVM 死コード全削除
-
-- [ ] `src/contexts/EVMWalletContext.tsx` 削除 `cc:TODO`
-- [ ] `src/contexts/ChainContext.tsx` 削除 `cc:TODO`
-- [ ] `src/components/features/EVMWalletButton.tsx` 削除 `cc:TODO`
-- [ ] `src/components/features/ChainSelector.tsx` 削除 `cc:TODO`
-- [ ] `src/lib/evm/` ディレクトリ全削除 (config.ts, payment.ts, verify.ts) `cc:TODO`
-- [ ] root layout.tsx から EVM/Chain Provider 除去 (5→3 Provider) `cc:TODO`
-- [ ] `wagmi`, `viem`, `@tanstack/react-query` を dependencies から削除 `cc:TODO`
-- [ ] PurchaseModal から EVM 関連分岐・無効化 UI 削除 `cc:TODO`
-- [ ] 設計メモ・CLAUDE.md の EVM 関連記述更新 `cc:TODO`
-
-### A.2 mocha 全廃 → vitest 統一
-
-- [ ] `tests/` 内の mocha/chai テストを vitest に書き換え `cc:TODO`
-- [ ] `mocha`, `ts-mocha`, `chai`, `@types/chai`, `@types/mocha` を devDeps から削除 `cc:TODO`
-- [ ] `.mocharc.*` 設定ファイル削除 `cc:TODO`
-
-### A.3 fire-and-forget エラー可視化
-
-- [ ] audit log / email / webhook dispatch の `.then(() => {}, () => {})` に `console.error` 追加 `cc:TODO`
+- [ ] `src/lib/knowledge/queries.ts:142` — `getPublishedKnowledge()` の DB エラーを空配列に変換せず `console.error` でログ出力 `cc:TODO`
+- [ ] `src/lib/api/auth.ts:41` — APIキールックアップ失敗時に `console.error` 追加 (インフラ障害と認証失敗を区別) `cc:TODO`
+- [ ] `src/app/api/v1/knowledge/[id]/route.ts:42` — reviews クエリの `error` フィールドを無視せずログ出力 `cc:TODO`
 
 ---
 
@@ -173,6 +126,9 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45 すべて `cc:DONE`
 ## Phase 50: updateListing RPC 原子化 [P2 — データ整合性]
 
 - [ ] 50.2 `updateListing` を RPC トランザクション化 (version snapshot + update の原子性) `cc:TODO`
+  - 対象: `src/app/api/v1/knowledge/[id]/route.ts:156` の PATCH ハンドラー
+  - `createVersionSnapshot()` + `knowledge_items` update + `knowledge_item_contents` upsert の3書込みが非アトミック
+  - 途中失敗でバージョン履歴とアイテムデータが不整合になる
 
 ---
 
@@ -181,6 +137,27 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45 すべて `cc:DONE`
 > Phase 26 デモ・拡散の反響を見てから着手。P2P モードで十分運用可能。
 
 - [ ] `anchor deploy --provider.cluster mainnet` → Program ID / Fee Vault 設定
+
+---
+
+## Phase UI-1: フッター X リンク追加 + Lighthouse 監査 [P2]
+
+> SNS 導線追加とパフォーマンス・アクセシビリティの現状把握。
+
+### UI-1.1 フッター X リンク追加
+
+- [ ] `Footer.tsx` の Brand セクション下に X (Twitter) リンクを追加 `cc:TODO`
+  - URL: https://x.com/gensou_ongaku
+  - `target="_blank" rel="noopener noreferrer"` 必須
+  - DQ スタイル (`text-dq-cyan hover:text-dq-gold`) 維持
+  - X アイコン（SVG またはテキスト）を付ける
+
+### UI-1.2 Lighthouse 監査
+
+- [ ] `lighthouse` CLI でローカル (`localhost:3000`) を計測 `cc:TODO`
+  - 計測対象: トップ・ナレッジ詳細・検索ページ（3ページ）
+  - スコア記録: Performance / Accessibility / Best Practices / SEO
+- [ ] 指摘 (スコア < 80) があれば修正タスクを追加 `cc:TODO`
 
 ---
 

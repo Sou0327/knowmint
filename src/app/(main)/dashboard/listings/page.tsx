@@ -128,7 +128,6 @@ export default function DashboardListingsPage() {
                   </p>
                   <div className="mt-2 flex items-center gap-4 text-sm text-dq-text-muted">
                     {item.price_sol && <span>{item.price_sol} SOL</span>}
-                    {item.price_usdc && <span>{item.price_usdc} USDC</span>}
                     <span>{tKnowledge("viewCount", { count: item.view_count })}</span>
                     <span>
                       {item.listing_type === "request"

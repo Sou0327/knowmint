@@ -24,7 +24,6 @@ interface FormData {
   full_content: string;
   request_content: RequestContentInput;
   price_sol: string;
-  price_usdc: string;
   metadata: {
     domain: string;
     experience_type: string;
@@ -50,7 +49,6 @@ const initialForm: FormData = {
     notes: "",
   },
   price_sol: "",
-  price_usdc: "",
   metadata: {
     domain: "",
     experience_type: "",
@@ -116,7 +114,7 @@ export default function ListPage() {
     }
 
     if (step === 2) {
-      if (!form.price_sol && !form.price_usdc) {
+      if (!form.price_sol) {
         newErrors.price_sol =
           form.listing_type === "request"
             ? t("rewardSetRequired")
@@ -163,7 +161,7 @@ export default function ListPage() {
         description: form.description,
         content_type: form.content_type,
         price_sol: form.price_sol ? parseFloat(form.price_sol) : null,
-        price_usdc: form.price_usdc ? parseFloat(form.price_usdc) : null,
+        price_usdc: null,
         preview_content: form.preview_content,
         full_content: form.full_content,
         ...(form.listing_type === "request"
@@ -298,9 +296,7 @@ export default function ListPage() {
           <PricingStep
             listingType={form.listing_type}
             priceSol={form.price_sol}
-            priceUsdc={form.price_usdc}
             onPriceSolChange={(v) => updateForm({ price_sol: v })}
-            onPriceUsdcChange={(v) => updateForm({ price_usdc: v })}
             errors={errors}
           />
         )}

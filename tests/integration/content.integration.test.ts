@@ -4,8 +4,7 @@
  * 11シナリオで content route の全分岐をカバーする。
  * モジュール注入は setupContentMocks() で行い、実サーバー不要で CI 実行可能。
  */
-import * as assert from "node:assert/strict";
-import { describe, it, before, after, beforeEach } from "mocha";
+import { expect, describe, it, beforeAll, afterAll, beforeEach } from "vitest";
 import {
   setupContentMocks,
   teardownContentMocks,
@@ -80,14 +79,14 @@ function buildXPayment(txHash: string): string {
 
 // ── セットアップ / ティアダウン ───────────────────────────────────────────
 
-before(() => {
+beforeAll(() => {
   setupContentMocks();
   GET = (
     require("@/app/api/v1/knowledge/[id]/content/route") as RouteModule
   ).GET;
 });
 
-after(() => {
+afterAll(() => {
   teardownContentMocks();
 });
 
@@ -110,7 +109,7 @@ describe("GET /content — no X-PAYMENT ヘッダー", () => {
       knowledge_items: [{ data: draftItem }],
     });
     const res = await GET(makeRequest(), makeContext());
-    assert.equal(res.status, 404);
+    expect(res.status).toBe(404);
   });
 
   it("2. published, 非購入者・非seller → 402 + x402Version:1 + accepts ≥ 1件", async () => {
@@ -130,14 +129,14 @@ describe("GET /content — no X-PAYMENT ヘッダー", () => {
       profiles: [{ data: { wallet_address: SELLER_WALLET } }],
     });
     const res = await GET(makeRequest(), makeContext());
-    assert.equal(res.status, 402);
+    expect(res.status).toBe(402);
     const body = (await res.json()) as {
       x402Version: number;
       accepts: unknown[];
     };
-    assert.equal(body.x402Version, 1);
-    assert.ok(Array.isArray(body.accepts));
-    assert.ok(body.accepts.length >= 1, "accepts should have at least 1 entry");
+    expect(body.x402Version).toBe(1);
+    expect(Array.isArray(body.accepts)).toBeTruthy();
+    expect(body.accepts.length >= 1).toBeTruthy();
   });
 
   it("3. published, seller 本人 → 200 + content", async () => {
@@ -151,13 +150,13 @@ describe("GET /content — no X-PAYMENT ヘッダー", () => {
       knowledge_item_contents: [{ data: mockContent }],
     });
     const res = await GET(makeRequest(), makeContext());
-    assert.equal(res.status, 200);
+    expect(res.status).toBe(200);
     const body = (await res.json()) as {
       success: boolean;
       data: { full_content: string };
     };
-    assert.equal(body.success, true);
-    assert.equal(body.data.full_content, mockContent.full_content);
+    expect(body.success).toBe(true);
+    expect(body.data.full_content).toBe(mockContent.full_content);
   });
 
   it("4. published, confirmed purchase あり → 200 + content", async () => {
@@ -177,13 +176,13 @@ describe("GET /content — no X-PAYMENT ヘッダー", () => {
       knowledge_item_contents: [{ data: mockContent }],
     });
     const res = await GET(makeRequest(), makeContext());
-    assert.equal(res.status, 200);
+    expect(res.status).toBe(200);
     const body = (await res.json()) as {
       success: boolean;
       data: { full_content: string };
     };
-    assert.equal(body.success, true);
-    assert.equal(body.data.full_content, mockContent.full_content);
+    expect(body.success).toBe(true);
+    expect(body.data.full_content).toBe(mockContent.full_content);
   });
 });
 
@@ -199,9 +198,9 @@ describe("GET /content — X-PAYMENT ヘッダーあり (x402 flow)", () => {
       makeRequest({ "X-PAYMENT": "invalid-base64!!" }),
       makeContext()
     );
-    assert.equal(res.status, 402);
+    expect(res.status).toBe(402);
     const body = (await res.json()) as { error?: string };
-    assert.ok(body.error, "error field should be present");
+    expect(body.error).toBeTruthy();
   });
 
   it("6. 不正 tx hash 形式 (mockSolana.isValidHash=false) → 402 + error フィールドあり", async () => {
@@ -213,9 +212,9 @@ describe("GET /content — X-PAYMENT ヘッダーあり (x402 flow)", () => {
       makeRequest({ "X-PAYMENT": buildXPayment("short-hash") }),
       makeContext()
     );
-    assert.equal(res.status, 402);
+    expect(res.status).toBe(402);
     const body = (await res.json()) as { error?: string };
-    assert.ok(body.error, "error field should be present");
+    expect(body.error).toBeTruthy();
   });
 
   it("7. buyer wallet 未設定 (buyerResult.data = null) → 400", async () => {
@@ -231,7 +230,7 @@ describe("GET /content — X-PAYMENT ヘッダーあり (x402 flow)", () => {
       makeRequest({ "X-PAYMENT": buildXPayment(VALID_TX_HASH) }),
       makeContext()
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it("8. verifySolanaPurchaseTransaction → valid:false → 402 + error:Payment verification failed", async () => {
@@ -248,9 +247,9 @@ describe("GET /content — X-PAYMENT ヘッダーあり (x402 flow)", () => {
       makeRequest({ "X-PAYMENT": buildXPayment(VALID_TX_HASH) }),
       makeContext()
     );
-    assert.equal(res.status, 402);
+    expect(res.status).toBe(402);
     const body = (await res.json()) as { error?: string };
-    assert.equal(body.error, "Payment verification failed");
+    expect(body.error).toBe("Payment verification failed");
   });
 
   it("9. 有効支払い (verify=valid) → 200 + content (transactions.insert が呼ばれる)", async () => {
@@ -274,13 +273,13 @@ describe("GET /content — X-PAYMENT ヘッダーあり (x402 flow)", () => {
       makeRequest({ "X-PAYMENT": buildXPayment(VALID_TX_HASH) }),
       makeContext()
     );
-    assert.equal(res.status, 200);
+    expect(res.status).toBe(200);
     const body = (await res.json()) as {
       success: boolean;
       data: { full_content: string };
     };
-    assert.equal(body.success, true);
-    assert.equal(body.data.full_content, mockContent.full_content);
+    expect(body.success).toBe(true);
+    expect(body.data.full_content).toBe(mockContent.full_content);
   });
 
   it("10. 同一 tx_hash・同一 buyer・同一 item → confirmed → 200 (idempotent)", async () => {
@@ -304,12 +303,12 @@ describe("GET /content — X-PAYMENT ヘッダーあり (x402 flow)", () => {
       makeRequest({ "X-PAYMENT": buildXPayment(VALID_TX_HASH) }),
       makeContext()
     );
-    assert.equal(res.status, 200);
+    expect(res.status).toBe(200);
     const body = (await res.json()) as {
       success: boolean;
       data: { full_content: string };
     };
-    assert.equal(body.success, true);
+    expect(body.success).toBe(true);
   });
 
   it("11. 同一 tx_hash だが buyer/item 不一致 → 409 conflict", async () => {
@@ -332,6 +331,6 @@ describe("GET /content — X-PAYMENT ヘッダーあり (x402 flow)", () => {
       makeRequest({ "X-PAYMENT": buildXPayment(VALID_TX_HASH) }),
       makeContext()
     );
-    assert.equal(res.status, 409);
+    expect(res.status).toBe(409);
   });
 });

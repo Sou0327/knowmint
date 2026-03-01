@@ -48,11 +48,13 @@ export async function authenticateApiKey(
   const lastUpdate = lastUpdatedAt.get(apiKey.id);
   if (!lastUpdate || now - lastUpdate > THROTTLE_MS) {
     lastUpdatedAt.set(apiKey.id, now);
-    admin
-      .from("api_keys")
-      .update({ last_used_at: new Date().toISOString() })
-      .eq("id", apiKey.id)
-      .then(() => {}, () => {});
+    void (async () => {
+      const { error: e } = await admin
+        .from("api_keys")
+        .update({ last_used_at: new Date().toISOString() })
+        .eq("id", apiKey.id);
+      if (e) console.error("[auth] last_used_at update failed:", e.message, e.code);
+    })().catch((e: unknown) => console.error("[auth] last_used_at update failed:", e));
   }
 
   return {

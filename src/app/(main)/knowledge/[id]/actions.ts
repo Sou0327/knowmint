@@ -77,8 +77,11 @@ export async function submitReview(params: {
   }
 
   // 平均レーティング更新 (Admin クライアント使用: service_role 権限が必要)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (getAdminClient().rpc as any)("update_average_rating", { item_id: knowledgeItemId }).then(() => {}, () => {});
+  void (async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: e } = await (getAdminClient().rpc as any)("update_average_rating", { item_id: knowledgeItemId });
+    if (e) console.error("[knowledge-actions] update_average_rating failed:", e.message, e.code);
+  })().catch((e: unknown) => console.error("[knowledge-actions] update_average_rating failed:", e));
 
   return { error: null };
 }

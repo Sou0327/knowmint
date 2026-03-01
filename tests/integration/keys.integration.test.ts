@@ -1,11 +1,10 @@
 /**
  * POST /api/v1/keys — 統合テスト
  *
- * before() でモックを require.cache に注入してからルートモジュールを require() する。
+ * beforeAll() でモックを require.cache に注入してからルートモジュールを require() する。
  * Supabase / Redis への実接続は不要。
  */
-import * as assert from "node:assert/strict";
-import { describe, it, before, after } from "mocha";
+import { expect, describe, it, beforeAll, afterAll } from "vitest";
 import {
   setupKeysMocks,
   teardownKeysMocks,
@@ -31,12 +30,12 @@ function makeRequest(body: unknown): Request {
   });
 }
 
-before(() => {
+beforeAll(() => {
   setupKeysMocks();
   POST = (require("@/app/api/v1/keys/route") as RouteModule).POST;
 });
 
-after(() => {
+afterAll(() => {
   teardownKeysMocks();
 });
 
@@ -47,20 +46,20 @@ describe("POST /api/v1/keys — permissions バリデーション", () => {
     const res = await POST(
       makeRequest({ name: "test", permissions: ["invalid_perm"] })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
     const json = (await res.json()) as {
       success: boolean;
       error: { code: string };
     };
-    assert.equal(json.success, false);
-    assert.equal(json.error.code, "bad_request");
+    expect(json.success).toBe(false);
+    expect(json.error.code).toBe("bad_request");
   });
 
   it('["superuser"] → 400', async () => {
     const res = await POST(
       makeRequest({ name: "test", permissions: ["superuser"] })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it('["read"] → 2xx (insert が呼ばれる)', async () => {
@@ -74,7 +73,7 @@ describe("POST /api/v1/keys — permissions バリデーション", () => {
       },
     });
     const res = await POST(makeRequest({ name: "test", permissions: ["read"] }));
-    assert.ok(res.status >= 200 && res.status < 300);
+    expect(res.status >= 200 && res.status < 300).toBeTruthy();
   });
 
   it('["read", "write"] → 2xx', async () => {
@@ -90,7 +89,7 @@ describe("POST /api/v1/keys — permissions バリデーション", () => {
     const res = await POST(
       makeRequest({ name: "test", permissions: ["read", "write"] })
     );
-    assert.ok(res.status >= 200 && res.status < 300);
+    expect(res.status >= 200 && res.status < 300).toBeTruthy();
   });
 });
 
@@ -99,12 +98,12 @@ describe("POST /api/v1/keys — permissions バリデーション", () => {
 describe("POST /api/v1/keys — name バリデーション", () => {
   it("name 省略 → 400", async () => {
     const res = await POST(makeRequest({ permissions: ["read"] }));
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it('name: "" → 400', async () => {
     const res = await POST(makeRequest({ name: "", permissions: ["read"] }));
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 });
 
@@ -115,14 +114,14 @@ describe("POST /api/v1/keys — expires_at バリデーション", () => {
     const res = await POST(
       makeRequest({ name: "test", expires_at: "invalid_date" })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it('"2020-01-01" (過去日) → 400', async () => {
     const res = await POST(
       makeRequest({ name: "test", expires_at: "2020-01-01" })
     );
-    assert.equal(res.status, 400);
+    expect(res.status).toBe(400);
   });
 
   it("expires_at 省略 → 2xx", async () => {
@@ -136,7 +135,7 @@ describe("POST /api/v1/keys — expires_at バリデーション", () => {
       },
     });
     const res = await POST(makeRequest({ name: "test" }));
-    assert.ok(res.status >= 200 && res.status < 300);
+    expect(res.status >= 200 && res.status < 300).toBeTruthy();
   });
 });
 
@@ -148,7 +147,7 @@ describe("POST /api/v1/keys — 認証", () => {
     mockAuth.user = null;
     try {
       const res = await POST(makeRequest({ name: "test" }));
-      assert.equal(res.status, 401);
+      expect(res.status).toBe(401);
     } finally {
       mockAuth.user = originalUser;
     }
@@ -159,9 +158,9 @@ describe("POST /api/v1/keys — 認証", () => {
     mockAuth.user = { userId: "test-user-id", keyId: "test-key-id", permissions: ["read"] };
     try {
       const res = await POST(makeRequest({ name: "test" }));
-      assert.equal(res.status, 403);
+      expect(res.status).toBe(403);
       const json = (await res.json()) as { success: boolean; error: { code: string } };
-      assert.equal(json.error.code, "forbidden");
+      expect(json.error.code).toBe("forbidden");
     } finally {
       mockAuth.user = originalUser;
     }

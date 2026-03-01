@@ -4,11 +4,10 @@
  * purchase ルートの全分岐をモックベースでカバーする。
  * 外部依存（Solana RPC・Supabase）はすべてモック化済みのため CI で実行可能。
  *
- * 注意: before/after/beforeEach はすべて describe ブロック内に配置する。
+ * 注意: beforeAll/afterAll/beforeEach はすべて describe ブロック内に配置する。
  * root-level フックは他テストファイルのフックと順序が競合するため使用しない。
  */
-import * as assert from "node:assert/strict";
-import { describe, it, before, after, beforeEach } from "mocha";
+import { expect, describe, it, beforeAll, afterAll, beforeEach } from "vitest";
 import {
   setupPurchaseMocks,
   teardownPurchaseMocks,
@@ -95,14 +94,15 @@ function makeContext(
 describe("POST /purchase — 統合テスト", () => {
   let POST: PostHandler;
 
-  before(() => {
+  beforeAll(() => {
     setupPurchaseMocks();
     POST = (
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require("@/app/api/v1/knowledge/[id]/purchase/route") as RouteModule
     ).POST;
   });
 
-  after(() => {
+  afterAll(() => {
     teardownPurchaseMocks();
   });
 
@@ -140,12 +140,12 @@ describe("POST /purchase — 統合テスト", () => {
   describe("入力バリデーション", () => {
     it("tx_hash 省略 → 400", async () => {
       const res = await POST(makeRequest({}), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("tx_hash 空文字 → 400", async () => {
       const res = await POST(makeRequest({ tx_hash: "  " }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("chain = 'ethereum' → 400", async () => {
@@ -153,7 +153,7 @@ describe("POST /purchase — 統合テスト", () => {
         makeRequest({ tx_hash: VALID_TX_HASH, chain: "ethereum" }),
         makeContext()
       );
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("token = 'ETH' → 400 (Solana chain に ETH は非対応)", async () => {
@@ -161,7 +161,7 @@ describe("POST /purchase — 統合テスト", () => {
         makeRequest({ tx_hash: VALID_TX_HASH, token: "ETH" }),
         makeContext()
       );
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("isValidSolanaTxHash = false → 400", async () => {
@@ -170,7 +170,7 @@ describe("POST /purchase — 統合テスト", () => {
         makeRequest({ tx_hash: "short" }),
         makeContext()
       );
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
   });
 
@@ -180,7 +180,7 @@ describe("POST /purchase — 統合テスト", () => {
     it("未認証 (mockAuth.user = null) → 401", async () => {
       mockAuth.user = null;
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 401);
+      expect(res.status).toBe(401);
     });
 
     it("write 権限なし → 403", async () => {
@@ -190,7 +190,7 @@ describe("POST /purchase — 統合テスト", () => {
         permissions: ["read"],
       };
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 403);
+      expect(res.status).toBe(403);
     });
   });
 
@@ -204,7 +204,7 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 404);
+      expect(res.status).toBe(404);
     });
 
     it("item.status = 'draft' → 400 (購入不可)", async () => {
@@ -214,7 +214,7 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("item.listing_type = 'request' → 400 (request 出品は購入不可)", async () => {
@@ -224,7 +224,7 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("seller_id === user.userId (自己購入) → 400", async () => {
@@ -237,7 +237,7 @@ describe("POST /purchase — 統合テスト", () => {
         knowledge_items: [{ data: publishedItem }],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
   });
 
@@ -254,7 +254,7 @@ describe("POST /purchase — 統合テスト", () => {
         makeRequest({ tx_hash: VALID_TX_HASH, token: "SOL" }),
         makeContext()
       );
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("token = 'USDC', price_usdc = null → 400", async () => {
@@ -267,7 +267,7 @@ describe("POST /purchase — 統合テスト", () => {
         makeRequest({ tx_hash: VALID_TX_HASH, token: "USDC" }),
         makeContext()
       );
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("price_sol = 0 → 400", async () => {
@@ -280,7 +280,7 @@ describe("POST /purchase — 統合テスト", () => {
         makeRequest({ tx_hash: VALID_TX_HASH, token: "SOL" }),
         makeContext()
       );
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
   });
 
@@ -302,9 +302,9 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 409);
+      expect(res.status).toBe(409);
       const body = (await res.json()) as { error: { message: string } };
-      assert.ok(body.error.message.includes("already purchased"));
+      expect(body.error.message.includes("already purchased")).toBeTruthy();
     });
 
     it("同一 tx_hash + 同一 buyer + 同一 item → 200 (冪等)", async () => {
@@ -328,9 +328,9 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 200);
+      expect(res.status).toBe(200);
       const body = (await res.json()) as { success: boolean };
-      assert.equal(body.success, true);
+      expect(body.success).toBe(true);
     });
 
     it("同一 tx_hash + 別 buyer → 409 'Transaction hash is already used'", async () => {
@@ -354,9 +354,9 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 409);
+      expect(res.status).toBe(409);
       const body = (await res.json()) as { error: { message: string } };
-      assert.ok(body.error.message.includes("already used"));
+      expect(body.error.message.includes("already used")).toBeTruthy();
     });
   });
 
@@ -380,7 +380,7 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
 
     it("buyer wallet_address = null → 400", async () => {
@@ -400,7 +400,7 @@ describe("POST /purchase — 統合テスト", () => {
         ],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
   });
 
@@ -418,7 +418,7 @@ describe("POST /purchase — 統合テスト", () => {
         profiles: [{ data: [sellerProfile, buyerProfile] }],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
     });
   });
 
@@ -439,7 +439,7 @@ describe("POST /purchase — 統合テスト", () => {
         profiles: [{ data: [sellerProfile, buyerProfile] }],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 409);
+      expect(res.status).toBe(409);
     });
 
     it("rpc('confirm_transaction') エラー → 400 'Transaction verification failed'", async () => {
@@ -459,12 +459,12 @@ describe("POST /purchase — 統合テスト", () => {
         profiles: [{ data: [sellerProfile, buyerProfile] }],
       });
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 400);
+      expect(res.status).toBe(400);
       const body = (await res.json()) as { error: { message: string } };
-      assert.ok(
+      expect(
         body.error.message.includes("Transaction verification failed"),
         `Expected 'Transaction verification failed' but got: ${body.error.message}`
-      );
+      ).toBeTruthy();
     });
   });
 
@@ -474,16 +474,16 @@ describe("POST /purchase — 統合テスト", () => {
     it("正常購入 → 200 + confirmedTx データ", async () => {
       setSuccessQueues();
       const res = await POST(makeRequest({ tx_hash: VALID_TX_HASH }), makeContext());
-      assert.equal(res.status, 200);
+      expect(res.status).toBe(200);
 
       const body = (await res.json()) as {
         success: boolean;
         data: { id: string; status: string; tx_hash: string };
       };
-      assert.equal(body.success, true);
-      assert.equal(body.data.id, confirmedTx.id);
-      assert.equal(body.data.status, "confirmed");
-      assert.equal(body.data.tx_hash, VALID_TX_HASH);
+      expect(body.success).toBe(true);
+      expect(body.data.id).toBe(confirmedTx.id);
+      expect(body.data.status).toBe("confirmed");
+      expect(body.data.tx_hash).toBe(VALID_TX_HASH);
     });
 
     it("token = 'USDC' で purchase → 200", async () => {
@@ -509,9 +509,9 @@ describe("POST /purchase — 統合テスト", () => {
         makeRequest({ tx_hash: VALID_TX_HASH, token: "USDC" }),
         makeContext()
       );
-      assert.equal(res.status, 200);
+      expect(res.status).toBe(200);
       const body = (await res.json()) as { success: boolean };
-      assert.equal(body.success, true);
+      expect(body.success).toBe(true);
     });
   });
 });

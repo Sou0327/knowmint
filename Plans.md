@@ -1,10 +1,10 @@
 # KnowMint - 開発計画
 
-> 人間の暗黙知・体験知をAIエージェントに販売できるナレッジマーケットプレイス
-> 決済: Solana (ノンカストディアル P2P → スマートコントラクト自動分配)
+> AIエージェントが x402 プロトコルで SOL を直接自律支払いできる、初のナレッジマーケットプレイス
+> 決済: Solana x402 自律購入 (ノンカストディアル P2P)
 > アクセス: Web UI / CLI (`km`) / REST API + MCP
 
-**コアバリュー**: 人間が出品 → AIエージェント(OpenClaw等)が自律発見・購入
+**コアバリュー**: エージェントが x402 で自律購入 — AIエージェントを活用した知識調達（提案→承認）でも使える
 **最優先ゴール**: OpenClawエージェントによる初の自律購入デモ
 
 ## 完了済みフェーズ
@@ -17,6 +17,54 @@ Phase R (OSS公開): `plans/archive-phase-r-a.md`
 Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-r-a.md`
 
 **R.3 手動TODO**: GitHub Description/Topics/Website URL 設定 (knowmint.shop)
+
+---
+
+## Phase CONTENT-1: Cardano Byron ESK調査報告 — 安全なナレッジ記事へ変換 [P1 — コンテンツ]
+
+> `drafts/references/SESSION_INVESTIGATION_REPORT_20260217.md` を KnowMint 出品形式に変換。
+> 暗号学的に価値ある発見（2経路分離・INC-1メカニズム）を保持しつつ、
+> 実際のキー値・ウォレット固有情報を完全除去する。
+
+### CONTENT-1.1 サニタイズ（個人情報・キー値の除去）
+
+- [ ] 削除対象を特定してリストアップ `cc:TODO`
+  - `SECRET_ESK` / `DB5_ESK` の hex 値 → `[REDACTED_ESK_HEX_64B]` に置換
+  - `TARGET_PUB` / `TARGET_CC` の hex 値 → `[REDACTED_PUBKEY_32B]` に置換
+  - `scrypt_salt` / `hdPassphrase` / `Root XPub` の具体値 → 除去
+  - `G3↔G4↔G2` 遷移の具体パスワード (`Pekopeko4649` / `pekopeko4649`) → `[EXAMPLE_PASS_A]` / `[EXAMPLE_PASS_B]` に置換
+  - Koios API で照合した TxID 27件 → 個数と期間のみ残し具体値除去
+  - ESKグループ表の先頭16B hex → 除去
+  - `scrypt導出値` / `pbkdf2` 具体値 → 除去
+- [ ] サニタイズ済みファイルを `drafts/content-cardano-byron-esk-recovery.md` として出力 `cc:TODO`
+
+### CONTENT-1.2 KnowMint 出品形式へ整形
+
+出品フォーマット（`drafts/content-01-claude-code-solo-build.md` 準拠）:
+
+- [ ] **メタデータ** を記載 `cc:TODO`
+  - `title`: `How Byron-era Cardano Wallet ESK Decryption Actually Works — A Forensic Investigation`
+  - `content_type`: `general`
+  - `tags`: `cardano, byron-wallet, cryptography, wallet-recovery, forensics, daedalus`
+  - `price_sol`: `1.0`（Claude Codeドラフトの0.05より高価。希少性に対応）
+  - `listing_type`: `offer`
+- [ ] **preview_content**（誰でも閲覧可）を執筆 `cc:TODO`
+  - 発見の価値を訴求: 2経路問題・INC-1メカニズム・22,000件テスト結果
+  - 「この調査が解決する問いは何か」を冒頭に明示
+  - 500文字以内に収める
+- [ ] **full_content**（購入者のみ）を整形 `cc:TODO`
+  - セクション構成: 暗号化パイプライン → 2経路分離 → INC-1メカニズム → テスト設計 → 次アクション指針
+  - コードブロック（C実装・Python実装）はそのまま保持（実装詳細が価値の核心）
+  - 具体的なkeyやhexは`[REDACTED]`表記のまま
+
+### CONTENT-1.3 品質確認
+
+- [ ] サニタイズ漏れチェック: hex 文字列 64文字以上のパターンを grep で確認 `cc:TODO`
+  ```bash
+  grep -oE '[0-9a-f]{48,}' drafts/content-cardano-byron-esk-recovery.md
+  ```
+- [ ] preview が「買いたくなる」内容になっているか読み返し確認 `cc:TODO`
+- [ ] 価格設定の妥当性再確認（`1.0 SOL` ≒ ¥2万、ターゲット層が払える額か） `cc:TODO`
 
 ---
 
@@ -118,80 +166,6 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 - [ ] Card → shadcn/ui Card に置換 `cc:TODO`
 - [ ] 自前 `src/components/ui/` の旧コンポーネント削除 `cc:TODO`
 
-### C.3 ダークモード手動切り替え `cc:完了` (2026-03-02)
+### C.3 ダークモード `cc:完了` → `plans/archive-future-phases.md`
 
-- [x] Tailwind v4 `@custom-variant dark` でクラスベース dark mode 有効化 `cc:完了`
-- [x] ThemeToggle コンポーネント追加 (Header デスクトップ + モバイル両方) `cc:完了`
-- [x] `localStorage` でテーマ永続化 + FOUC 防止スクリプト (head 内) `cc:完了`
-  - `useSyncExternalStore` ベース、OS テーマ追従、別タブ同期、matchMedia 非対応環境フォールバック
-  - Codex ISSUES_FOUND: 0 (3ラウンド)
-
----
-
-## Phase 33: 品質担保機能 [P1]
-
-> 無料tier: 証拠フィールド必須化 + ティア型プレビュー。
-
-### 33.1 構造化「証拠」フィールド必須化
-
-- [ ] `evidence_description` / `evidence_url` カラム追加 (migration)
-- [ ] 出品フォーム + 詳細ページ + API バリデーション
-
-### 33.2 ティア型プレビュー
-
-- [ ] `key_insight` カラム追加 → 3層構造 (description → key_insight → content)
-- [ ] MCP `km_get_detail` に `key_insight` 追加
-
-### 33.3 AI非代替認定バッジ `cc:DEFERRED`
-
----
-
-## Phase 35: ブランド画像アセット整備 [P1]
-
-- [ ] 35.1 favicon (32/192/512/apple-icon) + テンプレート残骸 SVG 削除
-- [ ] 35.2 OG デフォルト画像リデザイン (1200x630, DQ テーマ)
-- [ ] 35.3 動的 OG 画像 `cc:DEFERRED` (CF Workers 3MiB 制限)
-
----
-
-## Phase 47: CI 型安全パイプライン [P1 — 堅牢性]
-
-> Database 型が手書き。マイグレーション追加時に型ファイルとの乖離が無チェックで発生する。
-
-- [ ] 47.1 `supabase gen types typescript` → `src/types/database.types.ts` 自動生成スクリプト作成 `cc:TODO`
-- [ ] 47.2 CI で `supabase gen types` → `git diff --exit-code` チェック追加 (型乖離検出) `cc:TODO`
-- [ ] 47.3 `npm run build` を CI に組み込み (型エラー = ビルド失敗) `cc:TODO`
-
----
-
-## Phase 50: updateListing RPC 原子化 [P2 — データ整合性]
-
-- [ ] 50.2 `updateListing` を RPC トランザクション化 (version snapshot + update の原子性) `cc:TODO`
-  - 対象: `src/app/api/v1/knowledge/[id]/route.ts:156` の PATCH ハンドラー
-  - `createVersionSnapshot()` + `knowledge_items` update + `knowledge_item_contents` upsert の3書込みが非アトミック
-  - 途中失敗でバージョン履歴とアイテムデータが不整合になる
-
----
-
-## Phase 32.3: スマコン mainnet デプロイ `cc:DEFERRED`
-
-> Phase 26 デモ・拡散の反響を見てから着手。P2P モードで十分運用可能。
-
-- [ ] `anchor deploy --provider.cluster mainnet` → Program ID / Fee Vault 設定
-
----
-
-## 削除済みフェーズ (理由付き)
-
-| Phase | 削除理由 |
-|-------|----------|
-| 48 (Rate Limit 障害耐性) | Upstash fallback 修正より CF 組み込み rate limiting が正解。問題設定が間違い |
-| 49 (E2E Maestro 拡大) | Phase B で Maestro → Playwright に置換するため、Maestro フロー追加は無駄 |
-| 50.1 (Modal focus trap) | Phase C で shadcn/ui Dialog に置換すれば built-in で解決 |
-| 51 (git history cleanup) | devnet keypair は低リスク。force push のリスクのほうが高い |
-
----
-
-## 将来フェーズ (未スケジュール)
-
-- Request Listing 復活・強化, pgvector セマンティック検索, LangChain/AutoGen/CrewAI プラグイン対応
+> Phase 33/35/47/50/32.3/削除済み/将来フェーズ → `plans/archive-future-phases.md`

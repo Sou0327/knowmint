@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-KnowMint — 人間の暗黙知・体験知をAIエージェントに販売できるナレッジマーケットプレイス。
-仮想通貨 (Solana) で決済。3つのアクセスレイヤー: Web UI / CLI (`km`) / REST API+MCP。
-
-人間が体験知・暗黙知を出品 → AIエージェント(OpenClaw等)が自律発見・購入。買い手→売り手 P2P 直接送金(秘密鍵は運営非保有)。
+KnowMint — AIエージェントが x402 プロトコルで SOL を直接自律支払いできる、初のナレッジマーケットプレイス。
+人間が体験知・暗黙知を出品 → エージェントが自律発見・直接支払い（秘密鍵は運営非保有）。
+AIエージェントを活用した知識調達にも対応（エージェント提案 → 人間承認 → 作業再開）。
+仮想通貨 (Solana / x402) で決済。3つのアクセスレイヤー: Web UI / CLI (`km`) / REST API+MCP。
 
 ## Commands
 

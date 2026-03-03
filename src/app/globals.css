@@ -46,7 +46,7 @@
     --dq-text-muted: #5a5a72;
 
     --dq-gold: #7a5506;
-    --dq-cyan: #0a7ca8;
+    --dq-cyan: #005f96; /* WCAG AA: #0a7ca8 on #e8e0d0 は 3.38:1 (不合格) → #005f96 で 5.31:1 */
     --dq-red: #c03030;
     --dq-green: #2a8a2a;
     --dq-yellow: #8a7a08;
@@ -99,7 +99,7 @@
   --dq-text-muted: #5a5a72;
 
   --dq-gold: #7a5506;
-  --dq-cyan: #0a7ca8;
+  --dq-cyan: #005f96; /* WCAG AA: #0a7ca8 on #e8e0d0 は 3.38:1 (不合格) → #005f96 で 5.31:1 */
   --dq-red: #c03030;
   --dq-green: #2a8a2a;
   --dq-yellow: #8a7a08;

@@ -27,7 +27,11 @@
     "gen:types": "node scripts/gen-types.mjs",
     "gen:types:check": "node scripts/gen-types.mjs --check",
     "test:components": "vitest run --config vitest.config.ts",
-    "test:components:watch": "vitest --config vitest.config.ts"
+    "test:components:watch": "vitest --config vitest.config.ts",
+    "demo:setup": "cd remotion && npm install",
+    "demo:preview": "cd remotion && npm run preview",
+    "demo:render:mp4": "cd remotion && npm run render:mp4",
+    "demo:render:gif": "cd remotion && npm run render:gif"
   },
   "dependencies": {
     "@noble/curves": "^1.8.0",

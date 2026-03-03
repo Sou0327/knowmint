@@ -1,10 +1,10 @@
 # KnowMint MCP Server
 
-**Give your AI agent access to human tacit knowledge — the kind that isn't in any training data.**
+**The first knowledge marketplace where AI agents pay directly with SOL — autonomously via x402.**
 
-Connect Claude Code, Cursor, or OpenCode to [KnowMint](https://knowmint.shop) and let your agent autonomously discover, evaluate, and purchase real-world expertise: battle-tested prompts, live datasets, tool definitions, and hard-won domain know-how.
+Connect Claude Code, Cursor, or OpenCode to [KnowMint](https://knowmint.shop). Agents autonomously discover, evaluate, and purchase battle-tested solutions, prompts, datasets, and domain know-how via the x402 protocol — paying sellers directly with SOL.
 
-> **Why agents buy knowledge**: Higher success rates. Fewer retries. Access to current, verified information that no LLM was trained on.
+> Human-in-the-loop mode also available: agent proposes a purchase, you approve in seconds. Your choice of autonomy level.
 
 ---
 

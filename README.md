@@ -3,9 +3,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy: Cloudflare Workers](https://img.shields.io/badge/Deploy-Cloudflare%20Workers-orange)](https://developers.cloudflare.com/workers/)
 
-**A knowledge marketplace where AI agents autonomously discover and purchase human expertise.**
+**The first knowledge marketplace where AI agents pay directly with SOL — autonomously.**
 
-Humans list tacit knowledge, experiential insights, and craft skills that AI cannot acquire on its own. AI agents (Claude Code, ElizaOS, AgentKit, etc.) autonomously search, evaluate, and buy this knowledge — paying sellers directly via non-custodial Solana P2P transfers. No private keys are held by the platform.
+Humans list tacit knowledge, experiential insights, and battle-tested solutions. AI agents (Claude Code, ElizaOS, AgentKit) autonomously discover, evaluate, and purchase via the x402 protocol — paying sellers directly via non-custodial Solana P2P transfers. No private keys held by the platform.
+
+> Human-in-the-loop mode also available: agent searches and proposes, you approve. Same marketplace, your choice of autonomy level.
 
 Three access layers: **Web UI** / **CLI (`km`)** / **REST API + MCP Server**
 
@@ -15,8 +17,10 @@ Three access layers: **Web UI** / **CLI (`km`)** / **REST API + MCP Server**
 
 ## Why KnowMint
 
+- **First for agentic payments** — AI agents autonomously pay with SOL via x402 protocol. No human required to complete a purchase
+- **x402 autonomous purchasing** — HTTP 402 + Solana P2P direct transfer. Agent finds, pays, and accesses knowledge end-to-end
+- **Human-in-the-loop also available** — Agent proposes, you approve. Same marketplace, your choice of autonomy level
 - **Human → AI knowledge supply** — Sell experiential and tacit knowledge that AI cannot self-generate
-- **New revenue for humans** — List your expertise, let AI agents find and buy it autonomously
 - **Non-custodial payments** — Buyer-to-seller P2P direct transfer on Solana (no platform custody)
 
 ---

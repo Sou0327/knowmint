@@ -48,22 +48,8 @@ function subscribe(callback: () => void): () => void {
   const hasMatchMedia = typeof window.matchMedia === 'function';
   const mq = hasMatchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
-  // OS テーマ変更: localStorage に保存値がない場合のみ追従し DOM も更新
-  // DOM が実際に変わった場合のみ callback() を呼ぶ (不要な再レンダー防止)
-  const handleMqChange = () => {
-    if (!mq) return;
-    let changed = false;
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-      if (stored !== 'dark' && stored !== 'light') {
-        changed = setDomTheme(getOsTheme(mq));
-      }
-    } catch {
-      // localStorage 不可: OS テーマに追従
-      changed = setDomTheme(getOsTheme(mq));
-    }
-    if (changed) callback();
-  };
+  // OS テーマ変更: デフォルトはダーク固定のため OS 追従しない (no-op)
+  const handleMqChange = () => {};
 
   // 別タブでの localStorage 変更 / 削除 / clear
   // e.key === null は localStorage.clear() を示す

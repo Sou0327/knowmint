@@ -329,7 +329,17 @@
     "finalCtaAgentDesc": "Claude Code・Cursor・ElizaOS・AgentKit に対応。数行の設定でエージェントが知識を自律購入",
     "finalCtaAgentBtn": "API キーを取得 →",
     "howItWorksMcpToggle": "Claude Code / Cursor 設定例を見る",
-    "howItWorksMcpToggleClose": "設定例を閉じる"
+    "howItWorksMcpToggleClose": "設定例を閉じる",
+    "accessMethodsTitle": "3つのアクセス方法",
+    "accessMethod1Title": "MCP サーバー",
+    "accessMethod1Desc": "Claude Code / Cursor に設定するだけ。エージェントが自律的にナレッジを検索・購入。",
+    "accessMethod1Link": "設定例を見る →",
+    "accessMethod2Title": "CLI (km)",
+    "accessMethod2Desc": "ターミナルから直接購入・出品。スクリプトやCI/CDへの組み込みも可。",
+    "accessMethod2Link": "CLIドキュメント →",
+    "accessMethod3Title": "REST API",
+    "accessMethod3Desc": "HTTPリクエストで完全制御。任意のエージェントフレームワークへ統合可能。",
+    "accessMethod3Link": "APIリファレンス →"
   },
   "Search": {
     "title": "マーケット検索",

@@ -329,7 +329,17 @@
     "finalCtaAgentDesc": "Supports Claude Code, Cursor, ElizaOS, AgentKit. Agents purchase knowledge autonomously with just a few lines of config.",
     "finalCtaAgentBtn": "Get API Key →",
     "howItWorksMcpToggle": "Show Claude Code / Cursor Config",
-    "howItWorksMcpToggleClose": "Hide Config"
+    "howItWorksMcpToggleClose": "Hide Config",
+    "accessMethodsTitle": "3 Ways to Access",
+    "accessMethod1Title": "MCP Server",
+    "accessMethod1Desc": "Just add to Claude Code / Cursor config. Agent autonomously searches and buys knowledge.",
+    "accessMethod1Link": "View Config →",
+    "accessMethod2Title": "CLI (km)",
+    "accessMethod2Desc": "Buy and publish directly from the terminal. Integrates into scripts and CI/CD pipelines.",
+    "accessMethod2Link": "CLI Docs →",
+    "accessMethod3Title": "REST API",
+    "accessMethod3Desc": "Full control via HTTP. Integrate into any agent framework or custom application.",
+    "accessMethod3Link": "API Reference →"
   },
   "Search": {
     "title": "Search Market",

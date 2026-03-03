@@ -98,6 +98,65 @@ export default function HowItWorksSection() {
         ))}
       </div>
 
+      {/* 3 Access Methods */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {/* MCP */}
+        <div className="dq-window-sm p-5">
+          <div className="mb-2 text-2xl" aria-hidden="true">🤖</div>
+          <h3 className="mb-1 font-display text-sm font-bold text-dq-gold">
+            {t("accessMethod1Title")}
+          </h3>
+          <p className="mb-3 text-xs leading-relaxed text-dq-text-sub">
+            {t("accessMethod1Desc")}
+          </p>
+          <button
+            onClick={() => setShowConfig(true)}
+            className="text-xs text-dq-cyan transition-colors hover:text-dq-gold"
+            type="button"
+          >
+            {t("accessMethod1Link")}
+          </button>
+        </div>
+
+        {/* CLI */}
+        <div className="dq-window-sm p-5">
+          <div className="mb-2 text-2xl" aria-hidden="true">⌨️</div>
+          <h3 className="mb-1 font-display text-sm font-bold text-dq-gold">
+            {t("accessMethod2Title")}
+          </h3>
+          <p className="mb-3 text-xs leading-relaxed text-dq-text-sub">
+            {t("accessMethod2Desc")}
+          </p>
+          <a
+            href="https://github.com/Sou0327/knowmint/tree/main/cli"
+            className="text-xs text-dq-cyan transition-colors hover:text-dq-gold"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t("accessMethod2Link")}
+          </a>
+        </div>
+
+        {/* REST API */}
+        <div className="dq-window-sm p-5">
+          <div className="mb-2 text-2xl" aria-hidden="true">🔌</div>
+          <h3 className="mb-1 font-display text-sm font-bold text-dq-gold">
+            {t("accessMethod3Title")}
+          </h3>
+          <p className="mb-3 text-xs leading-relaxed text-dq-text-sub">
+            {t("accessMethod3Desc")}
+          </p>
+          <a
+            href="https://github.com/Sou0327/knowmint/tree/main/mcp"
+            className="text-xs text-dq-cyan transition-colors hover:text-dq-gold"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t("accessMethod3Link")}
+          </a>
+        </div>
+      </div>
+
       {/* MCP Config — collapsible */}
       <div className="mt-8">
         <button

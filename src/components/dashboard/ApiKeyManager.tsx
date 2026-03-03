@@ -219,7 +219,7 @@ export default function ApiKeyManager() {
                 {t("permissions")}
               </p>
               <div className="space-y-2">
-                {PERMISSION_OPTIONS.map((opt) => (
+                {PERMISSION_OPTIONS.filter((opt) => opt.value !== "admin").map((opt) => (
                   <label
                     key={opt.value}
                     className="flex cursor-pointer items-center gap-3 rounded-sm border-2 border-dq-border p-3 hover:bg-dq-surface transition-colors"

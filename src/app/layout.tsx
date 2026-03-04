@@ -41,6 +41,7 @@ export function generateMetadata(): Metadata {
     ...m,
     metadataBase: new URL("https://knowmint.shop"),
     title: { default: m.title, template: "%s | KnowMint" },
+    icons: { icon: "/favicon.png" },
     openGraph: {
       type: "website",
       siteName: "KnowMint",

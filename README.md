@@ -11,6 +11,10 @@ Humans list tacit knowledge, experiential insights, and battle-tested solutions.
 
 Three access layers: **Web UI** / **CLI (`km`)** / **REST API + MCP Server**
 
+### Web UI
+![WebUI Purchase Flow](scripts/demo/recordings/webui-demo.gif)
+
+### CLI / MCP (for AI Agents)
 ![AI Agent Autonomous Purchase Demo](scripts/demo/recordings/autonomous-purchase.gif)
 
 ---

@@ -96,3 +96,12 @@ supabase/snippets/
 
 # Content drafts (unpublished listing content)
 drafts/
+
+# Remotion
+remotion/
+
+# Scripts (one-off / seed / demo)
+scripts/
+
+# Promo images
+promo-images/

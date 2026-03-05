@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import type { TokenBalance } from "@solana/web3.js";
 import type { Token } from "@/types/database.types";
-import { getConnection } from "@/lib/solana/connection";
+import { getConnection, getNetwork } from "@/lib/solana/connection";
 
 // USDC mint addresses (moved from payment.ts)
 const USDC_MINT_MAINNET = new PublicKey(
@@ -12,7 +12,7 @@ const USDC_MINT_DEVNET = new PublicKey(
 );
 
 function getUsdcMint(): PublicKey {
-  const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet";
+  const network = getNetwork();
   return network === "mainnet-beta" ? USDC_MINT_MAINNET : USDC_MINT_DEVNET;
 }
 

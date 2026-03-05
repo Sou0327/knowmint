@@ -4,6 +4,17 @@
  * https://x402.org
  */
 
+// CF Workers: per-request の最新 env を AsyncLocalStorage から取得
+// NEXT_PUBLIC_* は Next.js がビルド時にインライン化するため runtime 上書き不可。
+// サーバーサイド専用の秘密 (wrangler secret) を優先し、NEXT_PUBLIC_ にフォールバック。
+function getEnv(key: string): string | undefined {
+  const cfCtx = (globalThis as Record<symbol, { env?: Record<string, string> } | undefined>)[
+    Symbol.for("__cloudflare-context__")
+  ];
+  if (cfCtx?.env?.[key]) return cfCtx.env[key];
+  return process.env[key];
+}
+
 /** CAIP-2 Solana ネットワーク識別子 */
 export const SOLANA_DEVNET_NETWORK = "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
 export const SOLANA_MAINNET_NETWORK = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
@@ -19,7 +30,7 @@ const NETWORK_USDC_MINT: Readonly<Record<string, string>> = {
 };
 
 export function getNetwork(): string {
-  const network = process.env.X402_NETWORK;
+  const network = getEnv("X402_NETWORK");
   // fail-close: 未設定・不正値は例外で停止。devnet へのフォールバックは行わない
   if (!network || !Object.hasOwn(NETWORK_USDC_MINT, network)) {
     throw new Error(
@@ -58,53 +69,48 @@ export function getUsdcMintForNetwork(network: string): string | undefined {
     : undefined;
 }
 
-/** once ガード: プロセス内で一度だけチェックを実行 */
-let _networkConsistencyChecked = false;
-let _networkConsistent = true;
-
 /**
- * X402_NETWORK と NEXT_PUBLIC_SOLANA_NETWORK の整合チェック。
- * プロセス内で初回のみ実行し、結果をキャッシュして返す。
+ * X402_NETWORK と SOLANA_NETWORK の整合チェック。
+ * CF Workers では wrangler secret が per-request で変わる可能性があるため、
+ * キャッシュせず毎回評価する。
+ *
+ * 参照優先順位:
+ *   SOLANA_NETWORK (wrangler secret) > NEXT_PUBLIC_SOLANA_NETWORK (ビルド時埋め込み)
+ *   SOLANA_RPC_URL (wrangler secret) > NEXT_PUBLIC_SOLANA_RPC_URL (ビルド時埋め込み)
+ *
  * @returns true = 設定一致 / false = 設定不一致（呼び出し側は 500 を返すべき）
  */
 export function checkNetworkConsistency(): boolean {
-  if (_networkConsistencyChecked) return _networkConsistent;
-  _networkConsistencyChecked = true;
-  const x402Net = process.env.X402_NETWORK;
-  // X402_NETWORK 未設定・許可リスト外は即 false (devnet へのフォールバックなし)
+  const x402Net = getEnv("X402_NETWORK");
   if (!x402Net || !isSupportedNetwork(x402Net)) {
     console.error(
       `[x402] X402_NETWORK is not set or invalid: "${x402Net}". ` +
         `Must be "${SOLANA_MAINNET_NETWORK}" or "${SOLANA_DEVNET_NETWORK}".`
     );
-    _networkConsistent = false;
-    return _networkConsistent;
+    return false;
   }
-  const solNet = process.env.NEXT_PUBLIC_SOLANA_NETWORK;
-  // NEXT_PUBLIC_SOLANA_NETWORK も許可リストで厳密検証 (testnet/不正値を fail-close)
+  // SOLANA_NETWORK (wrangler secret) を優先、NEXT_PUBLIC_ にフォールバック
+  const solNet = getEnv("SOLANA_NETWORK") || getEnv("NEXT_PUBLIC_SOLANA_NETWORK");
   const ALLOWED_SOL_NETWORKS = new Set(["mainnet-beta", "devnet"]);
   if (!solNet || !ALLOWED_SOL_NETWORKS.has(solNet)) {
     console.error(
-      `[x402] Invalid NEXT_PUBLIC_SOLANA_NETWORK="${solNet}". ` +
+      `[x402] Invalid SOLANA_NETWORK="${solNet}". ` +
         `Must be "mainnet-beta" or "devnet".`
     );
-    _networkConsistent = false;
-    return _networkConsistent;
+    return false;
   }
   const x402IsMainnet = x402Net === SOLANA_MAINNET_NETWORK;
   const solIsMainnet = solNet === "mainnet-beta";
   if (x402IsMainnet !== solIsMainnet) {
     console.error(
       `[x402] CRITICAL: Network mismatch — X402_NETWORK=${x402Net} vs ` +
-        `NEXT_PUBLIC_SOLANA_NETWORK=${solNet}. Payment verification will fail. ` +
+        `SOLANA_NETWORK=${solNet}. Payment verification will fail. ` +
         "Check environment variables."
     );
-    _networkConsistent = false;
-    return _networkConsistent;
+    return false;
   }
-  // NEXT_PUBLIC_SOLANA_RPC_URL から known クラスタパターンで cross-check
-  // new URL() でパース後、hostname+pathname に境界正規表現を適用して誤検知を防ぐ
-  const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? "";
+  // RPC URL cross-check (wrangler secret 優先)
+  const rpcUrl = getEnv("SOLANA_RPC_URL") || getEnv("NEXT_PUBLIC_SOLANA_RPC_URL") || "";
   if (rpcUrl) {
     try {
       const { hostname, pathname } = new URL(rpcUrl);
@@ -112,33 +118,26 @@ export function checkNetworkConsistency(): boolean {
       const rpcLooksMainnet = /\bmainnet\b/.test(urlTarget);
       const rpcLooksDevnet = /\bdevnet\b/.test(urlTarget);
       if (rpcLooksMainnet && rpcLooksDevnet) {
-        // 両方含む → 判定不能、warning のみ
         console.warn(
-          `[x402] Ambiguous cluster in NEXT_PUBLIC_SOLANA_RPC_URL="${rpcUrl}". ` +
-            "Ensure it matches NEXT_PUBLIC_SOLANA_NETWORK."
+          `[x402] Ambiguous cluster in RPC URL="${rpcUrl}". ` +
+            "Ensure it matches SOLANA_NETWORK."
         );
       } else if (rpcLooksMainnet || rpcLooksDevnet) {
-        // 一方のみ明確 → 不整合を fail-close
         if ((rpcLooksMainnet && !solIsMainnet) || (rpcLooksDevnet && solIsMainnet)) {
           console.error(
-            `[x402] RPC cluster mismatch — NEXT_PUBLIC_SOLANA_RPC_URL="${rpcUrl}" ` +
-              `is inconsistent with NEXT_PUBLIC_SOLANA_NETWORK="${solNet}". ` +
+            `[x402] RPC cluster mismatch — RPC URL="${rpcUrl}" ` +
+              `is inconsistent with SOLANA_NETWORK="${solNet}". ` +
               "Check environment variables."
           );
-          _networkConsistent = false;
+          return false;
         }
-      } else {
-        // 判定不能 → warning のみ
-        console.warn(
-          `[x402] Cannot determine cluster from NEXT_PUBLIC_SOLANA_RPC_URL="${rpcUrl}". ` +
-            "Ensure it matches NEXT_PUBLIC_SOLANA_NETWORK."
-        );
       }
+      // 判定不能 (Helius 等カスタム URL) は warning なし — 正常動作
     } catch {
-      console.warn(`[x402] Invalid NEXT_PUBLIC_SOLANA_RPC_URL="${rpcUrl}". Skipping cluster check.`);
+      console.warn(`[x402] Invalid RPC URL="${rpcUrl}". Skipping cluster check.`);
     }
   }
-  return _networkConsistent;
+  return true;
 }
 
 /** x402 accepts エントリ */

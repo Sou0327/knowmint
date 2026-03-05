@@ -3,8 +3,9 @@ import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { notifyPurchase } from "@/lib/notifications/create";
-import { fireWebhookEvent } from "@/lib/webhooks/events";
-import { logAuditEvent } from "@/lib/audit/log";
+// NOTE: fireWebhookEvent and logAuditEvent removed — their transitive dependency
+// on `undici` (via webhooks/dispatch.ts) breaks opennextjs-cloudflare Workers bundling.
+// TODO: Re-enable once webhook dispatch migrates from undici to native fetch.
 import type { Chain, Token } from "@/types/database.types";
 import {
   isValidSolanaTxHash,
@@ -314,13 +315,6 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     ).catch((err: unknown) =>
       console.error("[purchase] send notification failed:", { userId: item.seller_id, itemId: id, error: err })
     );
-    fireWebhookEvent(user.userId, "purchase.completed", {
-      knowledge_id: id,
-      transaction_id: transaction.id,
-      amount: expectedAmount,
-      token,
-    }).catch((err: unknown) => console.error("[purchase] webhook dispatch failed:", { userId: user.userId, itemId: id, error: err }));
-    logAuditEvent({ userId: user.userId, action: "purchase.completed", resourceType: "knowledge_item", resourceId: id, metadata: { txHash: tx_hash.trim() } });
     return apiSuccess(recheckTx);
   }
 
@@ -335,21 +329,6 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   ).catch((err: unknown) =>
     console.error("[purchase] send notification failed:", { userId: item.seller_id, itemId: id, error: err })
   );
-
-  fireWebhookEvent(user.userId, "purchase.completed", {
-    knowledge_id: id,
-    transaction_id: transaction.id,
-    amount: expectedAmount,
-    token,
-  }).catch((err: unknown) => console.error("[purchase] webhook dispatch failed:", { userId: user.userId, itemId: id, error: err }));
-
-  logAuditEvent({
-    userId: user.userId,
-    action: "purchase.completed",
-    resourceType: "knowledge_item",
-    resourceId: id,
-    metadata: { txHash: tx_hash.trim() },
-  });
 
   // INSERT 済みの transaction から confirmed 状態を構築 (余分な再 SELECT を回避)
   return apiSuccess({ ...transaction, status: 'confirmed' as const });

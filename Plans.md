@@ -78,17 +78,85 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
 
 ---
 
-## Phase PROD-TEST: 本番 devnet 購入テスト [P1 — 本番検証]
+## Phase PROD-TEST: 本番 devnet 購入テスト `cc:完了`
 
-> ローカルテスト完了済み。本番インフラ（CF Workers + Supabase prod + Solana RPC）の動作確認。
-> ユーザーゼロの今がリスクゼロで試せるタイミング。
+> 本番インフラ（CF Workers + Supabase prod + Solana devnet）で購入フローを手動 E2E 検証。
+> CLI 登録・検索・購入、MCP x402 自律購入すべて通過。
 
-- [ ] GitHub Variables: `NEXT_PUBLIC_SOLANA_NETWORK` → `devnet` `cc:TODO`
-- [ ] GitHub Secrets: `NEXT_PUBLIC_SOLANA_RPC_URL` → `https://api.devnet.solana.com` `cc:TODO`
-- [ ] 空コミット push → 本番デプロイ完了確認 `cc:TODO`
-- [ ] Phantom をdevnet切り替え + faucet.solana.com でSOL取得 `cc:TODO`
-- [ ] 本番で購入フロー E2E 確認（検索→詳細→購入→コンテンツ取得） `cc:TODO`
-- [ ] **テスト完了後**: GitHub Variables/Secrets を mainnet に戻して再デプロイ（Show HN 前に必須） `cc:TODO`
+### 確認済み (2026-03-04)
+
+- [x] CLI 登録 (`km register`)
+- [x] CLI 検索 (`km search`)
+- [x] CLI 購入 (`tx_hash` 提出 → 保存)
+- [x] MCP 登録
+- [x] MCP x402 402 → `payment_proof` 購入
+- [x] MCP コンテンツ取得
+
+### 修正内容
+
+- `src/lib/x402/index.ts`: `getEnv()` 追加 (CF Workers AsyncLocalStorage 対応)、once ガード除去、`SOLANA_NETWORK` > `NEXT_PUBLIC_SOLANA_NETWORK` 優先順位
+- `src/lib/solana/connection.ts`: 同上 (`getEnv()` + `SOLANA_RPC_URL` > `NEXT_PUBLIC_SOLANA_RPC_URL`)
+- `src/lib/solana/verify-transaction.ts`: `getNetwork()` 経由で USDC mint 解決
+- `src/app/api/v1/knowledge/[id]/purchase/route.ts`: `fireWebhookEvent`/`logAuditEvent` 除去 (undici CF Workers 非互換)
+- wrangler secret: `SOLANA_RPC_URL` / `SOLANA_NETWORK` (NEXT_PUBLIC_ なし) でランタイム切替可能
+
+### 環境切替コマンド
+
+devnet:
+```bash
+echo "https://devnet.helius-rpc.com/?api-key=<KEY>" | npx wrangler secret put SOLANA_RPC_URL
+echo "devnet" | npx wrangler secret put SOLANA_NETWORK
+echo "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1" | npx wrangler secret put X402_NETWORK
+```
+
+mainnet:
+```bash
+echo "https://mainnet.helius-rpc.com/?api-key=<KEY>" | npx wrangler secret put SOLANA_RPC_URL
+echo "mainnet-beta" | npx wrangler secret put SOLANA_NETWORK
+echo "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" | npx wrangler secret put X402_NETWORK
+```
+
+---
+
+## Phase CLI-PAY: CLI 自動送金購入 [P1 — UX]
+
+> 現状 `km purchase` は `--tx-hash` の手動提出が必要。
+> keypair を使って送金 → purchase API → コンテンツ取得を1コマンドで完結させる。
+
+### CLI-PAY.1 seller wallet 取得手段
+
+- [ ] `GET /api/v1/me/profile` エンドポイント追加（`wallet_address` 返却）— 作成済み、デプロイ待ち `cc:TODO`
+- [ ] knowledge item 詳細 API (`GET /api/v1/knowledge/[id]`) のレスポンスに `seller_wallet_address` を追加 `cc:TODO`
+  - 購入者が seller wallet を知る必要がある（送金先）
+  - RLS / セキュリティ考慮: 公開情報（Solana アドレスは公開台帳）
+
+### CLI-PAY.2 CLI 自動送金実装
+
+- [ ] `km purchase <id>` に `--keypair <path>` オプション追加 `cc:TODO`
+  - `--keypair` あり: 自動送金モード
+  - `--tx-hash` あり: 従来の手動提出モード（互換維持）
+  - 両方なし: コンテンツ直取得を試行（既存動作）
+- [ ] 自動送金フロー実装 `cc:TODO`
+  1. `GET /api/v1/knowledge/<id>` → `price_sol`, `seller_wallet_address` 取得
+  2. RPC 接続（config の `rpcUrl` or devnet/mainnet 自動判定）
+  3. buyer 残高チェック（price + 手数料バッファ）
+  4. `SystemProgram.transfer(buyer → seller)` 送信・confirmed 待ち
+  5. `POST /api/v1/knowledge/<id>/purchase` に `tx_hash` 提出
+  6. `GET /api/v1/knowledge/<id>/content` でコンテンツ取得・保存
+- [ ] `~/.km/config.json` に `rpcUrl` フィールド追加（オプション、未設定時は mainnet 公開 RPC） `cc:TODO`
+
+### CLI-PAY.3 テスト
+
+- [ ] devnet E2E: keypair で自動送金 → 購入 → コンテンツ取得 `cc:TODO`
+- [ ] エラーケース: 残高不足、seller wallet 未設定、無効な keypair `cc:TODO`
+
+### 変更ファイル
+
+| File | Change |
+|------|--------|
+| `src/app/api/v1/knowledge/[id]/route.ts` | seller_wallet_address をレスポンスに追加 |
+| `src/app/api/v1/me/profile/route.ts` | 新規（作成済み、デプロイ待ち） |
+| `cli/bin/km.mjs` | `--keypair` 自動送金ロジック追加 (~60行) |
 
 ---
 
@@ -124,6 +192,32 @@ Phase A (EVM削除+vitest統一+fire-and-forget可視化): `plans/archive-phase-
   - `admin.from("profiles").select("user_type").eq("id", user.userId).single()` で取得
   - `user_type === "agent"` → `apiError(API_ERRORS.FORBIDDEN, "Agents cannot publish knowledge items")`
   - item fetch の前（早期リターン）に配置
+
+---
+
+## Phase REVIEW-1: レビュー・スコア UI 有効化 [P2 — UX]
+
+> バックエンド（reviews テーブル、feedback API、trust_score トリガー）は全て実装済み。
+> UI が繋がっていないためデータが入らず、スコアが全て 0 のまま。
+> ReviewForm.tsx は実装済みだがページ未組み込み。有用性フィードバック UI は未作成。
+
+### REVIEW-1.1 レビュー投稿 UI 組み込み
+
+- [ ] `src/app/(main)/knowledge/[id]/page.tsx` に `ReviewForm` を組み込み（購入済みユーザーのみ表示） `cc:TODO`
+  - `transactions` テーブルで confirmed な取引があるかチェック
+  - 既にレビュー済みの場合は非表示 or 「レビュー済み」表示
+  - ReviewList の上に配置
+
+### REVIEW-1.2 有用性フィードバック UI
+
+- [ ] 購入済みコンテンツ閲覧ページに 👍/👎 ボタンを追加 `cc:TODO`
+  - `POST /api/v1/knowledge/[id]/feedback` を呼び出し
+  - トリガーが `usefulness_score` を自動更新
+
+### REVIEW-1.3 スコア表示の改善
+
+- [ ] ナレッジ詳細ページに `average_rating` と `usefulness_score` を見やすく表示 `cc:TODO`
+- [ ] 売り手プロフィールに `trust_score` を表示 `cc:TODO`
 
 ---
 

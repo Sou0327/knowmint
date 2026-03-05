@@ -84,7 +84,7 @@ export default function BasicInfoStep({
   ];
 
   const APPLICABLE_TO_OPTIONS = [
-    { value: "GPT-4", label: "GPT-4" },
+    { value: "ChatGPT", label: "ChatGPT" },
     { value: "Claude", label: "Claude" },
     { value: "Gemini", label: "Gemini" },
     { value: "any", label: t("allAI") },

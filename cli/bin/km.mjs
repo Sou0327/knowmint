@@ -11,7 +11,7 @@ import { loadOrCreateKeypair, signMessage } from "../lib/keypair.mjs";
 
 const CONFIG_DIR = path.join(os.homedir(), ".km");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
-const DEFAULT_BASE_URL = "http://127.0.0.1:3000";
+const DEFAULT_BASE_URL = "https://knowmint.shop";
 
 class KmError extends Error {
   constructor(message, status = null, code = null, details = null) {
@@ -32,10 +32,12 @@ Usage:
   km login --api-key <km_key> [--base-url <url>]
   km logout
   km search <query> [--page <n>] [--per-page <n>] [--json]
-  km install <id> [--tx-hash <hash>] [--token SOL|USDC] [--chain solana] [--dir <path>] [--deploy-to claude|opencode]
+  km install <id> [--keypair <path>] [--tx-hash <hash>] [--rpc-url <url>] [--token SOL|USDC] [--chain solana] [--dir <path>] [--deploy-to claude|opencode]
   km publish prompt <file> --price <amount><SOL|USDC> [--title <text>] [--description <text>] [--tags "a,b"]
   km publish mcp <file> --price <amount><SOL|USDC> [--title <text>] [--description <text>] [--tags "a,b"]
   km publish dataset <file> --price <amount><SOL|USDC> [--title <text>] [--description <text>] [--tags "a,b"] [--content-type <mime>]
+  km publish general <file> [--price <amount><SOL|USDC>] [--title <text>] [--description <text>] [--tags "a,b"]
+    (ドラフトファイルの ## Metadata / ## Preview Content / ## Full Content を自動解析)
   km my purchases [--page <n>] [--per-page <n>] [--json]
   km my listings [--page <n>] [--per-page <n>] [--json]
   km versions <id> [--json]
@@ -125,6 +127,7 @@ async function loadConfig() {
   return {
     apiKey: process.env.KM_API_KEY || fileConfig.apiKey || null,
     baseUrl: normalizeBaseUrl(process.env.KM_BASE_URL || fileConfig.baseUrl || DEFAULT_BASE_URL),
+    rpcUrl: process.env.SOLANA_RPC_URL || fileConfig.rpcUrl || null,
   };
 }
 
@@ -517,62 +520,371 @@ async function cmdSearch(args) {
   }
 }
 
+/**
+ * keypair ファイルで自動送金 → 購入記録 → コンテンツ取得を一括実行する。
+ * @solana/web3.js は動的 import で遅延ロードし、他コマンドの起動速度に影響しない。
+ *
+ * @returns {{ alreadyPurchased: boolean }} 既購入で送金スキップした場合 true
+ */
+async function autoPayAndPurchase(config, canonicalId, item, keypairPath, rpcUrl) {
+  // 0. canonicalId サニタイズ (ファイルパスに使用するため path traversal 防止)
+  if (!/^[a-f0-9-]{36}$/i.test(canonicalId)) {
+    throw new KmError(`Invalid item ID format: ${canonicalId}`);
+  }
+
+  // 1. seller wallet 検証
+  const sellerWallet = item.seller?.wallet_address;
+  if (!sellerWallet) {
+    throw new KmError("Seller has no wallet address configured. Use --tx-hash for manual purchase.");
+  }
+
+  // 2. price_sol 検証 (USDC 自動送金は非対応)
+  const priceSol = item.price_sol;
+  if (typeof priceSol !== "number" || !Number.isFinite(priceSol) || priceSol <= 0) {
+    throw new KmError(
+      "This item has no SOL price. Automatic payment only supports SOL.\n" +
+      "For USDC, send manually and use: km install <id> --tx-hash <hash> --token USDC"
+    );
+  }
+
+  // 3. RPC URL 必須チェック (mainnet 暗黙利用による資金ロスを防止)
+  const effectiveRpcUrl = rpcUrl || config.rpcUrl;
+  if (!effectiveRpcUrl) {
+    throw new KmError(
+      "RPC URL is required for automatic payment.\n" +
+      "Use --rpc-url <url>, set SOLANA_RPC_URL env, or add rpcUrl to ~/.km/config.json"
+    );
+  }
+
+  // 4. RPC URL 形式検証 (Connection 生成前)
+  let rpcHost;
+  try {
+    rpcHost = new URL(effectiveRpcUrl).hostname;
+  } catch {
+    throw new KmError(`Invalid RPC URL: ${effectiveRpcUrl}`);
+  }
+
+  // 5. keypair 読み込み + 権限チェック
+  const resolvedKeypairPath = path.resolve(keypairPath);
+  let keypairStat;
+  try {
+    keypairStat = await fs.stat(resolvedKeypairPath);
+  } catch {
+    throw new KmError(`Keypair file not found: ${resolvedKeypairPath}`);
+  }
+  const mode = keypairStat.mode & 0o777;
+  if ((mode & 0o077) !== 0) {
+    throw new KmError(
+      `Keypair file is readable by group/others (${mode.toString(8)}). ` +
+      `Run: chmod 600 ${resolvedKeypairPath}`
+    );
+  }
+
+  let keypairJson;
+  try {
+    keypairJson = JSON.parse(await fs.readFile(resolvedKeypairPath, "utf8"));
+  } catch {
+    throw new KmError(`Failed to parse keypair file: ${resolvedKeypairPath}`);
+  }
+
+  // 6. 動的 import + RPC 接続
+  const { Connection, Keypair, PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } =
+    await import("@solana/web3.js");
+
+  let buyerKeypair;
+  try {
+    buyerKeypair = Keypair.fromSecretKey(Uint8Array.from(keypairJson));
+  } catch {
+    throw new KmError("Invalid keypair file format. Expected a JSON array of secret key bytes.");
+  }
+
+  let sellerPubkey;
+  try {
+    sellerPubkey = new PublicKey(sellerWallet);
+  } catch {
+    throw new KmError(`Invalid seller wallet address: ${sellerWallet}`);
+  }
+
+  const connection = new Connection(effectiveRpcUrl, "confirmed");
+
+  console.log(`Buyer  : ${buyerKeypair.publicKey.toBase58()}`);
+  console.log(`Seller : ${sellerPubkey.toBase58()}`);
+  console.log(`RPC    : ${rpcHost}`);
+  console.log(`Price  : ${priceSol} SOL`);
+
+  // 7. 未完了送金レシートの復旧チェック (canonical ID でキー)
+  const receiptPath = path.join(CONFIG_DIR, `receipt-${canonicalId}.json`);
+  let pendingTxHash = null;
+  try {
+    const receiptRaw = await fs.readFile(receiptPath, "utf8");
+    const receipt = JSON.parse(receiptRaw);
+    if (receipt?.tx_hash && typeof receipt.tx_hash === "string") {
+      pendingTxHash = receipt.tx_hash;
+      console.log(`Found pending transaction from previous run: ${pendingTxHash}`);
+      console.log("Retrying purchase registration...");
+    }
+  } catch (receiptErr) {
+    if (receiptErr.code === "ENOENT") {
+      // レシートなし → 通常フロー
+    } else {
+      throw new KmError(
+        `Failed to read receipt file (${receiptPath}): ${receiptErr.message}. ` +
+        "Check the file manually before retrying to avoid double payment."
+      );
+    }
+  }
+
+  // 8. 冪等性チェック: 既に購入済みなら送金スキップ
+  try {
+    const contentCheck = await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(canonicalId)}/content`);
+    if (contentCheck?.success === true) {
+      console.log("Already purchased — skipping payment.");
+      await fs.unlink(receiptPath).catch(() => {});
+      return { alreadyPurchased: true, content: unwrapData(contentCheck) };
+    }
+  } catch (e) {
+    // 402/403 = 未購入 → 送金へ進む。それ以外は安全のため中断。
+    const safeStatuses = [402, 403];
+    if (e instanceof KmError && safeStatuses.includes(e.status)) {
+      // not purchased yet → proceed
+    } else {
+      throw new KmError(
+        `Idempotency check failed: ${e instanceof KmError ? e.message : String(e)}. ` +
+        "Aborting to prevent unintended SOL transfer."
+      );
+    }
+  }
+
+  // 9. 未完了レシートがある場合: 新規送金せず購入登録のみリトライ
+  if (pendingTxHash) {
+    await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(canonicalId)}/purchase`, "POST", {
+      tx_hash: pendingTxHash,
+      token: "SOL",
+      chain: "solana",
+    });
+    console.log("Purchase recorded (recovered from pending receipt).");
+    await fs.unlink(receiptPath).catch(() => {});
+    return { alreadyPurchased: false };
+  }
+
+  // 10. ローカル排他ロック (canonical ID でキー)
+  const lockPath = path.join(CONFIG_DIR, `install-${canonicalId}.lock`);
+  let lockFd;
+  try {
+    await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
+    const fh = await fs.open(lockPath, fsSync.constants.O_CREAT | fsSync.constants.O_EXCL | fsSync.constants.O_WRONLY);
+    lockFd = fh;
+  } catch (lockErr) {
+    if (lockErr.code === "EEXIST") {
+      throw new KmError(
+        `Another autopay for this item is in progress (lock: ${lockPath}).\n` +
+        "If this is stale, remove the lock file manually."
+      );
+    }
+    throw lockErr;
+  }
+
+  try {
+    // 11. 残高チェック
+    const lamports = Math.ceil(priceSol * LAMPORTS_PER_SOL);
+    const feeBuffer = 10_000;
+    const required = lamports + feeBuffer;
+    const balance = await connection.getBalance(buyerKeypair.publicKey);
+    if (balance < required) {
+      throw new KmError(
+        `Insufficient balance: ${balance} lamports (need ${required}).\n` +
+        `Buyer: ${buyerKeypair.publicKey.toBase58()}`
+      );
+    }
+
+    // 12. SOL 送金 (send → レシート保存 → confirm の順で二重送金防止)
+    console.log(`Sending ${priceSol} SOL...`);
+    const tx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: buyerKeypair.publicKey,
+        toPubkey: sellerPubkey,
+        lamports,
+      })
+    );
+
+    let txHash;
+    let blockhashInfo;
+    try {
+      // sendTransaction で署名取得 (confirm 前にレシート保存するため分離)
+      blockhashInfo = await connection.getLatestBlockhash("confirmed");
+      tx.recentBlockhash = blockhashInfo.blockhash;
+      tx.lastValidBlockHeight = blockhashInfo.lastValidBlockHeight;
+      tx.sign(buyerKeypair);
+      txHash = await connection.sendRawTransaction(tx.serialize());
+    } catch (err) {
+      throw new KmError(`Transaction send failed: ${err.message}`);
+    }
+    console.log(`Transaction sent: ${txHash}`);
+
+    // 13. tx_hash をレシートに即時永続化 (confirm 前に保存 → クラッシュ時も復旧可能)
+    let receiptSaved = false;
+    try {
+      await fs.writeFile(receiptPath, JSON.stringify({ tx_hash: txHash, knowledge_id: canonicalId, created_at: new Date().toISOString() }), { encoding: "utf8", mode: 0o600 });
+      receiptSaved = true;
+    } catch (writeErr) {
+      console.error(`Warning: failed to save receipt: ${writeErr.message}`);
+    }
+
+    // 14. トランザクション確認待ち (blockhash strategy で期限切れも正確に検出)
+    try {
+      const confirmation = await connection.confirmTransaction({
+        signature: txHash,
+        blockhash: blockhashInfo.blockhash,
+        lastValidBlockHeight: blockhashInfo.lastValidBlockHeight,
+      }, "confirmed");
+      if (confirmation.value.err) {
+        // オンチェーンでトランザクション失敗 → レシート削除して中断
+        await fs.unlink(receiptPath).catch(() => {});
+        throw new KmError(
+          `Transaction failed on-chain: ${JSON.stringify(confirmation.value.err)}\n` +
+          `Transaction hash: ${txHash}`
+        );
+      }
+    } catch (err) {
+      if (err instanceof KmError) throw err;
+      throw new KmError(
+        `Transaction sent but confirmation failed: ${err.message}\n` +
+        `Transaction hash: ${txHash}\n` +
+        "Check the transaction on explorer. If confirmed, re-run the same command or use:\n" +
+        `  km install ${canonicalId} --tx-hash ${txHash}`
+      );
+    }
+    console.log(`Transaction confirmed: ${txHash}`);
+
+    // 15. 購入 API に tx_hash 提出
+    try {
+      await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(canonicalId)}/purchase`, "POST", {
+        tx_hash: txHash,
+        token: "SOL",
+        chain: "solana",
+      });
+      console.log("Purchase recorded.");
+      await fs.unlink(receiptPath).catch(() => {});
+    } catch (purchaseErr) {
+      // 送金成功 + API 失敗 → リカバリー手順を案内
+      console.error(`Purchase API failed after successful payment: ${purchaseErr.message}`);
+      console.error(`Transaction hash: ${txHash}`);
+      if (receiptSaved) {
+        console.error(`Receipt saved. Re-run the same command to retry, or use: km install ${canonicalId} --tx-hash ${txHash}`);
+      } else {
+        console.error(`IMPORTANT: Receipt could not be saved. Use this command to complete purchase manually:\n  km install ${canonicalId} --tx-hash ${txHash}`);
+      }
+      throw purchaseErr;
+    }
+  } finally {
+    await lockFd.close();
+    await fs.unlink(lockPath).catch(() => {});
+  }
+
+  return { alreadyPurchased: false };
+}
+
 async function cmdInstall(args) {
   const { flags, positional } = parseArgs(args);
   const knowledgeId = positional[0];
   if (!knowledgeId) {
-    throw new KmError("Usage: km install <id> [--tx-hash <hash>] [--deploy-to claude|opencode]");
+    throw new KmError("Usage: km install <id> [--keypair <path>] [--tx-hash <hash>] [--deploy-to claude|opencode]");
   }
 
   const config = await loadConfig();
   const baseUrlFlag = getFlag(flags, "base-url");
   if (baseUrlFlag) config.baseUrl = normalizeBaseUrl(String(baseUrlFlag));
+  const keypairFlag = String(getFlag(flags, "keypair") ?? "").trim();
   const txHash = String(getFlag(flags, "tx-hash") ?? "").trim();
+  const rpcUrlFlag = String(getFlag(flags, "rpc-url") ?? "").trim() || undefined;
   const token = String(getFlag(flags, "token") ?? "SOL").toUpperCase();
   const chain = String(getFlag(flags, "chain") ?? "solana");
   const outputDir = path.resolve(String(getFlag(flags, "dir") ?? "./km-downloads"));
   const deployToRaw = String(getFlag(flags, "deploy-to") ?? "").trim();
 
+  // --keypair と --tx-hash は排他
+  if (keypairFlag && txHash) {
+    throw new KmError("--keypair and --tx-hash are mutually exclusive. Use one or the other.");
+  }
+
+  // --keypair は SOL/solana のみ対応。明示指定が矛盾する場合はエラー
+  if (keypairFlag) {
+    if (token !== "SOL") {
+      throw new KmError("Automatic payment only supports SOL. Remove --token or use --tx-hash for USDC.");
+    }
+    if (chain !== "solana") {
+      throw new KmError("Automatic payment only supports solana chain. Remove --chain or use --tx-hash.");
+    }
+  }
+
   const itemResult = await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(knowledgeId)}`);
   const item = unwrapData(itemResult);
 
-  if (txHash) {
-    await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(knowledgeId)}/purchase`, "POST", {
+  // canonical ID: サーバーの正規 ID を使用 (大文字小文字/表記ゆれ対策)
+  const canonicalId = item.id;
+
+  let cachedContent = null;
+  if (keypairFlag) {
+    // 自動送金購入
+    const result = await autoPayAndPurchase(config, canonicalId, item, keypairFlag, rpcUrlFlag);
+    if (result?.content) {
+      cachedContent = result.content;
+    }
+  } else if (txHash) {
+    // 手動 tx_hash 提出 (既存動作維持)
+    await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(canonicalId)}/purchase`, "POST", {
       tx_hash: txHash,
       token,
       chain,
     });
     console.log("Purchase recorded.");
   } else {
-    console.log("No --tx-hash provided. Skipping purchase step and trying direct content fetch.");
+    console.log("No --keypair or --tx-hash provided. Trying direct content fetch.");
   }
 
-  const contentResult = await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(knowledgeId)}/content`);
-  const content = unwrapData(contentResult);
+  const content = cachedContent || unwrapData(
+    await apiJson(config, `/api/v1/knowledge/${encodeURIComponent(canonicalId)}/content`)
+  );
 
   await fs.mkdir(outputDir, { recursive: true });
 
   let savedPath = "";
-  if (content.full_content) {
+  if (content.full_content != null) {
     const extension = inferTextExtension(item.content_type);
-    const name = sanitizeFileName(`${item.title || knowledgeId}-${knowledgeId}.${extension}`);
+    const name = sanitizeFileName(`${item.title || canonicalId}-${canonicalId}.${extension}`);
     savedPath = makeUniquePath(outputDir, name);
     await fs.writeFile(savedPath, String(content.full_content), "utf8");
   } else if (content.file_url) {
-    const fileResponse = await fetch(String(content.file_url));
+    const parsedUrl = new URL(String(content.file_url));
+    if (parsedUrl.protocol === "http:") {
+      const host = parsedUrl.hostname;
+      if (host !== "localhost" && host !== "127.0.0.1" && host !== "::1" && host !== "[::1]") {
+        throw new KmError("HTTP (non-TLS) file URLs are only allowed for localhost. Use HTTPS.");
+      }
+    } else if (parsedUrl.protocol !== "https:") {
+      throw new KmError(`Unsupported file URL scheme: ${parsedUrl.protocol}`);
+    }
+
+    const fileResponse = await fetch(parsedUrl.href, {
+      signal: AbortSignal.timeout(300_000), // 5 分タイムアウト
+    });
     if (!fileResponse.ok) {
       throw new KmError(`Failed to download dataset file (${fileResponse.status})`);
     }
+    if (!fileResponse.body) {
+      throw new KmError("Download response has no body");
+    }
 
-    const arrayBuffer = await fileResponse.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const parsedUrl = new URL(String(content.file_url));
-    const fallbackName = sanitizeFileName(`${item.title || knowledgeId}-${knowledgeId}.bin`);
+    const fallbackName = sanitizeFileName(`${item.title || canonicalId}-${canonicalId}.bin`);
     const baseName = sanitizeFileName(path.basename(parsedUrl.pathname) || fallbackName);
     const fileName = baseName.includes(".") ? baseName : `${baseName}.bin`;
 
     savedPath = makeUniquePath(outputDir, fileName);
-    await fs.writeFile(savedPath, buffer);
+    // ストリーミング書き込み (大容量ファイルでもメモリに全量載せない)
+    const { Readable } = await import("node:stream");
+    const { pipeline } = await import("node:stream/promises");
+    const { createWriteStream } = await import("node:fs");
+    await pipeline(Readable.fromWeb(fileResponse.body), createWriteStream(savedPath));
   } else {
     throw new KmError("No downloadable content was returned for this item");
   }
@@ -589,7 +901,7 @@ async function cmdInstall(args) {
       if (target !== "claude" && target !== "opencode") {
         throw new KmError(`Unsupported deploy target: ${target}`);
       }
-      const deployedPath = await deployArtifact(savedPath, knowledgeId, item.title, target);
+      const deployedPath = await deployArtifact(savedPath, canonicalId, item.title, target);
       console.log(`Deployed to ${target}: ${deployedPath}`);
     }
   }
@@ -613,6 +925,50 @@ async function uploadDatasetToSignedUrl(signedUrl, fileBuffer, contentType) {
   }
 }
 
+/**
+ * ドラフトMDファイルのメタデータ・preview・full_content を解析する。
+ * フォーマット:
+ *   ## Metadata (for listing) / ## メタデータ
+ *   - **title**: ...
+ *   - **description**: ...
+ *   - **tags**: a, b, c
+ *   - **price_sol**: 0.1
+ *   ---
+ *   ## Preview Content ... / ## プレビュー
+ *   <preview text>
+ *   ---
+ *   ## Full Content ... / ## フルコンテンツ
+ *   <full text>
+ */
+function parseDraftFile(text) {
+  const result = {};
+
+  // メタデータセクション
+  const metaMatch = text.match(/##\s+(?:Metadata[^\n]*|メタデータ[^\n]*)\n([\s\S]*?)(?:\n---|\n##|$)/i);
+  if (metaMatch) {
+    const metaBlock = metaMatch[1];
+    const extract = (key) => {
+      const m = metaBlock.match(new RegExp(`\\*\\*${key}\\*\\*:\\s*(.+)`));
+      return m ? m[1].trim() : null;
+    };
+    result.title = extract("title");
+    result.description = extract("description");
+    result.tags = extract("tags");
+    const priceSol = extract("price_sol");
+    if (priceSol) result.price = `${priceSol}SOL`;
+  }
+
+  // Preview セクション
+  const previewMatch = text.match(/##\s+(?:Preview Content[^\n]*|プレビュー[^\n]*)\n([\s\S]*?)(?:\n---\n|\n## )/i);
+  if (previewMatch) result.preview = previewMatch[1].trim();
+
+  // Full Content セクション
+  const fullMatch = text.match(/##\s+(?:Full Content[^\n]*|フルコンテンツ[^\n]*)\n([\s\S]*?)$/i);
+  if (fullMatch) result.fullContent = fullMatch[1].trim();
+
+  return result;
+}
+
 async function cmdPublish(args) {
   const kind = args[0];
   const targetFile = args[1];
@@ -620,13 +976,12 @@ async function cmdPublish(args) {
     throw new KmError("Usage: km publish <prompt|mcp|dataset> <file> --price <amount><SOL|USDC>");
   }
 
-  const supportedKinds = new Set(["prompt", "mcp", "dataset"]);
+  const supportedKinds = new Set(["prompt", "mcp", "dataset", "general"]);
   if (!supportedKinds.has(kind)) {
-    throw new KmError("Publish kind must be one of: prompt, mcp, dataset");
+    throw new KmError("Publish kind must be one of: prompt, mcp, dataset, general");
   }
 
   const { flags } = parseArgs(args.slice(2));
-  const price = parsePrice(String(getFlag(flags, "price") ?? ""));
   const resolvedPath = path.resolve(targetFile);
 
   if (!fsSync.existsSync(resolvedPath)) {
@@ -636,7 +991,16 @@ async function cmdPublish(args) {
   const fileBuffer = await fs.readFile(resolvedPath);
   const asText = fileBuffer.toString("utf8");
   const fileName = path.basename(resolvedPath);
-  const tags = parseTags(String(getFlag(flags, "tags") ?? ""));
+
+  // general タイプ: ドラフトファイルのメタデータ・preview・full_content を自動解析
+  let draftMeta = {};
+  if (kind === "general") {
+    draftMeta = parseDraftFile(asText);
+  }
+
+  const priceRaw = String(getFlag(flags, "price") ?? draftMeta.price ?? "");
+  const price = parsePrice(priceRaw);
+  const tags = parseTags(String(getFlag(flags, "tags") ?? draftMeta.tags ?? ""));
 
   if (kind === "mcp") {
     try {
@@ -649,14 +1013,17 @@ async function cmdPublish(args) {
   const contentType = kind === "mcp" ? "tool_def" : kind;
   const title =
     String(getFlag(flags, "title") ?? "").trim() ||
+    draftMeta.title ||
     path.basename(resolvedPath, path.extname(resolvedPath));
   const description =
     String(getFlag(flags, "description") ?? "").trim() ||
+    draftMeta.description ||
     `Published via km CLI (${kind})`;
   const preview =
     kind === "dataset"
       ? `Dataset file: ${fileName}`
-      : asText.slice(0, 280);
+      : draftMeta.preview || asText.slice(0, 280);
+  const fullContent = draftMeta.fullContent || (kind !== "dataset" ? asText : undefined);
 
   const createBody = {
     title,
@@ -665,7 +1032,7 @@ async function cmdPublish(args) {
     price_sol: price.token === "SOL" ? price.amount : null,
     price_usdc: price.token === "USDC" ? price.amount : null,
     preview_content: preview,
-    full_content: kind === "dataset" ? undefined : asText,
+    full_content: fullContent,
     tags,
   };
 

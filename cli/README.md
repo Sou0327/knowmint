@@ -38,7 +38,7 @@ km login --api-key <key> Log in with an existing API key
 km logout                Clear saved credentials
 
 km search <query>        Search the marketplace
-km install <id>          Purchase and download knowledge
+km install <id>          Purchase and download knowledge (supports --keypair for auto-payment)
 km publish prompt <file> Publish a prompt to the marketplace
 km publish mcp <file>    Publish an MCP tool definition
 km publish dataset <file>Publish a dataset
@@ -54,8 +54,11 @@ km help                  Show this help
 ## Purchase & Deploy
 
 ```bash
+# Automatic payment with a Solana keypair (send SOL + purchase + download)
+km install <knowledge-id> --keypair ~/.config/solana/id.json --rpc-url https://api.devnet.solana.com
+
 # Buy and auto-deploy to Claude Code (~/.claude/mcp.json)
-km install <knowledge-id> --deploy-to claude
+km install <knowledge-id> --keypair ~/.config/solana/id.json --rpc-url <rpc-url> --deploy-to claude
 
 # Buy and auto-deploy to OpenCode
 km install <knowledge-id> --deploy-to opencode
@@ -66,6 +69,22 @@ km install <knowledge-id> --token USDC
 # If you already have a transaction hash (e.g. paid manually)
 km install <knowledge-id> --tx-hash <solana-tx-hash>
 ```
+
+### Automatic Payment (`--keypair`)
+
+When `--keypair` is provided, the CLI handles the entire purchase flow:
+
+1. Reads the seller's wallet address from the API
+2. Sends SOL directly from your keypair to the seller
+3. Registers the purchase with the transaction hash
+4. Downloads the content
+
+**Safety features:**
+- RPC URL is required (`--rpc-url` or `SOLANA_RPC_URL`) — no silent mainnet default
+- Keypair file must have `chmod 600` permissions
+- Idempotent: re-running the same command skips payment if already purchased
+- Crash recovery: transaction hash is persisted before confirmation
+- Lock file prevents parallel double-spend
 
 ## Publishing
 
@@ -99,6 +118,7 @@ km login --api-key km_xxx --base-url http://localhost:3000
 |----------|---------|-------------|
 | `KM_BASE_URL` | `https://knowmint.shop` | API base URL |
 | `KM_API_KEY` | — | API key (overrides saved config) |
+| `SOLANA_RPC_URL` | — | Solana RPC URL for `--keypair` auto-payment |
 
 ## License
 

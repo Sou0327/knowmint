@@ -20,7 +20,7 @@ export const GET = withApiAuth(async (_request, user, _rateLimit, context) => {
       id, seller_id, listing_type, title, description, content_type, price_sol, price_usdc,
       preview_content, category_id, tags, status, view_count, purchase_count,
       average_rating, metadata, usefulness_score, created_at, updated_at,
-      seller:profiles!seller_id(id, display_name, avatar_url, user_type, trust_score),
+      seller:profiles!seller_id(id, display_name, avatar_url, user_type, trust_score, wallet_address),
       category:categories(id, name, slug)
       `
     )
@@ -73,6 +73,7 @@ interface PatchBody {
   metadata?: Record<string, unknown> | null;
   full_content?: string;
   change_summary?: string;
+  status?: "published";
 }
 
 /**
@@ -87,7 +88,7 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
   // 既存アイテム確認 + 所有者チェック
   const { data: existing, error: existError } = await supabase
     .from("knowledge_items")
-    .select("id, seller_id, status")
+    .select("id, seller_id, status, title, description")
     .eq("id", id)
     .single();
 
@@ -118,10 +119,35 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
   const hasChanges = body.title !== undefined || body.description !== undefined ||
     body.preview_content !== undefined || body.price_sol !== undefined ||
     body.price_usdc !== undefined || body.tags !== undefined ||
-    body.metadata !== undefined || body.full_content !== undefined;
+    body.metadata !== undefined || body.full_content !== undefined ||
+    body.status !== undefined;
 
   if (!hasChanges) {
     return apiError(API_ERRORS.BAD_REQUEST, "No fields to update");
+  }
+
+  // status: "published" — publish logic (mirrors /publish route)
+  if (body.status === "published") {
+    // Agents cannot publish
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("user_type")
+      .eq("id", user.userId)
+      .single();
+    if (profileError) {
+      console.error("[knowledge] Failed to fetch user profile:", profileError);
+      return apiError(API_ERRORS.INTERNAL_ERROR);
+    }
+    if (profile?.user_type === "agent") {
+      return apiError(API_ERRORS.FORBIDDEN, "Agents cannot publish knowledge items");
+    }
+
+    if (existing.status === "published") {
+      // Already published — skip status update, proceed with other field updates
+      body = { ...body, status: undefined };
+    } else if (existing.status !== "draft") {
+      return apiError(API_ERRORS.BAD_REQUEST, "Only draft items can be published");
+    }
   }
 
   // 入力バリデーション: 型チェック + 長さ制限
@@ -152,6 +178,32 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
   if (body.change_summary !== undefined && body.change_summary !== null && (typeof body.change_summary !== "string" || body.change_summary.length > 500)) {
     return apiError(API_ERRORS.BAD_REQUEST, "change_summary must be a string of 500 characters or less");
   }
+  if (body.status !== undefined && body.status !== "published") {
+    return apiError(API_ERRORS.BAD_REQUEST, "Only status: \"published\" is allowed");
+  }
+
+  // Publish validation: require title, description, and at least one price
+  if (body.status === "published" && existing.status === "draft") {
+    const effectiveTitle = body.title ?? existing.title;
+    const effectiveDesc = body.description ?? existing.description;
+    if (!effectiveTitle?.trim() || !effectiveDesc?.trim()) {
+      return apiError(API_ERRORS.BAD_REQUEST, "Title and description are required to publish");
+    }
+
+    // Check prices — existing item or incoming body
+    const { data: fullItem } = await supabase
+      .from("knowledge_items")
+      .select("price_sol, price_usdc, content_type, title, description")
+      .eq("id", id)
+      .single();
+    const priceSol = body.price_sol ?? fullItem?.price_sol;
+    const priceUsdc = body.price_usdc ?? fullItem?.price_usdc;
+    const hasSolPrice = typeof priceSol === "number" && Number.isFinite(priceSol) && priceSol > 0;
+    const hasUsdcPrice = typeof priceUsdc === "number" && Number.isFinite(priceUsdc) && priceUsdc > 0;
+    if (!hasSolPrice && !hasUsdcPrice) {
+      return apiError(API_ERRORS.BAD_REQUEST, "At least one valid price is required to publish");
+    }
+  }
 
   // 更新前にバージョンスナップショットを保存
   try {
@@ -166,6 +218,7 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
   }
 
   // アイテム更新フィールドの組み立て（undefined は除外）
+  const isPublishing = body.status === "published" && existing.status === "draft";
   const itemUpdate: Record<string, unknown> = {};
   if (body.title !== undefined) itemUpdate.title = body.title;
   if (body.description !== undefined) itemUpdate.description = body.description;
@@ -174,6 +227,7 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
   if (body.price_usdc !== undefined) itemUpdate.price_usdc = body.price_usdc;
   if (body.tags !== undefined) itemUpdate.tags = body.tags;
   if (body.metadata !== undefined) itemUpdate.metadata = sanitizeMetadata(body.metadata);
+  if (isPublishing) itemUpdate.status = "published";
 
   let updated: Record<string, unknown> | null = null;
 

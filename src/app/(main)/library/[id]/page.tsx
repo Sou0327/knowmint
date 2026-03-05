@@ -11,6 +11,7 @@ import { getTranslations } from "next-intl/server";
 export const dynamic = "force-dynamic";
 import Badge from "@/components/ui/Badge";
 import ContentPreview from "@/components/features/ContentPreview";
+import FeedbackButton from "@/components/features/FeedbackButton";
 import { getContentDisplayLabel } from "@/types/knowledge.types";
 import type { ContentType } from "@/types/database.types";
 
@@ -137,6 +138,27 @@ export default async function LibraryItemPage({ params }: Props) {
           </p>
         )}
       </div>
+
+      <FeedbackSection userId={user.id} knowledgeItemId={id} />
+    </div>
+  );
+}
+
+async function FeedbackSection({ userId, knowledgeItemId }: { userId: string; knowledgeItemId: string }) {
+  const supabase = await createClient();
+  const { data: existingFeedback } = await supabase
+    .from("knowledge_feedbacks")
+    .select("useful")
+    .eq("buyer_id", userId)
+    .eq("knowledge_item_id", knowledgeItemId)
+    .maybeSingle();
+
+  return (
+    <div className="mt-6 rounded-sm border border-dq-border bg-dq-window-bg p-4">
+      <FeedbackButton
+        knowledgeItemId={knowledgeItemId}
+        existingFeedback={existingFeedback?.useful ?? null}
+      />
     </div>
   );
 }

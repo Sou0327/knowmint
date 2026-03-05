@@ -124,6 +124,32 @@ export default function ProfilePage() {
             )}
           </div>
 
+          <div>
+            <label className="mb-1 block text-sm font-medium text-dq-text-sub">
+              {t("trustScore")}
+            </label>
+            {profile?.trust_score != null ? (
+              <div className="flex items-center gap-2">
+                {profile.trust_score >= 0.5 && (
+                  <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-bold ${
+                    profile.trust_score >= 0.8
+                      ? "bg-dq-green/20 text-dq-green"
+                      : "bg-dq-gold/20 text-dq-gold"
+                  }`}>
+                    {profile.trust_score >= 0.8 ? t("trustHigh") : t("trust")}
+                  </span>
+                )}
+                <span className="text-sm text-dq-text-sub">
+                  {Math.round(profile.trust_score * 100)}%
+                </span>
+              </div>
+            ) : (
+              <p className="text-sm text-dq-text-muted">
+                {t("trustScoreNone")}
+              </p>
+            )}
+          </div>
+
           <Button type="submit" variant="primary" loading={saving} className="mt-2 w-full sm:w-auto">
             {tCommon("save")}
           </Button>

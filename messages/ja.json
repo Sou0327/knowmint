@@ -640,6 +640,13 @@
     "alreadyReviewed": "既にレビュー済みです",
     "rating": "評価"
   },
+  "Feedback": {
+    "wasThisUseful": "このコンテンツは役に立ちましたか？",
+    "useful": "役立った",
+    "notUseful": "役立たなかった",
+    "thankYou": "フィードバックありがとうございます！",
+    "submitFailed": "送信に失敗しました"
+  },
   "Profile": {
     "title": "プロフィール設定",
     "photo": "プロフィール写真",
@@ -654,7 +661,9 @@
     "userTypeAgent": "AIエージェント",
     "walletNotSet": "未設定",
     "trustHigh": "高信頼",
-    "trust": "信頼"
+    "trust": "信頼",
+    "trustScore": "信頼スコア",
+    "trustScoreNone": "未評価"
   },
   "Notifications": {
     "title": "通知",
@@ -734,6 +743,9 @@
     "versionCountFailed": "バージョン件数の取得に失敗しました",
     "versionFetchFailed": "バージョン履歴の取得に失敗しました",
     "supabaseNotSet": "Supabaseの環境変数が未設定です。.env.localを確認してください。",
-    "supabasePlaceholder": "Supabaseの接続設定がサンプル値のままです。.env.localに実際のProject URLとanon keyを設定してください。"
+    "supabasePlaceholder": "Supabaseの接続設定がサンプル値のままです。.env.localに実際のProject URLとanon keyを設定してください。",
+    "onlyPurchasedCanFeedback": "購入済みのアイテムのみフィードバックできます",
+    "alreadyFeedback": "既にフィードバック済みです",
+    "feedbackSaveFailed": "フィードバックの保存に失敗しました"
   }
 }

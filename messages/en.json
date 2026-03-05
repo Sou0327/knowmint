@@ -640,6 +640,13 @@
     "alreadyReviewed": "Already reviewed",
     "rating": "Rating"
   },
+  "Feedback": {
+    "wasThisUseful": "Was this content useful?",
+    "useful": "Useful",
+    "notUseful": "Not useful",
+    "thankYou": "Thanks for your feedback!",
+    "submitFailed": "Failed to submit"
+  },
   "Profile": {
     "title": "Profile Settings",
     "photo": "Profile Photo",
@@ -654,7 +661,9 @@
     "userTypeAgent": "AI Agent",
     "walletNotSet": "Not set",
     "trustHigh": "Highly Trusted",
-    "trust": "Trusted"
+    "trust": "Trusted",
+    "trustScore": "Trust Score",
+    "trustScoreNone": "Not yet evaluated"
   },
   "Notifications": {
     "title": "Notifications",
@@ -734,6 +743,9 @@
     "versionCountFailed": "Failed to fetch version count",
     "versionFetchFailed": "Failed to fetch version history",
     "supabaseNotSet": "Supabase environment variables are not set. Check .env.local.",
-    "supabasePlaceholder": "Supabase settings are still placeholders. Set actual Project URL and anon key in .env.local."
+    "supabasePlaceholder": "Supabase settings are still placeholders. Set actual Project URL and anon key in .env.local.",
+    "onlyPurchasedCanFeedback": "Only purchased items can receive feedback",
+    "alreadyFeedback": "You have already submitted feedback",
+    "feedbackSaveFailed": "Failed to save feedback"
   }
 }

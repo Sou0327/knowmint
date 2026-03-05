@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
@@ -36,6 +37,7 @@ export async function submitReview(params: {
     .eq("buyer_id", user.id)
     .eq("knowledge_item_id", knowledgeItemId)
     .eq("status", "confirmed")
+    .limit(1)
     .maybeSingle<{ id: string }>();
 
   if (txError) {
@@ -47,11 +49,13 @@ export async function submitReview(params: {
     return { error: t("onlyPurchasedCanReview") };
   }
 
-  // Check for existing review
+  // Check for existing review (reviewer_id + knowledge_item_id で判定)
   const { data: existingReview, error: reviewCheckError } = await supabase
     .from("reviews")
     .select("id")
-    .eq("transaction_id", transaction.id)
+    .eq("reviewer_id", user.id)
+    .eq("knowledge_item_id", knowledgeItemId)
+    .limit(1)
     .maybeSingle();
 
   if (reviewCheckError) {
@@ -72,16 +76,18 @@ export async function submitReview(params: {
   } as never);
 
   if (error) {
+    if (error.code === "23505") {
+      return { error: t("alreadyReviewed") };
+    }
     console.error("[review-action] insert failed:", error);
     return { error: t("reviewSaveFailed") };
   }
 
   // 平均レーティング更新 (Admin クライアント使用: service_role 権限が必要)
-  void (async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: e } = await (getAdminClient().rpc as any)("update_average_rating", { item_id: knowledgeItemId });
-    if (e) console.error("[knowledge-actions] update_average_rating failed:", e.message, e.code);
-  })().catch((e: unknown) => console.error("[knowledge-actions] update_average_rating failed:", e));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: rpcError } = await (getAdminClient().rpc as any)("update_average_rating", { item_id: knowledgeItemId });
+  if (rpcError) console.error("[knowledge-actions] update_average_rating failed:", rpcError.message, rpcError.code);
 
+  revalidatePath(`/knowledge/${knowledgeItemId}`);
   return { error: null };
 }

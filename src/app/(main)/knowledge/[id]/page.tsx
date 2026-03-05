@@ -10,11 +10,14 @@ import { PurchaseSection } from "@/components/features/PurchaseSection";
 export const dynamic = "force-dynamic";
 import SellerCard from "@/components/features/SellerCard";
 import ReviewList from "@/components/features/ReviewList";
+import ReviewForm from "@/components/features/ReviewForm";
 import RecommendationSection from "@/components/features/RecommendationSection";
 import { getKnowledgeById, getKnowledgeForMetadata } from "@/lib/knowledge/queries";
 import { getRecommendations } from "@/lib/recommendations/queries";
 import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.types";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { getUser } from "@/lib/auth/session";
+import { createClient } from "@/lib/supabase/server";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -51,6 +54,23 @@ export default async function KnowledgeDetailPage({ params }: Props) {
 
   if (!item) {
     notFound();
+  }
+
+  const user = await getUser();
+  let hasPurchased = false;
+  let hasReviewed = false;
+  if (user) {
+    const supabase = await createClient();
+    const { data: tx } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("buyer_id", user.id)
+      .eq("knowledge_item_id", id)
+      .eq("status", "confirmed")
+      .limit(1)
+      .maybeSingle();
+    hasPurchased = !!tx;
+    hasReviewed = item.reviews.some((r) => r.reviewer?.id === user.id);
   }
 
   const avgRating = item.average_rating
@@ -118,6 +138,11 @@ export default async function KnowledgeDetailPage({ params }: Props) {
               <span className="before:content-['·'] before:mx-2 before:text-dq-text-muted">
                 {t("viewCount", { count: item.view_count })}
               </span>
+              {item.usefulness_score != null && (
+                <span className="before:content-['·'] before:mx-2 before:text-dq-text-muted">
+                  👍 {Math.round(item.usefulness_score * 100)}%
+                </span>
+              )}
             </div>
           </div>
 
@@ -161,6 +186,11 @@ export default async function KnowledgeDetailPage({ params }: Props) {
             <h2 className="mb-4 border-l-4 border-dq-gold pl-3 text-xl font-bold text-dq-gold">
               {t("reviews")}
             </h2>
+            {hasPurchased && !hasReviewed && (
+              <div className="mb-6">
+                <ReviewForm knowledgeItemId={item.id} />
+              </div>
+            )}
             <ReviewList reviews={item.reviews.map((r) => ({
               ...r,
               reviewer: r.reviewer ?? { id: "", display_name: null, avatar_url: null },

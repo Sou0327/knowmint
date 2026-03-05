@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Textarea from "@/components/ui/Textarea";
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props) {
   const t = useTranslations("Review");
+  const router = useRouter();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -24,19 +26,25 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
     setSubmitting(true);
     setError(null);
 
-    const { error } = await submitReview({
-      knowledgeItemId,
-      rating,
-      comment,
-    });
+    try {
+      const { error } = await submitReview({
+        knowledgeItemId,
+        rating,
+        comment,
+      });
 
-    if (error) {
-      setError(error);
-    } else {
-      setSubmitted(true);
-      onReviewSubmitted?.();
+      if (error) {
+        setError(error);
+      } else {
+        setSubmitted(true);
+        onReviewSubmitted?.();
+        router.refresh();
+      }
+    } catch {
+      setError("An unexpected error occurred");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   if (submitted) {

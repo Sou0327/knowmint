@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/lib/auth/session";
+import { requireAuth, getUser } from "@/lib/auth/session";
 import { toggleFavorite } from "@/lib/favorites/service";
 import { toggleFollow } from "@/lib/follows/service";
 import {
@@ -74,7 +74,8 @@ export async function fetchNotificationsAction(): Promise<{
   notifications: Notification[];
   error?: string;
 }> {
-  const user = await requireAuth();
+  const user = await getUser();
+  if (!user) return { notifications: [], error: "Not authenticated" };
 
   try {
     const notifications = await getRecentNotifications(user.id);
@@ -85,7 +86,8 @@ export async function fetchNotificationsAction(): Promise<{
 }
 
 export async function fetchUnreadCountAction(): Promise<{ count: number }> {
-  const user = await requireAuth();
+  const user = await getUser();
+  if (!user) return { count: 0 };
 
   try {
     const count = await getUnreadNotificationCount(user.id);

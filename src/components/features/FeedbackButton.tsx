@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { submitFeedback } from "@/app/(main)/library/[id]/actions";
+import { submitFeedback } from "@/app/[locale]/(main)/library/[id]/actions";
 
 interface Props {
   knowledgeItemId: string;

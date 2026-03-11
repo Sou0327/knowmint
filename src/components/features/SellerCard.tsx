@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Card from "@/components/ui/Card";
 import { getTranslations } from "next-intl/server";
 import { TRUST_HIGH_THRESHOLD, TRUST_THRESHOLD } from "@/types/knowledge.types";

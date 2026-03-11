@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 
 interface LanguageToggleProps {
   compact?: boolean;
@@ -10,10 +11,13 @@ interface LanguageToggleProps {
 export default function LanguageToggle({ compact = false }: LanguageToggleProps) {
   const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const switchLocale = (newLocale: string) => {
-    document.cookie = `km_locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
-    router.refresh();
+  const switchLocale = (newLocale: "en" | "ja") => {
+    const qs = searchParams.toString();
+    const href = qs ? `${pathname}?${qs}` : pathname;
+    router.replace(href, { locale: newLocale });
   };
 
   const buttonBase =

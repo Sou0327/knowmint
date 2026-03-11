@@ -58,7 +58,7 @@ vi.mock("@/lib/knowledge/requestContent", () => ({
   normalizeRequestContent: vi.fn(),
 }));
 
-import { publishListing } from "@/app/(main)/list/actions";
+import { publishListing } from "@/app/[locale]/(main)/list/actions";
 
 // -----------------------------------------------------------------------
 // SEC-1: agent publish block tests

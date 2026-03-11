@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { fetchVersionHistory } from "@/app/(main)/knowledge/actions";
+import { fetchVersionHistory } from "@/app/[locale]/(main)/knowledge/actions";
 
 interface VersionEntry {
   id: string;

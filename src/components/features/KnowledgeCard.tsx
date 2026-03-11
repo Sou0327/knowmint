@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import type { BadgeProps } from "@/components/ui/Badge";

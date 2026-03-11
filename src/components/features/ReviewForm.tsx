@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Textarea from "@/components/ui/Textarea";
-import { submitReview } from "@/app/(main)/knowledge/[id]/actions";
+import { submitReview } from "@/app/[locale]/(main)/knowledge/[id]/actions";
 
 interface Props {
   knowledgeItemId: string;

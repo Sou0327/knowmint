@@ -47,11 +47,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function KnowledgeDetailPage({ params }: Props) {
   const { id } = await params;
-  const [item, recommendations, t, tTypes, locale] = await Promise.all([
+  const [item, recommendations, t, tTypes, tCommon, locale] = await Promise.all([
     getKnowledgeById(id),
     getRecommendations(id),
     getTranslations("Knowledge"),
     getTranslations("Types"),
+    getTranslations("Common"),
     getLocale(),
   ]);
 
@@ -95,6 +96,35 @@ export default async function KnowledgeDetailPage({ params }: Props) {
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const itemUrl = `https://knowmint.shop${localePrefix}/knowledge/${item.id}`;
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: tCommon("breadcrumbHome"),
+        item: `https://knowmint.shop${localePrefix}`,
+      },
+      ...(item.category
+        ? [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: getCategoryDisplayName(tTypes, item.category.slug, item.category.name),
+              item: `https://knowmint.shop${localePrefix}/category/${item.category.slug}`,
+            },
+          ]
+        : []),
+      {
+        "@type": "ListItem",
+        position: item.category ? 3 : 2,
+        name: item.title,
+        item: itemUrl,
+      },
+    ],
+  };
+
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -116,6 +146,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl">
+      <JsonLd data={breadcrumbJsonLd} />
       <JsonLd data={productJsonLd} />
       <Link
         href="/"

@@ -168,12 +168,12 @@ export default async function HomePage() {
           {/* Stats strip */}
           <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <div className="text-center">
-              <span className="font-display text-lg font-bold text-dq-gold">$10M+</span>
+              <span className="font-display text-lg font-bold text-dq-gold">$10M+<sup className="text-[10px] text-dq-text-muted">1</sup></span>
               <span className="ml-1.5 text-xs text-dq-text-muted">{tHome("statsX402Volume")}</span>
             </div>
             <span className="hidden text-dq-text-muted sm:inline" aria-hidden="true">·</span>
             <div className="text-center">
-              <span className="font-display text-lg font-bold text-dq-gold">77%</span>
+              <span className="font-display text-lg font-bold text-dq-gold">77%<sup className="text-[10px] text-dq-text-muted">2</sup></span>
               <span className="ml-1.5 text-xs text-dq-text-muted">{tHome("statsAiAgentTx")}</span>
             </div>
             <span className="hidden text-dq-text-muted sm:inline" aria-hidden="true">·</span>
@@ -181,6 +181,12 @@ export default async function HomePage() {
               <span className="font-display text-lg font-bold text-dq-gold">MCP · 3</span>
               <span className="ml-1.5 text-xs text-dq-text-muted">{tHome("statsMcpSdks")}</span>
             </div>
+          </div>
+          <div className="mt-3 text-center">
+            <small className="text-[10px] leading-tight text-dq-text-muted">
+              <sup>1</sup> {tHome("statsCitation1")}{" "}
+              <sup>2</sup> {tHome("statsCitation2")}
+            </small>
           </div>
         </div>
       </section>

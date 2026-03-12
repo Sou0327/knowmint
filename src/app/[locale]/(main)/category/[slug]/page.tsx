@@ -6,6 +6,7 @@ import { getKnowledgeByCategory } from "@/lib/knowledge/queries";
 import { getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
 import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const dynamic = "force-dynamic";
 
@@ -39,12 +40,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const [t, tTypes] = await Promise.all([
+  const [t, tTypes, tCommon] = await Promise.all([
     getTranslations("Search"),
     getTranslations("Types"),
+    getTranslations("Common"),
   ]);
 
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const { page: pageStr } = await searchParams;
   const page = parseInt(pageStr || "1", 10);
 
@@ -54,8 +56,31 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     notFound();
   }
 
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+  const displayName = getCategoryDisplayName(tTypes, slug, result.category.name);
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: tCommon("breadcrumbHome"),
+        item: `https://knowmint.shop${localePrefix}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: displayName,
+        item: `https://knowmint.shop${localePrefix}/category/${slug}`,
+      },
+    ],
+  };
+
   return (
     <div>
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="mb-6">
         <Link
           href="/"
@@ -64,7 +89,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           ← {t("backToTop")}
         </Link>
         <h1 className="mt-2 text-2xl font-bold font-display text-dq-text">
-          {getCategoryDisplayName(tTypes, slug, result.category.name)}
+          {displayName}
         </h1>
         <p className="text-sm text-dq-text-muted">
           {t("categoryItemCount", { count: result.total })}

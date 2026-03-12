@@ -68,9 +68,9 @@ export async function Footer() {
             </h4>
             <ul className="mt-4 space-y-2">
               <li>
-                <span className="cursor-default text-sm text-dq-text-muted">
-                  {t('helpComingSoon')}
-                </span>
+                <Link href="/faq" className={linkClass}>
+                  {t('faq')}
+                </Link>
               </li>
               <li>
                 <Link href="/contact" className={linkClass}>

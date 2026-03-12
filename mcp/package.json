@@ -10,7 +10,10 @@
     "solana",
     "claude",
     "opencode",
-    "cursor"
+    "cursor",
+    "x402",
+    "knowledge-marketplace",
+    "autonomous-payment"
   ],
   "license": "MIT",
   "repository": {

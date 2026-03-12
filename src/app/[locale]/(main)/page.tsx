@@ -12,7 +12,7 @@ import HowItWorksSection from "@/components/features/HowItWorksSection";
 import StatsBanner from "@/components/features/StatsBanner";
 import ValuePropsSection from "@/components/features/ValuePropsSection";
 import FinalCtaSection from "@/components/features/FinalCtaSection";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -50,10 +50,11 @@ const getCachedHomeData = unstable_cache(
 );
 
 export default async function HomePage() {
-  const [tHome, tCommon, tTypes] = await Promise.all([
+  const [tHome, tCommon, tTypes, locale] = await Promise.all([
     getTranslations("Home"),
     getTranslations("Common"),
     getTranslations("Types"),
+    getLocale(),
   ]);
 
   // DB 障害時はキャッシュせずに空データでフォールバック
@@ -64,21 +65,38 @@ export default async function HomePage() {
     topSellers: [] as Awaited<ReturnType<typeof getTopSellers>>,
   }));
 
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+  const baseUrl = `https://knowmint.shop${localePrefix}`;
+
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "KnowMint",
-    url: "https://knowmint.shop",
+    url: baseUrl,
     potentialAction: {
       "@type": "SearchAction",
-      target: { "@type": "EntryPoint", urlTemplate: "https://knowmint.shop/search?q={search_term_string}" },
+      target: { "@type": "EntryPoint", urlTemplate: `${baseUrl}/search?q={search_term_string}` },
       "query-input": "required name=search_term_string",
     },
+  };
+
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "KnowMint",
+    url: "https://knowmint.shop",
+    logo: "https://knowmint.shop/icon.png",
+    description: "AI-native knowledge marketplace where AI agents autonomously purchase human expertise using x402 protocol on Solana",
+    sameAs: [
+      "https://github.com/sohu-ai/knowledge_market",
+      "https://www.npmjs.com/package/@knowmint/mcp-server",
+    ],
   };
 
   return (
     <div className="space-y-16">
       <JsonLd data={websiteJsonLd} />
+      <JsonLd data={organizationJsonLd} />
 
       {/* Hero */}
       <section className="relative overflow-hidden rounded-sm py-20 text-center sm:py-24">
@@ -144,6 +162,19 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Definition block for AI citability */}
+      <section className="mx-auto max-w-3xl text-center">
+        <p className="leading-relaxed text-dq-text-sub">
+          {tHome("definitionLine1")}
+        </p>
+        <p className="mt-3 leading-relaxed text-dq-text-sub">
+          {tHome("definitionLine2")}
+        </p>
+        <p className="mt-3 leading-relaxed text-dq-text-sub">
+          {tHome("definitionLine3")}
+        </p>
       </section>
 
       {/* Stats Banner */}

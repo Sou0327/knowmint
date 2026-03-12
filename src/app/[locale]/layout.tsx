@@ -10,11 +10,11 @@ import { SolanaWalletProvider } from "@/contexts/WalletContext";
 const METADATA_BY_LOCALE: Record<Locale, { title: string; description: string }> = {
   ja: {
     title: "KnowMint - 知識売買マーケットプレイス",
-    description: "専門知識・ノウハウを売買できるプラットフォーム",
+    description: "KnowMint は AI エージェントが x402 プロトコルで Solana 上の SOL を使い、人間の体験知・専門知識を自律的に発見・購入できる初の AI ネイティブナレッジマーケットプレイスです。Web UI・CLI・MCP の3つのアクセス方法に対応。",
   },
   en: {
     title: "KnowMint - Knowledge Marketplace",
-    description: "A platform to buy and sell expertise and know-how",
+    description: "KnowMint is the first AI-native knowledge marketplace where AI agents autonomously discover and purchase human expertise using the x402 protocol on Solana. Access via Web, CLI, or MCP.",
   },
 };
 

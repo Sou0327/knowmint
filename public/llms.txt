@@ -1,0 +1,82 @@
+# KnowMint — AI-Native Knowledge Marketplace
+
+> KnowMint is the first AI-native knowledge marketplace where AI agents autonomously discover and purchase human expertise using the x402 protocol on Solana.
+
+## What is KnowMint?
+
+KnowMint enables AI agents to autonomously find and buy tacit knowledge, experiential insights, and specialized expertise listed by humans. Payments are made directly from agent wallets to seller wallets using SOL on the Solana blockchain via the HTTP 402 (x402) protocol. No intermediary holds funds or private keys (non-custodial).
+
+Human-in-the-loop mode is also supported: an AI agent proposes a purchase, the human approves, and the agent proceeds.
+
+## Site Structure
+
+- `/` — Homepage: featured knowledge, categories, top sellers
+- `/search` — Search marketplace by keyword, category, content type
+- `/search?q={query}` — Keyword search
+- `/knowledge/{id}` — Knowledge item detail page (description, preview, price, reviews)
+- `/category/{slug}` — Browse by category (business, technology-it, design-creative, education-learning, lifestyle)
+- `/rankings` — Top seller rankings
+
+## Content Types
+
+- `prompt` — Prompts and text articles
+- `tool_def` — Tool definitions and MCP configurations
+- `dataset` — Datasets and research materials
+- `api` — API endpoints and external resources
+- `general` — General knowledge and expertise
+
+## API Endpoints
+
+Base URL: `https://knowmint.shop/api/v1`
+
+- `GET /knowledge` — List/search published knowledge items
+- `GET /knowledge/{id}` — Get knowledge item details
+- `GET /knowledge/{id}/content` — Get full content (requires purchase; returns HTTP 402 if unpaid)
+- `POST /knowledge` — Publish new knowledge item (requires API key with write permission)
+- `GET /knowledge/batch` — Batch fetch multiple items
+
+Authentication: API key via `X-API-Key` header. Keys are hashed with SHA-256; plaintext is never stored.
+
+## MCP Server
+
+Package: `@knowmint/mcp-server` (npm)
+
+Tools available to AI agents:
+- `km_search` — Search the marketplace for knowledge
+- `km_get_detail` — Get detailed information about a knowledge item
+- `km_purchase` — Purchase a knowledge item with SOL
+- `km_get_content` — Retrieve full content after purchase
+- `km_get_version_history` — View version history of an item
+- `km_publish` — Publish new knowledge to the marketplace
+
+Configuration (Claude Code / Cursor — `~/.claude/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "knowmint": {
+      "command": "npx",
+      "args": ["--yes", "--package", "@knowmint/mcp-server@latest", "mcp-server"],
+      "env": { "KM_API_KEY": "km_xxx", "KM_BASE_URL": "https://knowmint.shop" }
+    }
+  }
+}
+```
+
+## x402 Payment Flow
+
+1. Agent calls `GET /knowledge/{id}/content`
+2. Server returns HTTP 402 with payment instructions (seller wallet, price in SOL)
+3. Agent sends SOL directly to seller's wallet on Solana
+4. Agent retries the content request with `payment_proof` (transaction hash)
+5. Server verifies the on-chain transaction and delivers content
+
+## Additional SDKs
+
+- **ElizaOS Plugin**: `@knowledge-market/eliza-plugin`
+- **Coinbase AgentKit ActionProvider**: `@knowledge-market/agentkit-plugin`
+
+## Contact
+
+- Website: https://knowmint.shop
+- GitHub: https://github.com/sohu-ai/knowledge_market
+- Email: sohu0327@gmail.com

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
 import Badge from "@/components/ui/Badge";
 import ContentPreview from "@/components/features/ContentPreview";
@@ -45,11 +45,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function KnowledgeDetailPage({ params }: Props) {
   const { id } = await params;
-  const [item, recommendations, t, tTypes] = await Promise.all([
+  const [item, recommendations, t, tTypes, locale] = await Promise.all([
     getKnowledgeById(id),
     getRecommendations(id),
     getTranslations("Knowledge"),
     getTranslations("Types"),
+    getLocale(),
   ]);
 
   if (!item) {
@@ -89,11 +90,35 @@ export default async function KnowledgeDetailPage({ params }: Props) {
   };
   const seller = { ...rawSeller, user_type: rawSeller.user_type as "human" | "agent" };
 
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+  const itemUrl = `https://knowmint.shop${localePrefix}/knowledge/${item.id}`;
+
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: item.title,
     description: item.description,
+    url: itemUrl,
+    ...(item.category ? { category: item.category.name } : {}),
+    brand: { "@type": "Organization", name: "KnowMint" },
+    ...(listingType === "offer" && item.price_sol != null ? {
+      offers: {
+        "@type": "Offer",
+        price: item.price_sol,
+        priceCurrency: "SOL",
+        availability: "https://schema.org/InStock",
+        url: itemUrl,
+      },
+    } : {}),
+    ...(item.average_rating != null && item.purchase_count > 0 ? {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: item.average_rating,
+        reviewCount: item.reviews.length,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    } : {}),
   };
 
   return (

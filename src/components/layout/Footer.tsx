@@ -58,6 +58,11 @@ export async function Footer() {
                   {tNav('listItem')}
                 </Link>
               </li>
+              <li>
+                <Link href="/developers" className={linkClass}>
+                  {t('developers')}
+                </Link>
+              </li>
             </ul>
           </div>
 

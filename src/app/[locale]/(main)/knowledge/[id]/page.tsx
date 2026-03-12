@@ -125,14 +125,28 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     ],
   };
 
-  const productJsonLd = {
+  const sortedReviews = [...item.reviews]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const recentReviews = sortedReviews.slice(0, 5);
+
+  const productJsonLd = !isRequest ? {
     "@context": "https://schema.org",
     "@type": "Product",
     name: item.title,
     description: item.description,
     url: itemUrl,
+    image: "https://knowmint.shop/og-default.png",
     ...(item.category ? { category: item.category.name } : {}),
     brand: { "@type": "Organization", name: "KnowMint" },
+    ...(item.price_sol != null ? {
+      offers: {
+        "@type": "Offer",
+        price: item.price_sol,
+        priceCurrency: "SOL",
+        availability: "https://schema.org/InStock",
+        url: itemUrl,
+      },
+    } : {}),
     ...(item.average_rating != null && item.purchase_count > 0 ? {
       aggregateRating: {
         "@type": "AggregateRating",
@@ -142,12 +156,29 @@ export default async function KnowledgeDetailPage({ params }: Props) {
         worstRating: 1,
       },
     } : {}),
-  };
+    ...(recentReviews.length > 0 ? {
+      review: recentReviews.map((r) => ({
+        "@type": "Review",
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: r.rating,
+          bestRating: 5,
+          worstRating: 1,
+        },
+        author: {
+          "@type": "Person",
+          name: r.reviewer?.display_name || "Anonymous",
+        },
+        datePublished: r.created_at.split("T")[0],
+        ...(r.comment ? { reviewBody: r.comment } : {}),
+      })),
+    } : {}),
+  } : null;
 
   return (
     <div className="mx-auto max-w-4xl">
       <JsonLd data={breadcrumbJsonLd} />
-      <JsonLd data={productJsonLd} />
+      {productJsonLd && <JsonLd data={productJsonLd} />}
       <Link
         href="/"
         className="mb-4 inline-flex items-center gap-1 text-sm text-dq-cyan hover:text-dq-gold"
@@ -240,7 +271,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
                 <ReviewForm knowledgeItemId={item.id} />
               </div>
             )}
-            <ReviewList reviews={item.reviews.map((r) => ({
+            <ReviewList reviews={sortedReviews.map((r) => ({
               ...r,
               reviewer: r.reviewer ?? { id: "", display_name: null, avatar_url: null },
             }))} />

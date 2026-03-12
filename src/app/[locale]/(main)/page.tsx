@@ -114,10 +114,24 @@ export default async function HomePage() {
     ],
   };
 
+  const howToJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: tHome("howItWorksTitle"),
+    description: tHome("howItWorksSubtitle"),
+    step: [1, 2, 3, 4].map((i) => ({
+      "@type": "HowToStep",
+      position: i,
+      name: tHome(`howItWorksStep${i}Title` as Parameters<typeof tHome>[0]),
+      text: tHome(`howItWorksStep${i}Desc` as Parameters<typeof tHome>[0]),
+    })),
+  };
+
   return (
     <div className="space-y-16">
       <JsonLd data={websiteJsonLd} />
       <JsonLd data={organizationJsonLd} />
+      <JsonLd data={howToJsonLd} />
 
       {/* Hero */}
       <section className="relative overflow-hidden rounded-sm py-20 text-center sm:py-24">

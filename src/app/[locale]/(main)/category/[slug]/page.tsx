@@ -48,16 +48,26 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   const { slug, locale } = await params;
   const { page: pageStr } = await searchParams;
-  const page = parseInt(pageStr || "1", 10);
+  const rawPage = Number.parseInt(pageStr ?? "1", 10);
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
 
-  const result = await getKnowledgeByCategory(slug, page);
+  const initialResult = await getKnowledgeByCategory(slug, page);
 
-  if (!result.category) {
+  if (!initialResult.category) {
     notFound();
   }
 
+  // Re-fetch last page when requested page exceeds total
+  const effectivePage = initialResult.total_pages > 0 && page > initialResult.total_pages
+    ? initialResult.total_pages
+    : page;
+  const result = effectivePage !== page
+    ? await getKnowledgeByCategory(slug, effectivePage)
+    : initialResult;
+
+  const categoryName = result.category?.name ?? initialResult.category.name;
   const localePrefix = locale === "en" ? "" : `/${locale}`;
-  const displayName = getCategoryDisplayName(tTypes, slug, result.category.name);
+  const displayName = getCategoryDisplayName(tTypes, slug, categoryName);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -78,9 +88,27 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     ],
   };
 
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: displayName,
+    url: `https://knowmint.shop${localePrefix}/category/${slug}`,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: result.total,
+      itemListElement: result.items.map((item, i) => ({
+        "@type": "ListItem",
+        position: (effectivePage - 1) * 12 + i + 1,
+        url: `https://knowmint.shop${localePrefix}/knowledge/${item.id}`,
+        name: item.title,
+      })),
+    },
+  };
+
   return (
     <div>
       <JsonLd data={breadcrumbJsonLd} />
+      <JsonLd data={collectionJsonLd} />
       <div className="mb-6">
         <Link
           href="/"
@@ -124,20 +152,20 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       {/* Pagination */}
       {result.total_pages > 1 && (
         <div className="mt-8 flex justify-center gap-2">
-          {page > 1 && (
+          {effectivePage > 1 && (
             <Link
-              href={`/category/${slug}?page=${page - 1}`}
+              href={`/category/${slug}?page=${effectivePage - 1}`}
               className="rounded-sm border border-dq-border px-4 py-2 text-sm hover:bg-dq-surface"
             >
               {t("previous")}
             </Link>
           )}
           <span className="px-4 py-2 text-sm text-dq-text-sub">
-            {page} / {result.total_pages}
+            {effectivePage} / {result.total_pages}
           </span>
-          {page < result.total_pages && (
+          {effectivePage < result.total_pages && (
             <Link
-              href={`/category/${slug}?page=${page + 1}`}
+              href={`/category/${slug}?page=${effectivePage + 1}`}
               className="rounded-sm border border-dq-border px-4 py-2 text-sm hover:bg-dq-surface"
             >
               {t("next")}

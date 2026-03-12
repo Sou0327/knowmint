@@ -9,6 +9,7 @@ const STATIC_PATHS = [
   { path: "/search", changeFrequency: "daily" as const, priority: 0.8 },
   { path: "/rankings", changeFrequency: "daily" as const, priority: 0.7 },
   { path: "/faq", changeFrequency: "monthly" as const, priority: 0.5 },
+  { path: "/developers", changeFrequency: "monthly" as const, priority: 0.6 },
   ...["/terms", "/privacy", "/legal", "/contact"].map((p) => ({
     path: p,
     changeFrequency: "monthly" as const,

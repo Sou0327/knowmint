@@ -9,7 +9,7 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1 すべて `cc:DONE` (CONTENT-1, DEMO-WEB, REVIEW-1 を 2026-03-12 にアーカイブ)
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1, GEO-2, GEO-3 すべて `cc:DONE` (GEO-3 を 2026-03-13 にアーカイブ)
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
 
 **R.3 手動TODO**: GitHub Description/Topics/Website URL 設定 (knowmint.shop)
@@ -51,7 +51,8 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ## Phase C: i18n URL + shadcn/ui [P1]
 
-- [ ] C.1 next-intl URL ベース (`/ja/`, `/en/`) + hreflang + sitemap `cc:TODO`
+- [x] C.1 next-intl URL ベース (`/ja/`, `/en/`) + hreflang + sitemap `cc:完了`
+  > Phase C (5cb7632) で URL ベースルーティング移行、GEO-2 (3ad9c6e) で hreflang HTML + sitemap 拡充
 - [ ] C.2 shadcn/ui 段階導入 (Button, Dialog, Input, Card → 自前削除) `cc:TODO`
 
 ---
@@ -68,47 +69,23 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
-## Phase GEO-1: AI 検索可視性 — Critical [P0 — GEO]
-
-> GEO Audit Score: 25/100。AI クローラーブロック + llms.txt 未設置 + JSON-LD 不足が致命的。
-> 監査実施: 2026-03-12
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-1.1 | robots.txt AI クローラー許可 (GPTBot, ClaudeBot, PerplexityBot, Google-Extended を Allow) | curl robots.txt で対象 UA が Disallow でない | - | cc:TODO |
-| GEO-1.2 | `public/llms.txt` 作成 (サイト構造・API・MCP の説明) | /llms.txt が 200 返却 | - | cc:TODO |
-| GEO-1.3 | meta description 改善 ("AI-native knowledge marketplace using x402...") + ホームページに引用可能な定義文ブロック追加 | meta description 100文字以上 + 定義 3-4文が SSR 出力に含まれる | - | cc:TODO |
-| GEO-1.4 | Product JSON-LD 充実 (knowledge item: offers, priceCurrency, aggregateRating, author, image, datePublished) | Google Rich Results Test で Product が valid | - | cc:TODO |
-| GEO-1.5 | Organization JSON-LD 追加 (name, url, logo, sameAs, description) | Google Rich Results Test で Organization が valid | - | cc:TODO |
-
 ---
 
-## Phase GEO-2: Technical SEO 修正 [P1 — GEO]
+## Phase GEO-4: スコア改善 Quick Wins [P1 — GEO]
 
-> canonical 欠落、hreflang HTML なし、OG 不完全、Rankings バグ
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-2.1 | 全ページに canonical タグ設定 (homepage, rankings, search, knowledge item) | curl -s で `<link rel="canonical">` が全ページにある | - | cc:TODO |
-| GEO-2.2 | HTML hreflang タグ追加 (sitemap だけでなく `<head>` にも) | `<link rel="alternate" hreflang="ja">` が HTML に出力 | - | cc:TODO |
-| GEO-2.3 | Rankings ページ修正: "404" h1 バグ修正 + 空の場合 noindex | h1 が 1 つのみ + データなし時に meta robots noindex | - | cc:TODO |
-| GEO-2.4 | OG/Twitter 修正: knowledge item に og:image fallback、全ページに twitter:site 設定 | og:image が全ページにある + twitter:site="@gensou_ongaku" | - | cc:TODO |
-| GEO-2.5 | sitemap に /search, /category/* ページ追加 | sitemap.xml に /search と category ページが含まれる | - | cc:TODO |
-| GEO-2.6 | HowItWorksSection を SSR 化 (`"use client"` 除去 or SSR 保証) | curl でホームページ取得時に How It Works のテキストが含まれる | - | cc:TODO |
-
----
-
-## Phase GEO-3: ブランド & コンテンツ強化 [P1 — GEO]
-
-> Brand Authority Score: 3/100。外部プラットフォームでの存在感ゼロ。
+> GEO Audit 2026-03-13 で特定された改善項目。Composite Score 62→目標75。
+> 最大ボトルネック: Brand Authority 28/100, Content E-E-A-T 54/100, Schema 75/100。
 
 | Task | 内容 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| GEO-3.1 | x402.org/ecosystem に KnowMint 登録申請 | PR or 申請フォーム送信済み | - | cc:TODO |
-| GEO-3.2 | FAQ ページ作成 + FAQPage JSON-LD (x402 とは？, AI エージェント購入方法, etc.) | /faq が存在 + FAQPage schema valid | - | cc:TODO |
-| GEO-3.3 | ホームページ統計値に出典リンク追加 ($10M+, 77% に Dune/Coinbase/業界レポートのソース) | 各数値にツールチップ or 脚注で出典が表示 | - | cc:TODO |
-| GEO-3.4 | BreadcrumbList JSON-LD 追加 (knowledge item, category ページ) | Rich Results Test で BreadcrumbList valid | GEO-1.4 | cc:TODO |
-| GEO-3.5 | npm `@knowmint/mcp-server` が検索可能か確認・対応 | `npm search knowmint` で表示される | - | cc:TODO |
+| GEO-4.1 | Product schema に price/offers/image 追加 (Rich Results 解放) | Google Rich Results Test で Product valid | GEO-3 | cc:完了 |
+| GEO-4.2 | Category ページに CollectionPage/ItemList schema 追加 | JSON-LD に CollectionPage が出力される | GEO-3.4 | cc:完了 |
+| GEO-4.3 | HowTo schema を「使い方」セクションに追加 | Rich Results Test で HowTo valid | - | cc:完了 |
+| GEO-4.4 | FAQ 拡充 (トラブルシュート, ガス代, セキュリティ → 計12項目) | /faq に 12 Q&A + FAQPage schema 更新 | GEO-3.2 | cc:完了 |
+| GEO-4.5 | llms.txt に料金体系・レート制限・SLA セクション追加 | /llms.txt に Pricing, Rate Limits, SLA 記載 | - | cc:完了 |
+| GEO-4.6 | `/developers` ページ作成 (MCP/CLI/API ドキュメントをWeb公開) | /developers が存在 + MCP config 例含む | - | cc:完了 |
+| GEO-4.7 | ReviewSchema をレビューセクションに追加 | knowledge detail で Review JSON-LD 出力 | GEO-1.4 | cc:完了 |
+| GEO-4.8 | x402 ecosystem PR 送信 (coinbase/x402 へ metadata.json + logo) | PR URL 取得 | GEO-3.1 | cc:TODO (手動) |
 
 ---
 
@@ -177,9 +154,10 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 ## マーケティング依存関係
 
 ```
-GEO-1 (AI検索可視性)  ←─ 最優先・即実行
-  ├── GEO-2 (Technical SEO)  ←─ 並行可
-  ├── GEO-3 (ブランド・コンテンツ)  ←─ 並行可
+GEO-1 (AI検索可視性)  ✅ 完了
+  ├── GEO-2 (Technical SEO)  ✅ 完了 (59→79/100)
+  ├── GEO-3 (ブランド・コンテンツ)  ✅ 完了 (59→62/100)
+  │   └── GEO-4 (Quick Wins)  ✅ 完了 (7/8タスク, 4.8は手動)
   └── MKT-2 (SEO・コンテンツ)  ←─ GEO-1 後
 MKT-1 (ディスカバリー)  ←─ 即実行（GEO と並行可）
   ├── MKT-3 (ソーシャル)

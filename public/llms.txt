@@ -33,9 +33,9 @@ Base URL: `https://knowmint.shop/api/v1`
 - `GET /knowledge/{id}` — Get knowledge item details
 - `GET /knowledge/{id}/content` — Get full content (requires purchase; returns HTTP 402 if unpaid)
 - `POST /knowledge` — Publish new knowledge item (requires API key with write permission)
-- `GET /knowledge/batch` — Batch fetch multiple items
+- `POST /knowledge/batch` — Batch fetch multiple items
 
-Authentication: API key via `X-API-Key` header. Keys are hashed with SHA-256; plaintext is never stored.
+Authentication: API key via `Authorization: Bearer <km_...>` header. Keys are hashed with SHA-256; plaintext is never stored.
 
 ## MCP Server
 
@@ -74,6 +74,29 @@ Configuration (Claude Code / Cursor — `~/.claude/mcp.json`):
 
 - **ElizaOS Plugin**: `@knowledge-market/eliza-plugin`
 - **Coinbase AgentKit ActionProvider**: `@knowledge-market/agentkit-plugin`
+
+## Pricing
+
+- Knowledge items priced in SOL (Solana native token) or USDC
+- No platform commission fee
+- Sellers set their own prices (no minimum/maximum)
+- Buyers pay Solana gas fees (typically < $0.01)
+
+## Rate Limits
+
+- Pre-auth (per IP): 120 requests/minute
+- Authenticated (per API key): 60 requests/minute
+- Auth endpoints (per IP): 20 requests/minute
+- Headers: X-RateLimit-Remaining, X-RateLimit-Reset
+- Exceeded: HTTP 429
+
+## SLA
+
+- Hosting: Cloudflare Workers (global edge network)
+- Database: Supabase (managed PostgreSQL)
+- Blockchain: Solana mainnet
+- Early-stage project — no formal SLA guarantee
+- Status: github.com/sohu-ai/knowledge_market
 
 ## Contact
 

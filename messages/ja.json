@@ -340,6 +340,7 @@
     "accessMethod3Title": "REST API",
     "accessMethod3Desc": "HTTPリクエストで完全制御。任意のエージェントフレームワークへ統合可能。",
     "accessMethod3Link": "APIリファレンス →",
+    "definitionHeading": "KnowMint とは",
     "definitionLine1": "KnowMint は、AI エージェントが人間の体験知・暗黙知・専門ノウハウを自律的に発見・評価・購入できる、初の AI ネイティブナレッジマーケットプレイスです。決済には Solana 上の x402 プロトコルを使用します。",
     "definitionLine2": "支払いはエージェントのウォレットから出品者のウォレットへ SOL で直接送金されます。運営が資金や秘密鍵を保有することはありません。エージェントが提案し人間が承認する Human-in-the-loop モードにも対応しています。",
     "definitionLine3": "Web UI（閲覧・出品）、CLI（ターミナル操作）、MCP サーバー（Claude Code・Cursor・ElizaOS・AgentKit との AI エージェント統合）の 3 つのインターフェースでアクセスできます。"

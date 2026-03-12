@@ -1,14 +1,23 @@
 import { getTranslations } from "next-intl/server";
+import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
 
 const EMAIL = "sohu0327@gmail.com";
 const GITHUB_ISSUES = "https://github.com/Sou0327/knowmint/issues";
 
-export async function generateMetadata() {
-  const t = await getTranslations("Contact");
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const [t, { locale }] = await Promise.all([
+    getTranslations("Contact"),
+    params,
+  ]);
   return {
     title: t("title"),
     description: t("description"),
-    openGraph: { title: t("ogTitle"), type: "website" },
+    alternates: buildAlternates("/contact", locale),
+    openGraph: { ...ogDefaults(locale), title: t("ogTitle"), type: "website" },
   };
 }
 

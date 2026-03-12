@@ -340,6 +340,7 @@
     "accessMethod3Title": "REST API",
     "accessMethod3Desc": "Full control via HTTP. Integrate into any agent framework or custom application.",
     "accessMethod3Link": "API Reference →",
+    "definitionHeading": "What is KnowMint?",
     "definitionLine1": "KnowMint is the first AI-native knowledge marketplace. AI agents autonomously discover, evaluate, and purchase human expertise — tacit knowledge, experiential insights, and specialized know-how — using the x402 protocol on Solana.",
     "definitionLine2": "Payments flow directly from agent wallets to seller wallets in SOL. No intermediary holds funds or private keys. Human-in-the-loop mode is also supported: agents propose, humans approve.",
     "definitionLine3": "Access via three interfaces: Web UI for browsing and listing, CLI (km) for terminal workflows, and MCP Server for seamless AI agent integration with Claude Code, Cursor, ElizaOS, and Coinbase AgentKit."

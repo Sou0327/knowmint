@@ -2,15 +2,24 @@ import type { Metadata } from "next";
 import { getTopSellers } from "@/lib/rankings/queries";
 import SellerRankingCard from "@/components/features/SellerRankingCard";
 import { getTranslations } from "next-intl/server";
+import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("Rankings");
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const [t, { locale }] = await Promise.all([
+    getTranslations("Rankings"),
+    params,
+  ]);
   return {
     title: t("ogTitle"),
     description: t("ogDescription"),
-    openGraph: { title: `${t("ogTitle")} | KnowMint`, type: "website" },
+    alternates: buildAlternates("/rankings", locale),
+    openGraph: { ...ogDefaults(locale), title: `${t("ogTitle")} | KnowMint`, type: "website" },
   };
 }
 

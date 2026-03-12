@@ -6,11 +6,13 @@ import { Link } from "@/i18n/navigation";
 import type { ContentType, ListingType } from "@/types/database.types";
 import { getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
+import { buildAlternates } from "@/lib/seo/alternates";
 
 export const dynamic = "force-dynamic";
 import { CONTENT_TYPES, getContentDisplayLabel } from "@/types/knowledge.types";
 
 interface Props {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     q?: string;
     category?: string;
@@ -21,8 +23,9 @@ interface Props {
   }>;
 }
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { q, category, type, listing_type, sort, page } = await searchParams;
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const [{ locale }, sp] = await Promise.all([params, searchParams]);
+  const { q, category, type, listing_type, sort, page } = sp;
   const t = await getTranslations("Search");
   const title = q ? t("searchMetaTitle", { query: q }) : t("title");
   // パラメータ付き検索結果は重複コンテンツ回避のため noindex
@@ -30,7 +33,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const hasParams = [q, category, type, listing_type, sort, page].some((v) => v !== undefined);
   return {
     title,
-    alternates: { canonical: "/search" },
+    alternates: buildAlternates("/search", locale),
     ...(hasParams ? { robots: { index: false, follow: true } } : {}),
   };
 }

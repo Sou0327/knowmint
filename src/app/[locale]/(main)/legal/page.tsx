@@ -1,11 +1,20 @@
 import { getTranslations } from "next-intl/server";
+import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
 
-export async function generateMetadata() {
-  const t = await getTranslations("Legal");
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const [t, { locale }] = await Promise.all([
+    getTranslations("Legal"),
+    params,
+  ]);
   return {
     title: t("title"),
     description: t("description"),
-    openGraph: { title: t("ogTitle"), type: "website" },
+    alternates: buildAlternates("/legal", locale),
+    openGraph: { ...ogDefaults(locale), title: t("ogTitle"), type: "website" },
   };
 }
 

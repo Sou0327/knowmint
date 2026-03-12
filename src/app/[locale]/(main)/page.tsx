@@ -12,8 +12,29 @@ import HowItWorksSection from "@/components/features/HowItWorksSection";
 import StatsBanner from "@/components/features/StatsBanner";
 import ValuePropsSection from "@/components/features/ValuePropsSection";
 import FinalCtaSection from "@/components/features/FinalCtaSection";
+import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
+import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const [tHome, { locale }] = await Promise.all([
+    getTranslations("Home"),
+    params,
+  ]);
+  return {
+    alternates: buildAlternates("/", locale),
+    openGraph: {
+      ...ogDefaults(locale),
+      title: tHome("heroTitle"),
+      type: "website",
+    },
+  };
+}
 
 const CATEGORY_ICONS: Record<string, string> = {
   business: "💼",
@@ -166,6 +187,9 @@ export default async function HomePage() {
 
       {/* Definition block for AI citability */}
       <section className="mx-auto max-w-3xl text-center">
+        <h2 className="mb-6 font-display text-xl font-bold text-dq-gold">
+          {tHome("definitionHeading")}
+        </h2>
         <p className="leading-relaxed text-dq-text-sub">
           {tHome("definitionLine1")}
         </p>

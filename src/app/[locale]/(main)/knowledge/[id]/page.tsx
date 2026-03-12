@@ -18,13 +18,14 @@ import { getContentDisplayLabel, getListingTypeLabel } from "@/types/knowledge.t
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { id, locale } = await params;
   const item = await getKnowledgeForMetadata(id);
   if (!item) return {};
   const desc = item.description?.slice(0, 160) ?? "";
@@ -32,14 +33,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: item.title,
     description: desc,
     openGraph: {
+      ...ogDefaults(locale),
       title: item.title,
       description: desc,
       type: "article",
-      url: `/knowledge/${id}`,
+      url: `${locale === "en" ? "" : `/${locale}`}/knowledge/${id}`,
       tags: item.tags as string[] | undefined,
     },
-    twitter: { card: "summary_large_image", title: item.title, description: desc },
-    alternates: { canonical: `/knowledge/${id}` },
+    twitter: { card: "summary_large_image", site: "@gensou_ongaku", title: item.title, description: desc, images: ["/og-default.png"] },
+    alternates: buildAlternates(`/knowledge/${id}`, locale),
   };
 }
 
@@ -101,15 +103,6 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     url: itemUrl,
     ...(item.category ? { category: item.category.name } : {}),
     brand: { "@type": "Organization", name: "KnowMint" },
-    ...(listingType === "offer" && item.price_sol != null ? {
-      offers: {
-        "@type": "Offer",
-        price: item.price_sol,
-        priceCurrency: "SOL",
-        availability: "https://schema.org/InStock",
-        url: itemUrl,
-      },
-    } : {}),
     ...(item.average_rating != null && item.purchase_count > 0 ? {
       aggregateRating: {
         "@type": "AggregateRating",

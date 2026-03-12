@@ -5,16 +5,17 @@ import KnowledgeCard from "@/components/features/KnowledgeCard";
 import { getKnowledgeByCategory } from "@/lib/knowledge/queries";
 import { getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
+import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
 
 export const dynamic = "force-dynamic";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
   searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const { data: category } = await supabase
@@ -32,8 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description: t("categoryMetaDescription", { name: displayName }),
-    openGraph: { title, type: "website" },
-    alternates: { canonical: `/category/${slug}` },
+    openGraph: { ...ogDefaults(locale), title, type: "website" },
+    alternates: buildAlternates(`/category/${slug}`, locale),
   };
 }
 

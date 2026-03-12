@@ -6,6 +6,7 @@ const BASE_URL = "https://knowmint.shop";
 
 const STATIC_PATHS = [
   { path: "/", changeFrequency: "daily" as const, priority: 1.0 },
+  { path: "/search", changeFrequency: "daily" as const, priority: 0.8 },
   { path: "/rankings", changeFrequency: "daily" as const, priority: 0.7 },
   ...["/terms", "/privacy", "/legal", "/contact"].map((p) => ({
     path: p,
@@ -33,15 +34,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: withAlternates(s.path),
   }));
 
+  let categoryEntries: MetadataRoute.Sitemap = [];
   let knowledgeEntries: MetadataRoute.Sitemap = [];
+
   try {
     const { getAdminClient } = await import("@/lib/supabase/admin");
-    const { data, error } = await getAdminClient()
+    const admin = getAdminClient();
+
+    // Fetch categories first (small result set)
+    const { data: categories, error: catError } = await admin
+      .from("categories")
+      .select("slug");
+
+    if (catError) {
+      console.error("[sitemap] categories query failed:", catError.message);
+    } else {
+      categoryEntries = (categories ?? []).map((cat) => {
+        const path = `/category/${cat.slug}`;
+        return {
+          url: `${BASE_URL}${path}`,
+          changeFrequency: "daily" as const,
+          priority: 0.7,
+          alternates: withAlternates(path),
+        };
+      });
+    }
+
+    // Cap categories within budget
+    const categoryBudget = MAX_SITEMAP_URLS - staticEntries.length;
+    if (categoryEntries.length > categoryBudget) {
+      categoryEntries = categoryEntries.slice(0, categoryBudget);
+    }
+
+    // Calculate remaining budget for knowledge items
+    const knowledgeLimit = Math.max(0, MAX_SITEMAP_URLS - staticEntries.length - categoryEntries.length);
+
+    if (knowledgeLimit === 0) {
+      return [...staticEntries, ...categoryEntries];
+    }
+
+    const { data, error } = await admin
       .from("knowledge_items")
       .select("id, updated_at")
       .eq("status", "published")
       .order("updated_at", { ascending: false })
-      .limit(MAX_SITEMAP_URLS - STATIC_PATHS.length);
+      .limit(knowledgeLimit);
 
     if (error) {
       console.error("[sitemap] DB query failed:", error.message);
@@ -58,8 +95,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
   } catch (err) {
-    console.error("[sitemap] Failed to fetch knowledge items:", err);
+    console.error("[sitemap] Failed to fetch sitemap data:", err);
   }
 
-  return [...staticEntries, ...knowledgeEntries];
+  return [...staticEntries, ...categoryEntries, ...knowledgeEntries];
 }

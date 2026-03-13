@@ -23,6 +23,7 @@ const mockState = vi.hoisted(() => ({
   } | null,
   tx: null as unknown,
   getStatusesThrows: false,
+  network: "mainnet-beta" as string,
 }));
 
 vi.mock("@/lib/solana/connection", () => ({
@@ -33,6 +34,7 @@ vi.mock("@/lib/solana/connection", () => ({
     },
     getTransaction: async (_hash: string, _opts: unknown) => mockState.tx,
   }),
+  getNetwork: () => mockState.network,
 }));
 
 // Note: getUsdcMint is now defined locally in verify-transaction.ts, no payment.ts mock needed
@@ -414,6 +416,8 @@ describe("verifySolanaPurchaseTransaction() — USDC 転送検証", () => {
       slot: 100,
       confirmations: 10,
     };
+    mockState.tx = null;
+    mockState.network = "mainnet-beta";
     mockState.getStatusesThrows = false;
   });
 
@@ -465,6 +469,67 @@ describe("verifySolanaPurchaseTransaction() — USDC 転送検証", () => {
       token: "USDC" as const,
       expectedRecipient: SELLER_ADDR,
       expectedAmount: 1.0,
+    });
+    expect(result.valid).toBeFalsy();
+  });
+
+  it("devnet ネットワーク: devnet USDC mint で正常転送 → { valid:true }", async () => {
+    const USDC_MINT_DEVNET = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
+    mockState.network = "devnet";
+    mockState.tx = {
+      blockTime: Math.floor(Date.now() / 1000) - 60,
+      meta: {
+        err: null,
+        preBalances: [2_000_000_000, 0],
+        postBalances: [1_995_000_000, 0],
+        preTokenBalances: [
+          {
+            mint: USDC_MINT_DEVNET,
+            owner: BUYER_ADDR,
+            uiTokenAmount: { amount: "1000000", decimals: 6, uiAmount: null },
+          },
+        ],
+        postTokenBalances: [
+          {
+            mint: USDC_MINT_DEVNET,
+            owner: SELLER_ADDR,
+            uiTokenAmount: { amount: "1000000", decimals: 6, uiAmount: null },
+          },
+          {
+            mint: USDC_MINT_DEVNET,
+            owner: BUYER_ADDR,
+            uiTokenAmount: { amount: "0", decimals: 6, uiAmount: null },
+          },
+        ],
+      },
+      transaction: {
+        message: {
+          staticAccountKeys: [
+            { toBase58: () => BUYER_ADDR },
+            { toBase58: () => SELLER_ADDR },
+          ],
+        },
+      },
+    };
+    const result = await verifySolanaPurchaseTransaction({
+      txHash: VALID_TX_HASH,
+      token: "USDC" as const,
+      expectedRecipient: SELLER_ADDR,
+      expectedAmount: 1.0,
+      expectedSender: BUYER_ADDR,
+    });
+    expect(result.valid).toBeTruthy();
+  });
+
+  it("devnet ネットワーク: mainnet mint を使用 → mint 不一致で { valid:false }", async () => {
+    mockState.network = "devnet";
+    mockState.tx = buildUsdcTx("1000000", "1000000"); // mainnet mint で作成
+    const result = await verifySolanaPurchaseTransaction({
+      txHash: VALID_TX_HASH,
+      token: "USDC" as const,
+      expectedRecipient: SELLER_ADDR,
+      expectedAmount: 1.0,
+      expectedSender: BUYER_ADDR,
     });
     expect(result.valid).toBeFalsy();
   });
@@ -531,6 +596,8 @@ describe("verifySolanaPurchaseTransaction() — USDC split 検証 (feeVaultあ�
       slot: 100,
       confirmations: 10,
     };
+    mockState.tx = null;
+    mockState.network = "mainnet-beta";
     mockState.getStatusesThrows = false;
   });
 

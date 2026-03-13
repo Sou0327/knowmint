@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import type { Locale } from "@/i18n/request";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { SolanaWalletProvider } from "@/contexts/WalletContext";
 
 const METADATA_BY_LOCALE: Record<Locale, { title: string; description: string }> = {
   ja: {
@@ -70,9 +69,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-        <SolanaWalletProvider>
-          {children}
-        </SolanaWalletProvider>
+        {children}
       </AuthProvider>
     </NextIntlClientProvider>
   );

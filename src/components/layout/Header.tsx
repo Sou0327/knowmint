@@ -4,9 +4,11 @@ import { Link } from "@/i18n/navigation";
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import dynamic from 'next/dynamic';
 import NotificationBell from '@/components/features/NotificationBell';
-import WalletButton from '@/components/features/WalletButton';
 import LanguageToggle from '@/components/i18n/LanguageToggle';
+
+const WalletButton = dynamic(() => import('@/components/features/WalletButton'), { ssr: false });
 import { ThemeToggle } from '@/components/features/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 

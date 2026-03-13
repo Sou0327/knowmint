@@ -38,7 +38,11 @@ export async function authenticateApiKey(
     .eq("key_hash", keyHash)
     .single();
 
-  if (error || !apiKey) return null;
+  if (error) {
+    console.error("[auth] API key lookup failed:", error.message, error.code);
+    return null;
+  }
+  if (!apiKey) return null;
 
   // Check expiration
   if (apiKey.expires_at && new Date(apiKey.expires_at) < new Date()) return null;

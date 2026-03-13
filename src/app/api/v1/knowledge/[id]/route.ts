@@ -39,7 +39,7 @@ export const GET = withApiAuth(async (_request, user, _rateLimit, context) => {
   }
 
   // Fetch reviews with limit (C3)
-  const { data: reviews } = await supabase
+  const { data: reviews, error: reviewsError } = await supabase
     .from("reviews")
     .select(
       `
@@ -50,6 +50,10 @@ export const GET = withApiAuth(async (_request, user, _rateLimit, context) => {
     .eq("knowledge_item_id", id)
     .order("created_at", { ascending: false })
     .limit(20);
+
+  if (reviewsError) {
+    console.error("[knowledge-api] reviews query failed:", reviewsError.message, reviewsError.code);
+  }
 
   // Increment view_count (fire-and-forget with .catch) (D1)
   void (async () => {

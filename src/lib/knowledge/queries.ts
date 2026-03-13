@@ -147,6 +147,7 @@ export async function getPublishedKnowledge(
   const { data, count, error } = await q;
 
   if (error) {
+    console.error("[knowledge-queries] DB query failed:", error.message, error.code);
     return { data: [], total: 0, page, per_page, total_pages: 0 };
   }
 

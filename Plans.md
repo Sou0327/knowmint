@@ -16,17 +16,18 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
-## Phase OB-1: エラー可視性強化 [P2]
+## Phase OB-1: エラー可視性強化 [P2] `cc:完了`
 
-- [ ] `queries.ts:142` DB エラーを console.error でログ `cc:TODO`
-- [ ] `auth.ts:41` APIキールックアップ失敗時 console.error `cc:TODO`
-- [ ] `knowledge/[id]/route.ts:42` reviews error ログ `cc:TODO`
+- [x] `queries.ts:142` DB エラーを console.error でログ `cc:完了`
+- [x] `auth.ts:41` APIキールックアップ失敗時 console.error `cc:完了`
+- [x] `knowledge/[id]/route.ts:42` reviews error ログ `cc:完了`
 
 ---
 
-## Phase SEC-1: エージェント出品ブロック [P2]
+## Phase SEC-1: エージェント出品ブロック [P2] `cc:完了`
 
-- [ ] `publish/route.ts` で `profiles.user_type === 'agent'` なら 403 `cc:TODO`
+- [x] `publish/route.ts` で `profiles.user_type === 'agent'` なら 403 `cc:完了`
+  > 既に実装済み (publish/route.ts L23-37, PATCH route L131-143)
 
 ---
 

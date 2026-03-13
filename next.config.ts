@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
-const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   // @vercel/og (resvg.wasm + yoga.wasm) を空スタブに差し替えてバンドルサイズを削減
@@ -16,6 +15,14 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
+      {
+        source: "/_next/static/(.*)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      // s-maxage removed: nonce-based CSP requires per-request nonce;
+      // shared CDN cache would reuse stale nonces, weakening CSP
       {
         source: "/(.*)",
         headers: [
@@ -38,18 +45,6 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https:",
-              `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.solana.com wss://*.solana.com https://api.mainnet-beta.solana.com https://cloudflareinsights.com${isDev ? " http://127.0.0.1:54321 ws://127.0.0.1:54321 http://127.0.0.1:8899 ws://127.0.0.1:8899" : ""}`,
-              "font-src 'self'",
-              "frame-ancestors 'none'",
-            ].join("; "),
           },
         ],
       },

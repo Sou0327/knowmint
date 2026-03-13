@@ -16,6 +16,22 @@ function canonicalizePath(raw: string): string {
     .replace(/\/{2,}/g, "/");
 }
 
+function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV === "development";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.solana.com wss://*.solana.com https://api.mainnet-beta.solana.com${isDev ? " http://127.0.0.1:54321 ws://127.0.0.1:54321 http://127.0.0.1:8899 ws://127.0.0.1:8899" : ""}`,
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
 export async function middleware(request: NextRequest) {
   // 0. Canonical path redirect — normalize encoded separators and duplicate slashes
   const rawPathname = request.nextUrl.pathname;
@@ -43,19 +59,38 @@ export async function middleware(request: NextRequest) {
       }
       return new NextResponse(null, { status: 204, headers });
     }
-    const response = NextResponse.next();
+    const apiResponse = NextResponse.next();
     if (allowedOrigin) {
-      response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+      apiResponse.headers.set("Access-Control-Allow-Origin", allowedOrigin);
     }
-    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
+    apiResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    apiResponse.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
+    apiResponse.headers.set("Content-Security-Policy", "default-src 'none'; script-src 'none'; frame-ancestors 'none'");
+    return apiResponse;
+  }
+
+  // 2. Generate nonce for page CSP
+  const nonce = crypto.randomUUID();
+
+  // 3. i18n routing (locale detection, rewrites, redirects)
+  const response = handleI18nRouting(request);
+
+  // Redirects don't need CSP — browser will re-enter middleware on follow-up
+  if (response.status >= 300 && response.status < 400) {
     return response;
   }
 
-  // 2. i18n routing (locale detection, rewrites, redirects)
-  const response = handleI18nRouting(request);
+  // Propagate x-nonce to RSC via internal middleware request headers
+  const overrides = response.headers.get("x-middleware-override-headers");
+  const overrideList = overrides ? overrides.split(",").map(h => h.trim()) : [];
+  if (!overrideList.includes("x-nonce")) {
+    overrideList.push("x-nonce");
+  }
+  response.headers.set("x-middleware-override-headers", overrideList.join(","));
+  response.headers.set("x-middleware-request-x-nonce", nonce);
+  response.headers.set("Content-Security-Policy", buildCsp(nonce));
 
-  // 3. Decode and strip locale prefix for route matching
+  // 4. Decode and strip locale prefix for route matching
   // decodeURI to match next-intl's internal decoding (e.g. /%64ashboard → /dashboard)
   let decodedPathname: string;
   try {
@@ -72,12 +107,12 @@ export async function middleware(request: NextRequest) {
   const isAuthPage =
     strippedPath === "/login" || strippedPath === "/signup";
 
-  // 4. Skip auth for public, non-auth routes (performance)
+  // 5. Skip auth for public, non-auth routes (performance)
   if (!isProtected && !isAuthPage) {
     return response;
   }
 
-  // 5. Supabase auth session refresh (only for protected/auth routes)
+  // 6. Supabase auth session refresh (only for protected/auth routes)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -102,14 +137,14 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 6. Detect locale prefix for locale-aware redirects (skip for default locale under as-needed)
+  // 7. Detect locale prefix for locale-aware redirects (skip for default locale under as-needed)
   const localeMatch = decodedPathname.match(localePattern);
   const matchedLocale = localeMatch?.[1];
   const localePrefix = matchedLocale && matchedLocale !== routing.defaultLocale
     ? `/${matchedLocale}`
     : "";
 
-  // 7. Protected route → redirect to login (preserve cookies with attributes)
+  // 8. Protected route → redirect to login (preserve cookies with attributes)
   if (isProtected && !user) {
     const loginUrl = new URL(`${localePrefix}/login`, request.url);
     const redirectTarget = strippedPath + request.nextUrl.search;
@@ -121,7 +156,7 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // 8. Auth page + logged in → redirect to home (preserve cookies with attributes)
+  // 9. Auth page + logged in → redirect to home (preserve cookies with attributes)
   if (isAuthPage && user) {
     const redirectResponse = NextResponse.redirect(new URL(`${localePrefix}/`, request.url), 303);
     for (const cookie of response.cookies.getAll()) {

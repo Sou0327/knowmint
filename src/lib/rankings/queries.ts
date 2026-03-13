@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { getAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/types/database.types";
 
 export interface TopSeller {
@@ -12,18 +11,44 @@ export interface TopSeller {
   trust_score: number | null;
 }
 
-export async function getTopSellers(
-  limit = 10,
-  client?: SupabaseClient<Database>
-): Promise<TopSeller[]> {
-  const supabase = client ?? (await createClient());
+/**
+ * Lightweight existence check — only fetches a single transaction row.
+ * Used in generateMetadata to decide noindex without loading full seller data.
+ * Uses admin client to bypass RLS (transactions are restricted by buyer/seller).
+ */
+export async function hasAnySellers(): Promise<boolean> {
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("id")
+    .eq("status", "confirmed")
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("[rankings] hasAnySellers query failed:", error.message);
+    // Fail open: assume sellers exist so we don't accidentally noindex /rankings
+    return true;
+  }
+  return data !== null;
+}
 
-  // Get sellers with confirmed transaction counts
-  const { data: transactions } = await supabase
+export async function getTopSellers(limit = 10): Promise<TopSeller[]> {
+  const supabase = getAdminClient();
+
+  // Get sellers with confirmed transaction counts.
+  // TODO: Replace with SQL GROUP BY aggregation (RPC/view) when transaction volume grows.
+  // Current approach caps at 5000 rows as a safety bound.
+  const { data: transactions, error: txError } = await supabase
     .from("transactions")
     .select("seller_id")
-    .eq("status", "confirmed");
+    .eq("status", "confirmed")
+    .order("created_at", { ascending: false })
+    .limit(5000);
 
+  if (txError) {
+    console.error("[rankings] getTopSellers transactions query failed:", txError.message);
+    return [];
+  }
   if (!transactions || transactions.length === 0) return [];
 
   // Count sales per seller
@@ -41,19 +66,28 @@ export async function getTopSellers(
   if (topSellerIds.length === 0) return [];
 
   // Fetch profiles
-  const { data: profiles } = await supabase
+  const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id, display_name, avatar_url, follower_count, trust_score")
     .in("id", topSellerIds);
 
+  if (profileError) {
+    console.error("[rankings] getTopSellers profiles query failed:", profileError.message);
+    return [];
+  }
   if (!profiles) return [];
 
   // Get item counts per seller
-  const { data: items } = await supabase
+  const { data: items, error: itemError } = await supabase
     .from("knowledge_items")
     .select("seller_id")
     .eq("status", "published")
     .in("seller_id", topSellerIds);
+
+  if (itemError) {
+    console.error("[rankings] getTopSellers items query failed:", itemError.message);
+    return [];
+  }
 
   const itemCount = new Map<string, number>();
   items?.forEach((item) => {

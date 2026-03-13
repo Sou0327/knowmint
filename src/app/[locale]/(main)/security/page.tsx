@@ -20,11 +20,21 @@ export async function generateMetadata({
 }
 
 export default async function SecurityPage() {
-  const [t, locale] = await Promise.all([
+  const [t, tCommon, locale] = await Promise.all([
     getTranslations("Security"),
+    getTranslations("Common"),
     getLocale(),
   ]);
   const localePrefix = locale === "en" ? "" : `/${locale}`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: tCommon("breadcrumbHome"), item: `https://knowmint.shop${localePrefix}` },
+      { "@type": "ListItem", position: 2, name: t("title"), item: `https://knowmint.shop${localePrefix}/security` },
+    ],
+  };
 
   const securityJsonLd = {
     "@context": "https://schema.org",
@@ -47,6 +57,7 @@ export default async function SecurityPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
+      <JsonLd data={breadcrumbJsonLd} />
       <JsonLd data={securityJsonLd} />
 
       <h1 className="mb-4 text-3xl font-bold font-display text-dq-gold">

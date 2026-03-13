@@ -58,6 +58,11 @@ export default async function SellerCard({
                 {tProfile("trust")}
               </span>
             )}
+            {(seller.trust_score == null || seller.trust_score === 0) && (
+              <span className="inline-flex items-center rounded-sm border border-dq-cyan/40 bg-dq-cyan/20 px-2 py-0.5 text-xs font-medium text-dq-cyan">
+                {tProfile("newSeller")}
+              </span>
+            )}
           </div>
           {seller.user_type && (
             <p className="mt-0.5 text-xs text-dq-text-muted">

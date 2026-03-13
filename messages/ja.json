@@ -329,6 +329,8 @@
     "statsBanner3Label": "対応SDK",
     "statsCitation1": "x402 エコシステムデータ (2026)",
     "statsCitation2": "Solana エコシステムデータ",
+    "statsCitation1Url": "https://x402.org",
+    "statsCitation2Url": "https://solana.com/ecosystem",
     "valuePropTitle": "なぜ KnowMint か",
     "valueProp1Title": "自律購入",
     "valueProp1Desc": "AIエージェントがx402でSOLを直接決済。人間の承認は不要",
@@ -681,7 +683,8 @@
     "trustHigh": "高信頼",
     "trust": "信頼",
     "trustScore": "信頼スコア",
-    "trustScoreNone": "未評価"
+    "trustScoreNone": "未評価",
+    "newSeller": "New"
   },
   "Notifications": {
     "title": "通知",
@@ -705,7 +708,8 @@
     "followersUnit": "{count} フォロワー",
     "trustScore": "信頼度 {score}%",
     "ogTitle": "出品者ランキング",
-    "ogDescription": "KnowMint で販売実績の多い出品者をランキング表示"
+    "ogDescription": "KnowMint で販売実績の多い出品者をランキング表示",
+    "newSeller": "New"
   },
   "Favorites": {
     "title": "お気に入り",
@@ -814,7 +818,32 @@
     "techStack5": "MCP サーバー + CLI + REST API",
     "openSourceTitle": "オープンソース",
     "openSourceBody": "KnowMint は MIT ライセンスの完全オープンソースです。透明性を重視し、コミュニティからのコントリビューションを歓迎します。",
-    "openSourceLink": "GitHub で見る"
+    "openSourceLink": "GitHub で見る",
+    "storyTitle": "KnowMint の誕生",
+    "storyBody1": "KnowMint は一つのシンプルな気づきから生まれました。AIエージェントはますます複雑なタスクを実行できるようになっていますが、人間が長年の経験を通じて蓄積する暗黙知にアクセスする手段がありません。プロンプトライブラリは存在しますが、静的です。AI の学習データは膨大ですが、プロフェッショナルがキャリアを通じて培う微妙で状況に応じた専門知識は含まれていません。",
+    "storyBody2": "もし AI エージェントが必要な専門知識を自律的に見つけて購入できたら？ 仲介者なしで、暗号資産を使って即座に取引できたら？ その答えが KnowMint です — 人間の知識と AI の自律購入能力が出会う場所。",
+    "whySolanaTitle": "なぜ Solana か",
+    "whySolanaBody": "Solana は全 AI エージェントトランザクションの 77% を処理しています。サブ秒のファイナリティとほぼゼロの手数料（通常 1 トランザクションあたり $0.01 未満）は、AI エージェントと知識出品者間のマイクロトランザクションに最適です。エージェントが $0.50 のプロンプトテンプレートを必要とするとき、Ethereum のガス代 $15 を支払うのは合理的ではありません。Solana がマイクロナレッジコマースを実現可能にします。",
+    "whyX402Title": "なぜ x402 か",
+    "whyX402Body": "Coinbase が開発した x402 プロトコルは、AI エージェントがすでに話す言語である HTTP にネイティブな決済機能をもたらします。エージェントが有料コンテンツをリクエストすると、サーバーは HTTP 402 と支払い情報を返します。エージェントは自律的に支払い、リクエストを再送信します。OAuth フローも、サブスクリプション管理も、課金 API も不要。HTTP リクエスト、支払い、受信。これがマシンの取引のあるべき姿です。",
+    "whyMcpTitle": "なぜ MCP か",
+    "whyMcpBody": "Model Context Protocol（MCP）は AI エージェントのツール統合の標準になりつつあります。ネイティブ MCP サーバーを提供することで、KnowMint は MCP 対応のあらゆる AI ワークフロー — Claude Code、Cursor など — のファーストクラスツールになります。エージェントはカスタム統合不要で、ツールキットの他のツールと同様に KnowMint を使えます。",
+    "roadmapTitle": "ロードマップ",
+    "roadmapItem1": "Solana 上の USDC 決済対応",
+    "roadmapItem2": "EVM チェーン対応（Base、Ethereum）",
+    "roadmapItem3": "ナレッジ品質スコアリング・検証システム",
+    "roadmapItem4": "エージェント間のナレッジ取引",
+    "roadmapItem5": "サブスクリプション型ナレッジフィード",
+    "roadmapItem6": "多言語コンテンツ対応",
+    "valuesTitle": "私たちの価値観",
+    "value1Title": "自律性ファースト",
+    "value1Body": "AI エージェントは人間の介入なしにナレッジを取得できるべきです。すべての設計判断は自律的なエージェントワークフローを優先しています。",
+    "value2Title": "常にノンカストディアル",
+    "value2Body": "私たちは秘密鍵や資金を一切保有しません。すべての取引はピアツーピアの直接送金です。あなたの鍵、あなたの暗号資産、あなたの知識。",
+    "value3Title": "デフォルトでオープン",
+    "value3Body": "コードベース全体が MIT ライセンスです。マーケットプレイス、MCP サーバー、CLI、すべての SDK がオープンソース。透明性が信頼を築きます。",
+    "value4Title": "人間の専門知識は重要",
+    "value4Body": "AI は強力ですが、人間の経験は代替不可能です。KnowMint は、実践からしか得られない暗黙知には計り知れない価値があり、マーケットプレイスに値するという信念から存在しています。"
   },
   "Security": {
     "title": "セキュリティ",

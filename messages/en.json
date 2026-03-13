@@ -329,6 +329,8 @@
     "statsBanner3Label": "Supported SDKs",
     "statsCitation1": "x402 ecosystem data (2026)",
     "statsCitation2": "Solana ecosystem data",
+    "statsCitation1Url": "https://x402.org",
+    "statsCitation2Url": "https://solana.com/ecosystem",
     "valuePropTitle": "Why KnowMint",
     "valueProp1Title": "Autonomous Purchase",
     "valueProp1Desc": "AI agents pay directly with SOL via x402. No human approval required.",
@@ -681,7 +683,8 @@
     "trustHigh": "Highly Trusted",
     "trust": "Trusted",
     "trustScore": "Trust Score",
-    "trustScoreNone": "Not yet evaluated"
+    "trustScoreNone": "Not yet evaluated",
+    "newSeller": "New"
   },
   "Notifications": {
     "title": "Notifications",
@@ -705,7 +708,8 @@
     "followersUnit": "{count, plural, one {# follower} other {# followers}}",
     "trustScore": "Trust {score}%",
     "ogTitle": "Seller Rankings",
-    "ogDescription": "Top sellers ranked by sales performance on KnowMint"
+    "ogDescription": "Top sellers ranked by sales performance on KnowMint",
+    "newSeller": "New"
   },
   "Favorites": {
     "title": "Favorites",
@@ -814,7 +818,32 @@
     "techStack5": "MCP Server + CLI + REST API",
     "openSourceTitle": "Open Source",
     "openSourceBody": "KnowMint is fully open source under the MIT License. We believe in transparency and invite contributions from the community.",
-    "openSourceLink": "View on GitHub"
+    "openSourceLink": "View on GitHub",
+    "storyTitle": "Our Story",
+    "storyBody1": "KnowMint was born from a simple observation: AI agents are increasingly capable of executing complex tasks, but they lack access to the tacit knowledge that humans accumulate through years of experience. Prompt libraries exist, but they're static. AI training data is vast, but it doesn't capture the nuanced, situational expertise that professionals develop over careers.",
+    "storyBody2": "We asked: what if AI agents could autonomously find and purchase the exact expertise they need, directly from the humans who have it? What if this transaction could happen instantly, without intermediaries, using cryptocurrency? The result is KnowMint — where human knowledge meets autonomous AI purchasing power.",
+    "whySolanaTitle": "Why Solana?",
+    "whySolanaBody": "Solana processes 77% of all AI agent transactions. Its sub-second finality and near-zero fees (typically less than $0.01 per transaction) make it ideal for micro-transactions between AI agents and knowledge sellers. When an agent needs a $0.50 prompt template, paying $15 in Ethereum gas fees makes no sense. Solana makes micro-knowledge-commerce viable.",
+    "whyX402Title": "Why x402?",
+    "whyX402Body": "The x402 protocol, created by Coinbase, brings native payment capabilities to HTTP — the language AI agents already speak. When an agent requests paid content, the server returns HTTP 402 with payment instructions. The agent pays autonomously and resubmits. No OAuth flows, no subscription management, no billing APIs. Just HTTP request, pay, and receive. This is how machines should transact.",
+    "whyMcpTitle": "Why MCP?",
+    "whyMcpBody": "Model Context Protocol (MCP) is becoming the standard for AI agent tool integration. By providing a native MCP server, KnowMint becomes a first-class tool in any MCP-compatible AI workflow — Claude Code, Cursor, and beyond. Agents don't need custom integrations; they use KnowMint like any other tool in their toolkit.",
+    "roadmapTitle": "Roadmap",
+    "roadmapItem1": "USDC payment support on Solana",
+    "roadmapItem2": "EVM chain support (Base, Ethereum)",
+    "roadmapItem3": "Knowledge quality scoring and verification system",
+    "roadmapItem4": "Agent-to-agent knowledge trading",
+    "roadmapItem5": "Subscription-based knowledge feeds",
+    "roadmapItem6": "Multi-language content support",
+    "valuesTitle": "Our Values",
+    "value1Title": "Autonomy First",
+    "value1Body": "AI agents should be able to acquire knowledge without human intervention. Every design decision prioritizes autonomous agent workflows.",
+    "value2Title": "Non-Custodial Always",
+    "value2Body": "We never hold private keys or funds. Every transaction is a direct peer-to-peer transfer. Your keys, your crypto, your knowledge.",
+    "value3Title": "Open by Default",
+    "value3Body": "Our entire codebase is MIT-licensed. The marketplace, MCP server, CLI, and all SDKs are open source. Transparency builds trust.",
+    "value4Title": "Human Expertise Matters",
+    "value4Body": "AI is powerful, but human experience is irreplaceable. KnowMint exists because tacit knowledge — the kind you can only get from doing — has immense value that deserves a marketplace."
   },
   "Security": {
     "title": "Security",

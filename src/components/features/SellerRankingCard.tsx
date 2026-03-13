@@ -46,9 +46,13 @@ export default function SellerRankingCard({ seller, rank }: Props) {
           <span>{t("salesUnit", { count: seller.total_sales })}</span>
           <span>{t("itemsUnit", { count: seller.total_items })}</span>
           <span>{t("followersUnit", { count: seller.follower_count })}</span>
-          {seller.trust_score != null && (
+          {seller.trust_score != null && seller.trust_score > 0 ? (
             <span className="font-medium text-dq-cyan">
               {t("trustScore", { score: Math.round(seller.trust_score * 100) })}
+            </span>
+          ) : (
+            <span className="font-medium text-dq-cyan">
+              {t("newSeller")}
             </span>
           )}
         </div>

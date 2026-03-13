@@ -1,8 +1,10 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { fireWebhookEvent } from "@/lib/webhooks/events";
 import { logAuditEvent } from "@/lib/audit/log";
+import { notifyIndexNow } from "@/lib/seo/indexnow";
 
 // Exclude moderation_status, metadata, usefulness_score, seller_disclosure, search_vector
 // to avoid leaking internal/computed fields in the publish response.
@@ -99,18 +101,23 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
-  // Fire webhook event (fire-and-forget)
-  fireWebhookEvent(user.userId, "listing.published", {
-    knowledge_id: id,
-    title: updated.title,
-  }).catch((err: unknown) => console.error("Webhook listing.published:", err));
-
-  logAuditEvent({
-    userId: user.userId,
-    action: "listing.published",
-    resourceType: "knowledge_item",
-    resourceId: id,
-    metadata: {},
+  // Schedule background work to run after the response is sent.
+  // after() ensures these complete even on serverless (Cloudflare Workers).
+  after(async () => {
+    await Promise.allSettled([
+      fireWebhookEvent(user.userId, "listing.published", {
+        knowledge_id: id,
+        title: updated.title,
+      }),
+      notifyIndexNow(`https://knowmint.shop/knowledge/${id}`),
+    ]);
+    logAuditEvent({
+      userId: user.userId,
+      action: "listing.published",
+      resourceType: "knowledge_item",
+      resourceId: id,
+      metadata: {},
+    });
   });
 
   return apiSuccess(updated);

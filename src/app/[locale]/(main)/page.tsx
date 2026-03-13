@@ -58,7 +58,7 @@ const getCachedHomeData = unstable_cache(
       getPublishedKnowledge({ sort_by: "newest", per_page: 6 }, admin),
       getPublishedKnowledge({ sort_by: "popular", per_page: 6 }, admin),
       getCategories(admin),
-      getTopSellers(5, admin),
+      getTopSellers(5),
     ]);
     // カテゴリは常に存在するはず。空ならDB障害とみなしキャッシュしない
     if (categories.length === 0) {
@@ -117,24 +117,10 @@ export default async function HomePage() {
     ],
   };
 
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: tHome("howItWorksTitle"),
-    description: tHome("howItWorksSubtitle"),
-    step: [1, 2, 3, 4].map((i) => ({
-      "@type": "HowToStep",
-      position: i,
-      name: tHome(`howItWorksStep${i}Title` as Parameters<typeof tHome>[0]),
-      text: tHome(`howItWorksStep${i}Desc` as Parameters<typeof tHome>[0]),
-    })),
-  };
-
   return (
     <div className="space-y-16">
       <JsonLd data={websiteJsonLd} />
       <JsonLd data={organizationJsonLd} />
-      <JsonLd data={howToJsonLd} />
 
       {/* Hero */}
       <section className="relative overflow-hidden rounded-sm py-20 text-center sm:py-24">
@@ -201,8 +187,14 @@ export default async function HomePage() {
           </div>
           <div className="mt-3 text-center">
             <small className="text-[10px] leading-tight text-dq-text-muted">
-              <sup>1</sup> {tHome("statsCitation1")}{" "}
-              <sup>2</sup> {tHome("statsCitation2")}
+              <sup>1</sup>{" "}
+              <a href={tHome("statsCitation1Url")} target="_blank" rel="noopener noreferrer" className="underline hover:text-dq-cyan">
+                {tHome("statsCitation1")}
+              </a>{" "}
+              <sup>2</sup>{" "}
+              <a href={tHome("statsCitation2Url")} target="_blank" rel="noopener noreferrer" className="underline hover:text-dq-cyan">
+                {tHome("statsCitation2")}
+              </a>
             </small>
           </div>
         </div>

@@ -29,8 +29,14 @@ export default async function StatsBanner() {
       </div>
       <div className="mt-3 border-t border-dq-border pt-2 text-center">
         <small className="text-[10px] leading-tight text-dq-text-muted">
-          <sup>1</sup> {t("statsCitation1")}{" "}
-          <sup>2</sup> {t("statsCitation2")}
+          <sup>1</sup>{" "}
+          <a href={t("statsCitation1Url")} target="_blank" rel="noopener noreferrer" className="underline hover:text-dq-cyan">
+            {t("statsCitation1")}
+          </a>{" "}
+          <sup>2</sup>{" "}
+          <a href={t("statsCitation2Url")} target="_blank" rel="noopener noreferrer" className="underline hover:text-dq-cyan">
+            {t("statsCitation2")}
+          </a>
         </small>
       </div>
     </div>

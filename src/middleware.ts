@@ -28,6 +28,7 @@ function buildCsp(nonce: string): string {
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'self'",
+    "frame-src 'self' https://www.youtube.com",
     "frame-ancestors 'none'",
   ].join("; ");
 }

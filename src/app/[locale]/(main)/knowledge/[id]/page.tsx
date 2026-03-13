@@ -125,9 +125,29 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     ],
   };
 
+  const webPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: item.title,
+    url: itemUrl,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", "[data-speakable='description']"],
+    },
+  };
+
   const sortedReviews = [...item.reviews]
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
   const recentReviews = sortedReviews.slice(0, 5);
+
+  const isHumanSeller = seller.id && seller.user_type === "human";
+  const personJsonLd = isHumanSeller ? {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `https://knowmint.shop/#seller-${seller.id}`,
+    name: seller.display_name || "Anonymous",
+    ...(seller.bio ? { description: seller.bio } : {}),
+  } : null;
 
   const productJsonLd = !isRequest ? {
     "@context": "https://schema.org",
@@ -141,6 +161,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     dateModified: item.updated_at.split("T")[0],
     ...(item.category ? { category: item.category.name } : {}),
     brand: { "@type": "Organization", "@id": "https://knowmint.shop/#organization", name: "KnowMint" },
+    ...(isHumanSeller ? { manufacturer: { "@type": "Person", "@id": `https://knowmint.shop/#seller-${seller.id}` } } : {}),
     ...(item.price_sol != null ? {
       offers: {
         "@type": "Offer",
@@ -181,6 +202,8 @@ export default async function KnowledgeDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-4xl">
       <JsonLd data={breadcrumbJsonLd} />
+      <JsonLd data={webPageJsonLd} />
+      {personJsonLd && <JsonLd data={personJsonLd} />}
       {productJsonLd && <JsonLd data={productJsonLd} />}
       <Link
         href="/"
@@ -233,7 +256,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
             <h2 className="mb-2 border-l-4 border-dq-gold pl-3 text-xl font-bold font-display text-dq-gold">
               {t("description")}
             </h2>
-            <p className="whitespace-pre-wrap leading-relaxed text-dq-text-sub">
+            <p className="whitespace-pre-wrap leading-relaxed text-dq-text-sub" data-speakable="description">
               {item.description}
             </p>
           </div>

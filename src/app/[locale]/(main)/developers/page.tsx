@@ -61,14 +61,25 @@ const API_ENDPOINTS = [
 ] as const;
 
 export default async function DevelopersPage() {
-  const [t, locale] = await Promise.all([
+  const [t, tCommon, locale] = await Promise.all([
     getTranslations("Developers"),
+    getTranslations("Common"),
     getLocale(),
   ]);
   const localePrefix = locale === "en" ? "" : `/${locale}`;
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: tCommon("breadcrumbHome"), item: `https://knowmint.shop${localePrefix}` },
+      { "@type": "ListItem", position: 2, name: t("title"), item: `https://knowmint.shop${localePrefix}/developers` },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
+      <JsonLd data={breadcrumbJsonLd} />
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",

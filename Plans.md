@@ -9,32 +9,16 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1, GEO-2, GEO-3, SEC-2 すべて `cc:DONE`
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1~5, SEC-1~2, OB-1, MKT-1 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
 
-**R.3 手動TODO**: GitHub Description/Topics/Website URL 設定 (knowmint.shop)
+**手動TODO**: SEC-2.3 style-src unsafe-inline 削除検討
 
 ---
-
-## Phase OB-1: エラー可視性強化 [P2] `cc:完了`
-
-- [x] `queries.ts:142` DB エラーを console.error でログ `cc:完了`
-- [x] `auth.ts:41` APIキールックアップ失敗時 console.error `cc:完了`
-- [x] `knowledge/[id]/route.ts:42` reviews error ログ `cc:完了`
-
----
-
-## Phase SEC-1: エージェント出品ブロック [P2] `cc:完了`
-
-- [x] `publish/route.ts` で `profiles.user_type === 'agent'` なら 403 `cc:完了`
-  > 既に実装済み (publish/route.ts L23-37, PATCH route L131-143)
-
----
-
 
 ## Phase B: Provider 最適化 + Playwright E2E [P1]
 
-- [ ] B.1 WalletProvider lazy 化 (購入・出品ページのみ) `cc:TODO`
+- [x] B.1 WalletProvider lazy 化 (購入・出品ページのみ) `cc:完了`
 - [ ] B.2 Playwright セットアップ + Maestro 主要10フロー移植 `cc:TODO`
 - [ ] B.3 CI に Playwright 組み込み `cc:TODO`
 
@@ -42,56 +26,13 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ## Phase C: i18n URL + shadcn/ui [P1]
 
-- [x] C.1 next-intl URL ベース (`/ja/`, `/en/`) + hreflang + sitemap `cc:完了`
-  > Phase C (5cb7632) で URL ベースルーティング移行、GEO-2 (3ad9c6e) で hreflang HTML + sitemap 拡充
 - [ ] C.2 shadcn/ui 段階導入 (Button, Dialog, Input, Card → 自前削除) `cc:TODO`
-
----
-
-## Phase MKT-1: ディスカバリー基盤 [P1 — マーケティング]
-
-> 詳細: `docs/marketing/01-mcp-directories.md`, `02-awesome-lists.md`, `03-github-optimization.md`
-
-- [ ] 1.1 公式 MCP Registry 登録 (mcpName → server.json → publish) `cc:完了` (server.json + mcpName 作成済み。publish は手動: `mcp-publisher login github && mcp-publisher publish`)
-- [ ] 1.2 MCP ディレクトリ 5箇所 (mcp.so, PulseMCP, Smithery, MCP Server Finder, MCPServers.org) `cc:完了` (提出テキスト生成済み: docs/marketing/submissions/mcp-directories.md。各サイトへの提出は手動)
-- [ ] 1.3 Awesome Lists PR 6/7箇所 `cc:完了` (awesome-selfhosted はスキップ: 初回コミット 2026-02-16 → 4ヶ月ルール未達 + Dockerfile なし)
-  - awesome-mcp-servers: https://github.com/punkpeye/awesome-mcp-servers/pull/3158
-  - xpaysh/awesome-x402: https://github.com/xpaysh/awesome-x402/pull/106
-  - Merit-Systems/awesome-x402: https://github.com/Merit-Systems/awesome-x402/pull/91
-  - solana-foundation/awesome-solana-ai: https://github.com/solana-foundation/awesome-solana-ai/pull/87
-  - kyrolabs/awesome-agents: https://github.com/kyrolabs/awesome-agents/pull/211
-  - jim-schwoebel/awesome_ai_agents: https://github.com/jim-schwoebel/awesome_ai_agents/pull/93
-- [ ] 1.4 GitHub 最適化 (Social Preview, Topics 20個, Discussions, FUNDING.yml) `cc:完了` (FUNDING.yml 作成済み。Social Preview/Topics/Discussions は手動)
-- [ ] 1.5 HN Second Chance メール `cc:完了` (メール下書き生成済み: docs/marketing/submissions/hn-second-chance.md。送信は手動)
-
----
-
----
-
-## Phase GEO-4: スコア改善 Quick Wins [P1 — GEO]
-
-> GEO Audit 2026-03-13 で特定された改善項目。Composite Score 62→目標75。
-> 最大ボトルネック: Brand Authority 28/100, Content E-E-A-T 54/100, Schema 75/100。
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-4.1 | Product schema に price/offers/image 追加 (Rich Results 解放) | Google Rich Results Test で Product valid | GEO-3 | cc:完了 |
-| GEO-4.2 | Category ページに CollectionPage/ItemList schema 追加 | JSON-LD に CollectionPage が出力される | GEO-3.4 | cc:完了 |
-| GEO-4.3 | HowTo schema を「使い方」セクションに追加 | Rich Results Test で HowTo valid | - | cc:完了 |
-| GEO-4.4 | FAQ 拡充 (トラブルシュート, ガス代, セキュリティ → 計12項目) | /faq に 12 Q&A + FAQPage schema 更新 | GEO-3.2 | cc:完了 |
-| GEO-4.5 | llms.txt に料金体系・レート制限・SLA セクション追加 | /llms.txt に Pricing, Rate Limits, SLA 記載 | - | cc:完了 |
-| GEO-4.6 | `/developers` ページ作成 (MCP/CLI/API ドキュメントをWeb公開) | /developers が存在 + MCP config 例含む | - | cc:完了 |
-| GEO-4.7 | ReviewSchema をレビューセクションに追加 | knowledge detail で Review JSON-LD 出力 | GEO-1.4 | cc:完了 |
-| GEO-4.8 | x402 ecosystem PR 送信 (coinbase/x402 へ metadata.json + logo) | PR URL 取得 | GEO-3.1 | cc:完了 https://github.com/coinbase/x402/pull/1595 |
 
 ---
 
 ## Phase MKT-2: SEO・コンテンツ基盤 [P1 — マーケティング]
 
-> 詳細: `docs/marketing/04-seo-foundations.md`, `05-blog-content.md`
-> 前提: GEO-1 完了後
-
-- [ ] 2.1 GSC 登録 + Google Index 確認 `cc:TODO` depends:GEO-1
+- [ ] 2.1 GSC 登録 + Google Index 確認 `cc:TODO`
 - [ ] 2.2 Hashnode ブログ (CF DNS CNAME `blog`) `cc:TODO`
 - [ ] 2.3 Dev.to 記事 5本 `cc:TODO` depends:2.2
 
@@ -101,7 +42,7 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 > 詳細: `docs/marketing/06-social-media.md`, `07-reddit.md`
 
-- [ ] 3.1 Bluesky (カスタムドメイン @knowmint.shop + 初期投稿10本 → 100フォロワー) `cc:TODO`
+- [ ] 3.1 X 運用 (Solana/AI agent 界隈フォロー + 初期投稿10本 + 引用RT・リプで認知) `cc:TODO`
 - [ ] 3.2 LinkedIn (プロフィール最適化 + 投稿5本) `cc:TODO`
 - [ ] 3.3 Reddit 実行 (r/SideProject → r/ClaudeCode → r/solana → r/ClaudeAI → r/LocalLLaMA) `cc:TODO` depends:karma 50+
 
@@ -109,11 +50,7 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ## Phase MKT-4: ローンチプラットフォーム [P1 — マーケティング]
 
-> 詳細: `docs/marketing/08-launch-platforms.md`
-> 前提: MKT-1 + DEMO-WEB 完了後
-
-- [ ] 4.1 先行提出 (BetaList, DevHunt, Uneed) `cc:完了` (提出テキスト生成済み: docs/marketing/submissions/launch-platforms.md。各サイトへの提出は手動)
-- [ ] 4.2 Product Hunt ローンチ (2週間活動 → アセット → Draft → 火-木 00:01 PST) `cc:TODO` depends:DEMO-WEB, 4.1
+- [ ] 4.2 Product Hunt ローンチ (2週間活動 → アセット → Draft → 火-木 00:01 PST) `cc:TODO` depends:DEMO-WEB
 
 ---
 
@@ -148,20 +85,71 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
-## Phase GEO-5: フル GEO 監査対応 [P1 — GEO] `cc:完了`
+## Phase GEO-6: GEO 監査 2026-03-13 対応 [P1 — GEO]
 
-> GEO Full Audit 2026-03-13: Composite 41→目標60。14 タスク完了 (5.5 は SEC-2 で撤回)。
-> Codex 5 ラウンド → ISSUES_FOUND: 0。GitHub URL 統一済み。
-> 残課題: CSP nonce → SEC-2 完了、sitemap ISR/分割 → PERF-1。
+> GEO Full Audit 2026-03-13: Composite **45/100** → 目標 65。
+> 最大ボトルネック: Brand Authority 14/100 (オフサイト=MKT担当), Content 41/100, Schema 52/100。
+> Technical 82/100 は良好だが CRITICAL 修正あり。Platform Readiness 38/100。
+> オフサイト施策 (Reddit, LinkedIn, Wikidata, YouTube メタ最適化) は MKT-3/6 で管理。
 
----
+### Technical CRITICAL
 
-## Phase SEC-2: CSP nonce 移行 [P2] `cc:完了`
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-6.1 | Cloudflare で HTTP→HTTPS リダイレクト有効化 | `curl -I http://knowmint.shop` が 301→https 返却 | - | cc:TODO (手動: Cloudflare Dashboard) |
+| GEO-6.2 | `/search` の商品リストを HTML レンダリング (RSC payload のみ→SSR) | `curl https://knowmint.shop/search` にアイテムタイトルが含まれる | - | cc:完了 (2026-03-14) KnowledgeCard Server Component 化 |
+| GEO-6.3 | 空ページ対策: `/rankings` と 0件カテゴリに noindex meta 追加 | 0件時に `<meta name="robots" content="noindex">` 出力 | - | cc:完了 (2026-03-14) hasAnySellers + fail-open for SEO |
+| GEO-6.4 | `/knowledge` 親パス 404 修正 → `/search` へリダイレクト | `/knowledge` アクセスで 308→`/search` | - | cc:完了 (2026-03-14) locale-aware permanentRedirect |
 
-> コミット 9fdb67f — nonce + `'strict-dynamic'` CSP。Codex 5ラウンド → ISSUES_FOUND: 0。
+### robots.txt 改善
 
-- [x] SEC-2.1 テーマスクリプト nonce 付き移行 + SEC-2.2 `'unsafe-inline'` 削除 `cc:完了`
-- [ ] SEC-2.3 `style-src 'unsafe-inline'` 段階的削除検討 `cc:TODO`
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-6.5 | robots.txt に OAI-SearchBot, ChatGPT-User, bingbot 追加 | robots.txt に 3 bot が明示 Allow | - | cc:完了 (2026-03-14) |
+
+### Schema 改善
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-6.6 | Person schema 追加 (出品者の構造化データ) | knowledge detail ページに Person JSON-LD 出力 (human seller のみ) | - | cc:完了 (2026-03-14) user_type ガード付き |
+| GEO-6.7 | speakable プロパティ追加 (WebPage, FAQPage) | JSON-LD に speakable.cssSelector 含まれる | - | cc:完了 (2026-03-14) WebPage ノードに移動 |
+| GEO-6.8 | HowTo schema 削除 (2023年リッチリザルト廃止済み) | homepage JSON-LD に HowTo なし | - | cc:完了 (2026-03-14) |
+| GEO-6.9 | BreadcrumbList を FAQ/About/Developers/Rankings/Security に追加 | 5ページ全てに BreadcrumbList JSON-LD | - | cc:完了 (2026-03-14) |
+| GEO-6.10 | Organization sameAs 拡張 (YouTube チャンネル追加) | sameAs に youtube.com URL 含む | MKT-6.1 | cc:TODO (MKT-6.1 待ち) |
+
+### Content 改善
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-6.11 | 統計値にソース URL 追加 ($10M+ x402, 77% Solana AI TX) | 各数値にクリック可能リンク | - | cc:完了 (2026-03-14) StatsBanner + i18n URL キー |
+| GEO-6.12 | ホームページに YouTube デモ動画埋め込み + VideoObject schema | CSP frame-src 準備済み。動画 URL 設定後に有効化 | MKT-6.1 | cc:完了 (2026-03-14) CSP 部分実装 |
+| GEO-6.13 | About ページ拡充 (創業ストーリー、技術選定理由、ロードマップ → 1500語) | /about の word count 1500+ | - | cc:完了 (2026-03-14) 8セクション追加 |
+| GEO-6.14 | 「0% trust」表示修正 → データ不足時「New Seller」バッジに変更 | trust score 0 の seller に "New" 表示 | - | cc:完了 (2026-03-14) SellerCard + SellerRankingCard |
+
+### Platform 固有
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-6.15 | IndexNow プロトコル実装 (Bing インデックス高速化) | `/indexnow-key.txt` 存在 + publish 時 IndexNow API 呼び出し | - | cc:完了 (2026-03-14) async + keyLocation + after() |
+| GEO-6.16 | homepage title 拡張 (55-60字、キーワード含む) | `<title>` が 55字以上で x402/AI agent 含む | - | cc:完了 (2026-03-14) en/ja 両方 |
+
+### Codex レビュー検出の残課題 (GEO-6 スコープ外)
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-6.R1 | getTopSellers を SQL GROUP BY (RPC/view) に置換 | DB 側で seller_id 集約、JS 全件取得を廃止 | - | cc:TODO |
+| GEO-6.R2 | logAuditEvent を Promise<void> に変更 + after() で await | audit ログが serverless で確実に完走 | - | cc:TODO |
+| GEO-6.R3 | publish route に `.eq("status", "draft")` 追加 (TOCTOU 修正) | UPDATE 条件に status=draft 含む | - | cc:TODO |
+| GEO-6.R4 | indexnow-key.txt をデプロイ時に INDEXNOW_KEY と同期 | Cloudflare env + ファイル内容一致 | - | cc:TODO (手動: デプロイ時) |
+
+### MKT フェーズへのクロスリファレンス (手動タスク)
+
+> 以下はオフサイト施策のため MKT で管理。GEO スコア向上に直結する。
+> - **MKT-3.2**: LinkedIn 企業ページ → Brand +10, sameAs 拡張
+> - **MKT-3.3**: Reddit 投稿実行 → Brand +15, Perplexity +10
+> - **MKT-4.2**: Product Hunt → Brand +5
+> - **MKT-6.1**: YouTube メタデータ最適化 (タイトル・説明文・タグ) → Gemini +15
+> - **新規手動**: Wikidata エントリ作成 → ChatGPT/Gemini エンティティ認識
 
 ---
 
@@ -174,19 +162,10 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
-## マーケティング依存関係
+## 依存関係
 
 ```
-GEO-1 (AI検索可視性)  ✅ 完了
-  ├── GEO-2 (Technical SEO)  ✅ 完了 (59→79/100)
-  ├── GEO-3 (ブランド・コンテンツ)  ✅ 完了 (59→62/100)
-  │   └── GEO-4 (Quick Wins)  ✅ 完了 (7/8タスク, 4.8は手動)
-  │       └── GEO-5 (フル GEO 監査対応)  ←─ Full Audit 41/100→目標60
-  └── MKT-2 (SEO・コンテンツ)  ←─ GEO-1 後
-MKT-1 (ディスカバリー)  ←─ 即実行（GEO と並行可）
-  ├── MKT-3 (ソーシャル)
-  ├── MKT-4 (ローンチ)  ←─ DEMO-WEB + MKT-1 後
-  ├── MKT-5 (コミュニティ)  ←─ 並行可
-  └── MKT-6 (動画・デモ)  ←─ DEMO-WEB 後
-        └── MKT-7 (長期)
+GEO-6 (GEO監査対応 45→65) ←─ 今ここ (オンサイト16タスク)
+MKT-2 (SEO・コンテンツ) / MKT-3 (ソーシャル) / MKT-4 (PH) ←─ 並行可
+MKT-5 (コミュニティ) / MKT-6 (動画) → MKT-7 (長期)
 ```

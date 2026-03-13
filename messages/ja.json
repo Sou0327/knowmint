@@ -69,6 +69,13 @@
       "jsonTemplate": "JSON / テンプレート設定",
       "externalResource": "外部リソース情報",
       "apiSchema": "APIスキーマ"
+    },
+    "categoryDescription": {
+      "business": "経験豊富なプロフェッショナルによるビジネス戦略、マネジメントフレームワーク、財務分析テンプレート、業務ノウハウ。スタートアップ、企業運営、キャリア開発に役立つ実践的な知見。",
+      "technology-it": "ソフトウェアエンジニアリングのベストプラクティス、DevOps設定、システムアーキテクチャパターン、AI/MLワークフロー。本番環境で検証済みのプロンプトからインフラテンプレートまで。",
+      "design-creative": "デザインシステム、UI/UXの方法論、クリエイティブワークフロー、ビジュアルコミュニケーション戦略。現場のデザイナーやクリエイティブ職からの実践知。",
+      "education-learning": "教授法、カリキュラム設計、学習フレームワーク、教育テクノロジーガイド。教育者、研修担当者、独学者のための知識。",
+      "lifestyle": "健康・ウェルネス、生産性向上システム、パーソナルファイナンス戦略、ライフハック。日常をより良くするための実践的な知識。"
     }
   },
   "Nav": {
@@ -100,7 +107,9 @@
     "terms": "利用規約",
     "privacy": "プライバシーポリシー",
     "commercialLaw": "特定商取引法表示",
-    "developers": "開発者向け"
+    "developers": "開発者向け",
+    "about": "KnowMintについて",
+    "security": "セキュリティ"
   },
   "Privacy": {
     "title": "プライバシーポリシー",
@@ -166,7 +175,7 @@
     "label2": "所在地",
     "value2": "神奈川県（請求があった場合に遅滞なく開示します）",
     "label3": "連絡先",
-    "value3": "sohu0327@gmail.com（お問い合わせページ）",
+    "value3": "contact@knowmint.shop（お問い合わせページ）",
     "contactLinkText": "お問い合わせページ",
     "label4": "代表責任者",
     "value4": "請求があった場合に遅滞なく開示します",
@@ -730,7 +739,23 @@
     "q11": "どの AI エージェントに対応していますか？",
     "a11": "HTTP リクエストが送れる AI エージェントであれば対応可能です。公式連携として、MCP サーバー（Claude Code、Cursor、その他 MCP 対応クライアント）、ElizaOS プラグイン（@knowledge-market/eliza-plugin）、Coinbase AgentKit ActionProvider（@knowledge-market/agentkit-plugin）を提供しています。REST API や CLI（km）ツール経由でも統合できます。",
     "q12": "KnowMint はどのように不正を防止していますか？",
-    "a12": "複数のレイヤーで保護しています。すべてのトランザクションは Solana ブロックチェーン上で検証され、API キーは SHA-256 ハッシュを使用し、レート制限で悪用を防止（認証前 120 リクエスト/分、キーごと 60 リクエスト/分）、コンテンツ報告は管理者がレビューし、SECURITY DEFINER 関数と制限された search_path でデータベース操作を保護しています。プラットフォームは完全にノンカストディアルで、資金を預かることはありません。"
+    "a12": "複数のレイヤーで保護しています。すべてのトランザクションは Solana ブロックチェーン上で検証され、API キーは SHA-256 ハッシュを使用し、レート制限で悪用を防止（認証前 120 リクエスト/分、キーごと 60 リクエスト/分）、コンテンツ報告は管理者がレビューし、SECURITY DEFINER 関数と制限された search_path でデータベース操作を保護しています。プラットフォームは完全にノンカストディアルで、資金を預かることはありません。",
+    "q13": "KnowMint とは何ですか？",
+    "a13": "KnowMint は、AIエージェントが Solana 上の x402 プロトコルを使って人間の専門知識を自律的に発見・購入できる、初の AI ネイティブナレッジマーケットプレイスです。人間が暗黙知・体験知・専門ノウハウを出品し、AIエージェントが仲介者なしでウォレットから直接 SOL で支払います。",
+    "q14": "KnowMint にナレッジを出品するには？",
+    "a14": "ログインし、ナビゲーションの「出品する」をクリックし、タイトル・説明・カテゴリ・価格（SOL）を入力します。プレビューコンテンツ（購入前に閲覧可能）とフルコンテンツ（購入後にアクセス可能）を追加して、下書き保存または即時公開できます。Markdown フォーマットに対応しています。",
+    "q15": "KnowMint のプラットフォーム手数料は？",
+    "a15": "現在、プラットフォーム手数料はゼロです。支払い全額が購入者のウォレットから出品者のウォレットに直接送金されます。唯一の追加コストは Solana のネットワーク手数料（ガス代）で、通常 $0.01 未満です。",
+    "q16": "CLI ツールの使い方は？",
+    "a16": "'npm run km -- <command>' または npx でインストール。利用可能なコマンド: 'km search' でナレッジ検索、'km install <id>' で購入・ダウンロード、'km publish prompt <file> --price 0.1SOL' で出品、'km my purchases' で購入一覧表示。API キーは ~/.km/config.json で設定します。",
+    "q17": "Claude Code や Cursor で MCP サーバーを設定するには？",
+    "a17": "~/.claude/mcp.json（Claude Code）または .cursor/mcp.json（Cursor）に KnowMint MCP サーバーを追加します。command に 'npx'、args に ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server']、環境変数に KM_API_KEY と KM_BASE_URL（https://knowmint.shop）を設定します。API キーはダッシュボード > API キーから取得できます。",
+    "q18": "KnowMint はどのブロックチェーンを使用していますか？",
+    "a18": "すべての決済に Solana ブロックチェーンを使用しています。低い手数料（通常 $0.01 未満）、高速な確認時間、AI エージェントトランザクションにおける圧倒的なシェア（AI エージェント TX の 77% が Solana）が選定理由です。支払いは Solana のネイティブトークンである SOL で行われます。",
+    "q19": "KnowMint はオープンソースですか？",
+    "a19": "はい。KnowMint は MIT ライセンスの完全オープンソースです。マーケットプレイス、MCP サーバー、CLI、ElizaOS プラグイン、AgentKit プラグインを含む全コードベースが GitHub（github.com/Sou0327/knowmint）で公開されています。コントリビューションを歓迎します。",
+    "q20": "API キーの取得方法は？",
+    "a20": "KnowMint にログインし、ダッシュボード > API キー > 「新しいAPIキーを作成」をクリック。名前を入力し、権限（読み取り・書き込み・管理者）を選択して作成します。キーは一度だけ表示されるので、すぐにコピーしてください。API キーは SHA-256 ハッシュで保存されるため、後から確認はできません。"
   },
   "Developers": {
     "title": "開発者向けリソース",
@@ -766,7 +791,52 @@
     "apiAuthNote": "認証: Authorization: Bearer ヘッダーで API キーを送信。キーはダッシュボード > API キーから取得できます。",
     "sdkTitle": "追加 SDK",
     "elizaDesc": "ElizaOS エージェントフレームワーク用プラグイン。ElizaOS ワークフロー内でナレッジの検索・購入・取得が可能。",
-    "agentKitDesc": "Coinbase AgentKit 用 ActionProvider。AgentKit エージェントで Solana ベースのナレッジ取引を実行。"
+    "agentKitDesc": "Coinbase AgentKit 用 ActionProvider。AgentKit エージェントで Solana ベースのナレッジ取引を実行。",
+    "mcpProse": "KnowMint MCP サーバー（@knowmint/mcp-server）により、Claude Code、Cursor、その他の MCP 対応クライアントなどの AI エージェントが、マーケットプレイスからナレッジを自律的に検索・評価・購入できます。一度設定すれば、エージェントが x402 プロトコルを使って人間の介入なしに関連する専門知識を発見し、購入を完了します。",
+    "cliProse": "KnowMint CLI（km）は、ターミナルから直接ナレッジの検索・購入・出品ができるスタンドアロン Node.js コマンドラインツールです。購入したナレッジを Claude Code や OpenCode の設定に自動デプロイする機能にも対応しています。",
+    "apiProse": "KnowMint REST API は、マーケットプレイスのすべての操作にプログラムからアクセスできます。API キー認証（SHA-256 ハッシュ）を使用し、コンテンツアクセスには x402 決済プロトコルをサポートしており、任意のエージェントフレームワークやカスタムアプリケーションに統合可能です。"
+  },
+  "About": {
+    "title": "KnowMint について",
+    "description": "KnowMint — Solana 上の x402 を使用した初の AI ネイティブナレッジマーケットプレイス",
+    "ogTitle": "KnowMint について",
+    "missionTitle": "ミッション",
+    "missionBody": "KnowMint は、人間の暗黙知と AI エージェントの間のギャップを埋めるために存在します。体験的な洞察、専門的な知見、実践的なノウハウが、AI システムによって発見・購入できるべきだと考えています。エージェントが現実世界の知識で自律的に能力を拡張できる世界を目指します。",
+    "whatTitle": "KnowMint とは",
+    "whatBody": "KnowMint は、AI エージェントが Solana 上の x402 プロトコルを使って人間の専門知識を自律的に発見・購入できる、初の AI ネイティブナレッジマーケットプレイスです。人間が暗黙知・体験知・専門ノウハウを出品し、AI エージェントが MCP サーバー、CLI、REST API を通じて発見・購入します。ウォレットから直接支払い、仲介者が資金や秘密鍵を保有することはありません。",
+    "teamTitle": "チーム",
+    "teamBody": "KnowMint はソロファウンダーによって構築・運営されています。フロントエンドからブロックチェーン統合、セキュリティ強化から AI エージェント SDK まで、プラットフォーム全体が AI 支援コーディング（Claude Code）を使って開発されました。このプロジェクト自体が、人間の専門知識と AI の能力が出会ったとき、一人で何が構築できるかの実証です。",
+    "techTitle": "技術スタック",
+    "techStack1": "Next.js 16 App Router + TypeScript",
+    "techStack2": "Supabase (PostgreSQL + RLS + Auth)",
+    "techStack3": "Solana ブロックチェーン (x402 プロトコル)",
+    "techStack4": "Cloudflare Workers (グローバルエッジデプロイ)",
+    "techStack5": "MCP サーバー + CLI + REST API",
+    "openSourceTitle": "オープンソース",
+    "openSourceBody": "KnowMint は MIT ライセンスの完全オープンソースです。透明性を重視し、コミュニティからのコントリビューションを歓迎します。",
+    "openSourceLink": "GitHub で見る"
+  },
+  "Security": {
+    "title": "セキュリティ",
+    "description": "KnowMint のセキュリティ — ノンカストディアルアーキテクチャ、暗号化、監査履歴",
+    "ogTitle": "セキュリティ | KnowMint",
+    "introBody": "セキュリティは KnowMint の基盤です。暗号資産決済を扱うマーケットプレイスとして、すべてのレイヤーで多層防御を実装しています。",
+    "nonCustodialTitle": "ノンカストディアルアーキテクチャ",
+    "nonCustodialBody": "KnowMint は秘密鍵や資金を一切保有しません。すべての支払いは、Solana 上で購入者のウォレットから出品者のウォレットへの直接 P2P 送金です。トランザクションハッシュの検証と記録のみを行います。",
+    "apiKeysTitle": "API キーセキュリティ",
+    "apiKeysBody": "API キーは SHA-256 でハッシュ化してから保存されます。平文のキーは保存・ログ記録されません。作成時に一度だけ表示され、後から取得することはできません。",
+    "headersTitle": "セキュリティヘッダー",
+    "headersBody": "すべてのレスポンスに HSTS（max-age=63072000, includeSubDomains, preload）、X-Frame-Options: DENY、Content-Security-Policy（unsafe-eval なし）、Referrer-Policy: strict-origin-when-cross-origin、Permissions-Policy（カメラ・マイク・位置情報制限）を含みます。",
+    "authTitle": "ウォレット認証 (SIWS)",
+    "authBody": "ウォレット接続は Sign-In with Solana (SIWS) を使用します。チャレンジはサーバー側で生成され、SECURITY DEFINER RPC で原子的に消費され、Ed25519 署名検証で認証されます。",
+    "rateLimitTitle": "レート制限",
+    "rateLimitBody": "多層レート制限で悪用を防止: IP あたり 120 req/分（認証前）、API キーあたり 60 req/分（認証後）、認証エンドポイント 20 req/分。制限超過時は HTTP 429 と X-RateLimit-Remaining / X-RateLimit-Reset ヘッダーを返します。",
+    "dbTitle": "データベースセキュリティ",
+    "dbBody": "すべてのテーブルは行レベルセキュリティ（RLS）で保護されています。機密操作は制限された search_path（pg_catalog, public）を持つ SECURITY DEFINER 関数を使用します。service_role 用関数は anon / authenticated ロールから明示的に REVOKE されています。",
+    "auditTitle": "監査履歴",
+    "auditBody": "コードベースは 13 回以上の自動セキュリティレビュー（Codex）と、手動の Black/White Hacker 双子エージェント侵入テストを実施済みです。各ラウンドで脆弱性を特定・修正し、指摘ゼロになるまで繰り返しました。",
+    "disclosureTitle": "脆弱性の報告",
+    "disclosureBody": "セキュリティの脆弱性を発見された場合は、GitHub Issues または contact@knowmint.shop までご報告ください。すべての報告を真摯に受け止め、迅速に対応します。"
   },
   "Metadata": {
     "siteTitle": "KnowMint - 知識売買マーケットプレイス",

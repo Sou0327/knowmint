@@ -4,12 +4,16 @@ export const dynamic = "force-dynamic";
 
 const BASE_URL = "https://knowmint.shop";
 
+const STATIC_LAST_MODIFIED = new Date("2026-03-13");
+
 const STATIC_PATHS = [
   { path: "/", changeFrequency: "daily" as const, priority: 1.0 },
   { path: "/search", changeFrequency: "daily" as const, priority: 0.8 },
   { path: "/rankings", changeFrequency: "daily" as const, priority: 0.7 },
   { path: "/faq", changeFrequency: "monthly" as const, priority: 0.5 },
   { path: "/developers", changeFrequency: "monthly" as const, priority: 0.6 },
+  { path: "/about", changeFrequency: "monthly" as const, priority: 0.5 },
+  { path: "/security", changeFrequency: "monthly" as const, priority: 0.5 },
   ...["/terms", "/privacy", "/legal", "/contact"].map((p) => ({
     path: p,
     changeFrequency: "monthly" as const,
@@ -18,10 +22,11 @@ const STATIC_PATHS = [
 ];
 
 function withAlternates(path: string) {
+  const normalizedPath = path === "/" ? "" : path;
   return {
     languages: {
-      en: `${BASE_URL}${path}`,
-      ja: `${BASE_URL}/ja${path}`,
+      en: `${BASE_URL}${normalizedPath || "/"}`,
+      ja: `${BASE_URL}/ja${normalizedPath}`,
     },
   };
 }
@@ -31,6 +36,7 @@ const MAX_SITEMAP_URLS = 50000;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((s) => ({
     url: `${BASE_URL}${s.path}`,
+    lastModified: STATIC_LAST_MODIFIED,
     changeFrequency: s.changeFrequency,
     priority: s.priority,
     alternates: withAlternates(s.path),
@@ -55,6 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const path = `/category/${cat.slug}`;
         return {
           url: `${BASE_URL}${path}`,
+          lastModified: STATIC_LAST_MODIFIED,
           changeFrequency: "daily" as const,
           priority: 0.7,
           alternates: withAlternates(path),

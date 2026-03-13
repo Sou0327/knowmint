@@ -136,8 +136,11 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     description: item.description,
     url: itemUrl,
     image: "https://knowmint.shop/og-default.png",
+    productID: item.id,
+    datePublished: item.created_at.split("T")[0],
+    dateModified: item.updated_at.split("T")[0],
     ...(item.category ? { category: item.category.name } : {}),
-    brand: { "@type": "Organization", name: "KnowMint" },
+    brand: { "@type": "Organization", "@id": "https://knowmint.shop/#organization", name: "KnowMint" },
     ...(item.price_sol != null ? {
       offers: {
         "@type": "Offer",

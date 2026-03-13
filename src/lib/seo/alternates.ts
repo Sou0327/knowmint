@@ -11,12 +11,14 @@ export function ogDefaults(locale: string = "en") {
 
 export function buildAlternates(path: string, locale: string = "en") {
   const canonicalPrefix = locale === "en" ? "" : `/${locale}`;
+  // "/" のときは prefix のみ (trailing slash 回避)
+  const normalizedPath = path === "/" ? "" : path;
   return {
-    canonical: `${canonicalPrefix}${path}`,
+    canonical: normalizedPath ? `${canonicalPrefix}${normalizedPath}` : (canonicalPrefix || "/"),
     languages: {
-      en: `${BASE_URL}${path}`,
-      ja: `${BASE_URL}/ja${path}`,
-      "x-default": `${BASE_URL}${path}`,
+      en: `${BASE_URL}${normalizedPath || "/"}`,
+      ja: `${BASE_URL}/ja${normalizedPath}`,
+      "x-default": `${BASE_URL}${normalizedPath || "/"}`,
     },
   };
 }

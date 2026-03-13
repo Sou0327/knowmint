@@ -14,7 +14,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Sou0327/knowledge_market.git",
+    "url": "git+https://github.com/Sou0327/knowmint.git",
     "directory": "packages/eliza-plugin"
   },
   "type": "module",

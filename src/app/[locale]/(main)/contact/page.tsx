@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
 
-const EMAIL = "sohu0327@gmail.com";
+const EMAIL = "contact@knowmint.shop";
 const GITHUB_ISSUES = "https://github.com/Sou0327/knowmint/issues";
 
 export async function generateMetadata({

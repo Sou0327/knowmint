@@ -9,7 +9,7 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1, GEO-2, GEO-3 すべて `cc:DONE` (GEO-3 を 2026-03-13 にアーカイブ)
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1, GEO-2, GEO-3, SEC-2 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
 
 **R.3 手動TODO**: GitHub Description/Topics/Website URL 設定 (knowmint.shop)
@@ -30,16 +30,6 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
-## Phase REVIEW-1: レビュー・スコア UI 有効化 [P2] `cc:完了`
-
-> コミット e9e7920 — ReviewForm, FeedbackButton, trust_score 表示。10ファイル変更。
-
-- [x] 1.1 ReviewForm を knowledge/[id]/page.tsx に組み込み (購入済み＆未レビュー時のみ) `cc:完了`
-- [x] 1.2 購入済みコンテンツに FeedbackButton (Server Action) `cc:完了`
-- [x] 1.3 usefulness_score を詳細ページに表示 `cc:完了`
-- [x] 1.4 売り手プロフィールに trust_score 表示 `cc:完了`
-
----
 
 ## Phase B: Provider 最適化 + Playwright E2E [P1]
 
@@ -151,6 +141,32 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
+## Phase GEO-5: フル GEO 監査対応 [P1 — GEO] `cc:完了`
+
+> GEO Full Audit 2026-03-13: Composite 41→目標60。14 タスク完了 (5.5 は SEC-2 で撤回)。
+> Codex 5 ラウンド → ISSUES_FOUND: 0。GitHub URL 統一済み。
+> 残課題: CSP nonce → SEC-2 完了、sitemap ISR/分割 → PERF-1。
+
+---
+
+## Phase SEC-2: CSP nonce 移行 [P2] `cc:完了`
+
+> コミット 9fdb67f — nonce + `'strict-dynamic'` CSP。Codex 5ラウンド → ISSUES_FOUND: 0。
+
+- [x] SEC-2.1 テーマスクリプト nonce 付き移行 + SEC-2.2 `'unsafe-inline'` 削除 `cc:完了`
+- [ ] SEC-2.3 `style-src 'unsafe-inline'` 段階的削除検討 `cc:TODO`
+
+---
+
+## Phase PERF-1: sitemap パフォーマンス改善 [P3]
+
+> Codex GEO-5 レビューで検出。sitemap の動的生成を最適化。
+
+- [ ] PERF-1.1 sitemap.ts を `force-dynamic` → ISR (`revalidate`) or `unstable_cache` に変更 `cc:TODO`
+- [ ] PERF-1.2 50k URL 上限に備え `generateSitemaps()` で sitemap index 分割対応 `cc:TODO`
+
+---
+
 ## マーケティング依存関係
 
 ```
@@ -158,6 +174,7 @@ GEO-1 (AI検索可視性)  ✅ 完了
   ├── GEO-2 (Technical SEO)  ✅ 完了 (59→79/100)
   ├── GEO-3 (ブランド・コンテンツ)  ✅ 完了 (59→62/100)
   │   └── GEO-4 (Quick Wins)  ✅ 完了 (7/8タスク, 4.8は手動)
+  │       └── GEO-5 (フル GEO 監査対応)  ←─ Full Audit 41/100→目標60
   └── MKT-2 (SEO・コンテンツ)  ←─ GEO-1 後
 MKT-1 (ディスカバリー)  ←─ 即実行（GEO と並行可）
   ├── MKT-3 (ソーシャル)

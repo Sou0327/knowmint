@@ -69,6 +69,13 @@
       "jsonTemplate": "JSON / Template Settings",
       "externalResource": "External Resource Info",
       "apiSchema": "API Schema"
+    },
+    "categoryDescription": {
+      "business": "Business strategies, management frameworks, financial analysis templates, and operational know-how from experienced professionals. Find actionable insights for startups, enterprise operations, and career development.",
+      "technology-it": "Software engineering best practices, DevOps configurations, system architecture patterns, and AI/ML workflows. From production-tested prompts to infrastructure templates.",
+      "design-creative": "Design systems, UI/UX methodologies, creative workflows, and visual communication strategies. Practical knowledge from working designers and creative professionals.",
+      "education-learning": "Teaching methodologies, curriculum designs, learning frameworks, and educational technology guides. Knowledge for educators, trainers, and self-directed learners.",
+      "lifestyle": "Health and wellness practices, productivity systems, personal finance strategies, and life optimization insights. Practical knowledge for everyday improvement."
     }
   },
   "Nav": {
@@ -100,7 +107,9 @@
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "commercialLaw": "Specified Commercial Transactions Act",
-    "developers": "Developers"
+    "developers": "Developers",
+    "about": "About",
+    "security": "Security"
   },
   "Privacy": {
     "title": "Privacy Policy",
@@ -166,7 +175,7 @@
     "label2": "Location",
     "value2": "Kanagawa, Japan (disclosed without delay upon request)",
     "label3": "Contact",
-    "value3": "sohu0327@gmail.com (Contact page)",
+    "value3": "contact@knowmint.shop (Contact page)",
     "contactLinkText": "Contact page",
     "label4": "Representative",
     "value4": "Disclosed without delay upon request",
@@ -730,7 +739,23 @@
     "q11": "Which AI agents are supported?",
     "a11": "KnowMint supports any AI agent that can make HTTP requests. We provide official integrations for: MCP Server (Claude Code, Cursor, and any MCP-compatible client), ElizaOS Plugin (@knowledge-market/eliza-plugin), and Coinbase AgentKit ActionProvider (@knowledge-market/agentkit-plugin). You can also integrate via the REST API or CLI (km) tool.",
     "q12": "How does KnowMint protect against fraud?",
-    "a12": "Multiple layers: all transactions are verified on the Solana blockchain, API keys use SHA-256 hashing, rate limiting prevents abuse (120 req/min pre-auth, 60 req/min per key), content reports are reviewed by administrators, and SECURITY DEFINER functions with restricted search paths protect database operations. The platform is also fully non-custodial — we never hold funds."
+    "a12": "Multiple layers: all transactions are verified on the Solana blockchain, API keys use SHA-256 hashing, rate limiting prevents abuse (120 req/min pre-auth, 60 req/min per key), content reports are reviewed by administrators, and SECURITY DEFINER functions with restricted search paths protect database operations. The platform is also fully non-custodial — we never hold funds.",
+    "q13": "What is KnowMint?",
+    "a13": "KnowMint is the first AI-native knowledge marketplace where AI agents autonomously discover and purchase human expertise using the x402 protocol on Solana. Humans list their tacit knowledge, experiential insights, and specialized expertise. AI agents find and buy this knowledge — paying SOL directly from their wallets to sellers' wallets with no intermediary.",
+    "q14": "How do I list knowledge on KnowMint?",
+    "a14": "Sign in, click 'List Item' in the navigation, fill in title, description, category, and price (in SOL), then add preview content (visible before purchase) and full content (accessible after purchase). You can save as draft or publish immediately. Content supports Markdown formatting.",
+    "q15": "Does KnowMint charge platform fees?",
+    "a15": "No. KnowMint currently charges zero platform commission. The full payment goes directly from the buyer's wallet to the seller's wallet. The only additional cost is the Solana network transaction fee (gas), which is typically less than $0.01.",
+    "q16": "How do I use the CLI tool?",
+    "a16": "Install with 'npm run km -- <command>' or use npx. Available commands include: 'km search' to find knowledge, 'km install <id>' to purchase and download, 'km publish prompt <file> --price 0.1SOL' to list knowledge, and 'km my purchases' to view your purchases. Configure your API key in ~/.km/config.json.",
+    "q17": "How do I set up the MCP server with Claude Code or Cursor?",
+    "a17": "Add the KnowMint MCP server to your ~/.claude/mcp.json (Claude Code) or .cursor/mcp.json (Cursor). Set command to 'npx', args to ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server'], and add KM_API_KEY and KM_BASE_URL (https://knowmint.shop) as environment variables. Get your API key from Dashboard > API Keys.",
+    "q18": "Which blockchain does KnowMint use?",
+    "a18": "KnowMint uses the Solana blockchain for all payments. Solana was chosen for its low transaction fees (typically < $0.01), fast confirmation times, and dominant position in AI agent transactions (77% of AI agent TX on Solana). Payments are made in SOL, the native token of Solana.",
+    "q19": "Is KnowMint open source?",
+    "a19": "Yes. KnowMint is fully open source under the MIT License. The entire codebase — including the marketplace, MCP server, CLI, ElizaOS plugin, and AgentKit plugin — is available on GitHub at github.com/Sou0327/knowmint. Contributions are welcome.",
+    "q20": "How do I get an API key?",
+    "a20": "Sign in to KnowMint, go to Dashboard > API Keys, and click 'Create new API key'. Choose a name, select permissions (read, write, or admin), and create. The key is shown only once — copy it immediately. API keys are stored as SHA-256 hashes; we cannot retrieve your key later."
   },
   "Developers": {
     "title": "Developer Resources",
@@ -766,7 +791,52 @@
     "apiAuthNote": "Authentication: API key via Authorization: Bearer header. Get your key from Dashboard > API Keys.",
     "sdkTitle": "Additional SDKs",
     "elizaDesc": "Plugin for ElizaOS agent framework. Search, purchase, and access knowledge within ElizaOS workflows.",
-    "agentKitDesc": "ActionProvider for Coinbase AgentKit. Enables Solana-based knowledge transactions in AgentKit agents."
+    "agentKitDesc": "ActionProvider for Coinbase AgentKit. Enables Solana-based knowledge transactions in AgentKit agents.",
+    "mcpProse": "The KnowMint MCP server (@knowmint/mcp-server) lets AI agents like Claude Code, Cursor, and other MCP-compatible clients autonomously search, evaluate, and purchase knowledge from the marketplace. Once configured, agents can discover relevant expertise and complete purchases using the x402 protocol without human intervention.",
+    "cliProse": "The KnowMint CLI (km) is a standalone Node.js command-line tool for searching, purchasing, and publishing knowledge directly from your terminal. It supports automated deployment of purchased knowledge to Claude Code and OpenCode configurations.",
+    "apiProse": "The KnowMint REST API provides programmatic access to all marketplace operations. It uses API key authentication (SHA-256 hashed), supports the x402 payment protocol for content access, and can be integrated into any agent framework or custom application."
+  },
+  "About": {
+    "title": "About KnowMint",
+    "description": "Learn about KnowMint — the first AI-native knowledge marketplace using x402 on Solana",
+    "ogTitle": "About KnowMint",
+    "missionTitle": "Mission",
+    "missionBody": "KnowMint exists to bridge the gap between human tacit knowledge and AI agents. We believe that experiential insights, specialized expertise, and practical know-how should be discoverable and purchasable by AI systems — enabling agents to autonomously augment their capabilities with real-world knowledge.",
+    "whatTitle": "What is KnowMint?",
+    "whatBody": "KnowMint is the first AI-native knowledge marketplace where AI agents autonomously discover and purchase human expertise using the x402 protocol on Solana. Humans list their tacit knowledge, experiential insights, and specialized expertise. AI agents find and buy this knowledge through MCP servers, CLI, or REST API — paying directly from their wallets to sellers' wallets. No intermediary holds funds or private keys.",
+    "teamTitle": "Team",
+    "teamBody": "KnowMint is built and maintained by a solo founder. The entire platform — from frontend to blockchain integration, security hardening to AI agent SDKs — was developed using AI-assisted coding (Claude Code). This project itself is a proof of concept: what one person can build when human expertise meets AI capabilities.",
+    "techTitle": "Tech Stack",
+    "techStack1": "Next.js 16 App Router + TypeScript",
+    "techStack2": "Supabase (PostgreSQL + RLS + Auth)",
+    "techStack3": "Solana blockchain (x402 protocol)",
+    "techStack4": "Cloudflare Workers (global edge deployment)",
+    "techStack5": "MCP Server + CLI + REST API",
+    "openSourceTitle": "Open Source",
+    "openSourceBody": "KnowMint is fully open source under the MIT License. We believe in transparency and invite contributions from the community.",
+    "openSourceLink": "View on GitHub"
+  },
+  "Security": {
+    "title": "Security",
+    "description": "KnowMint security practices — non-custodial architecture, encryption, and audit history",
+    "ogTitle": "Security | KnowMint",
+    "introBody": "Security is foundational to KnowMint. As a marketplace handling cryptocurrency payments, we implement defense-in-depth across every layer.",
+    "nonCustodialTitle": "Non-Custodial Architecture",
+    "nonCustodialBody": "KnowMint never holds your private keys or funds. All payments are direct peer-to-peer transfers from buyer wallets to seller wallets on Solana. We only verify and record transaction hashes.",
+    "apiKeysTitle": "API Key Security",
+    "apiKeysBody": "API keys are hashed with SHA-256 before storage. Plaintext keys are never stored or logged. Keys are shown once at creation and cannot be retrieved afterward.",
+    "headersTitle": "Security Headers",
+    "headersBody": "All responses include HSTS (max-age=63072000, includeSubDomains, preload), X-Frame-Options: DENY, Content-Security-Policy (no unsafe-eval), Referrer-Policy: strict-origin-when-cross-origin, and Permissions-Policy restricting camera, microphone, and geolocation.",
+    "authTitle": "Wallet Authentication (SIWS)",
+    "authBody": "Wallet connections use Sign-In with Solana (SIWS). Challenges are generated server-side, consumed atomically via SECURITY DEFINER RPC, and verified using Ed25519 signature validation.",
+    "rateLimitTitle": "Rate Limiting",
+    "rateLimitBody": "Multi-layer rate limiting protects against abuse: 120 req/min per IP (pre-auth), 60 req/min per API key (authenticated), 20 req/min for auth endpoints. Exceeded limits return HTTP 429 with X-RateLimit-Remaining and X-RateLimit-Reset headers.",
+    "dbTitle": "Database Security",
+    "dbBody": "All database tables are protected by Row-Level Security (RLS). Sensitive operations use SECURITY DEFINER functions with restricted search_path (pg_catalog, public). Service-role functions are explicitly revoked from anon and authenticated roles.",
+    "auditTitle": "Audit History",
+    "auditBody": "The codebase has undergone 13+ rounds of automated security review (Codex), plus manual Black/White Hacker dual-agent penetration testing. Each round identified and resolved vulnerabilities until zero issues remained.",
+    "disclosureTitle": "Responsible Disclosure",
+    "disclosureBody": "If you discover a security vulnerability, please report it via GitHub Issues or email us at contact@knowmint.shop. We take all reports seriously and will respond promptly."
   },
   "Metadata": {
     "siteTitle": "KnowMint - Knowledge Marketplace",

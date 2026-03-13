@@ -119,7 +119,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <h1 className="mt-2 text-2xl font-bold font-display text-dq-text">
           {displayName}
         </h1>
-        <p className="text-sm text-dq-text-muted">
+        {tTypes.has(`categoryDescription.${slug}`) && (
+          <p className="mt-2 text-sm leading-relaxed text-dq-text-sub">
+            {tTypes(`categoryDescription.${slug}` as Parameters<typeof tTypes>[0])}
+          </p>
+        )}
+        <p className="mt-1 text-sm text-dq-text-muted">
           {t("categoryItemCount", { count: result.total })}
         </p>
       </div>

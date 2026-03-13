@@ -71,10 +71,13 @@ export default async function DevelopersPage() {
     <div className="mx-auto max-w-4xl px-4 py-12">
       <JsonLd data={{
         "@context": "https://schema.org",
-        "@type": "WebPage",
-        name: t("title"),
-        description: t("description"),
+        "@type": "SoftwareApplication",
+        name: "@knowmint/mcp-server",
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Cross-platform (Node.js 22.6+)",
         url: `https://knowmint.shop${localePrefix}/developers`,
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        author: { "@type": "Organization", "@id": "https://knowmint.shop/#organization", name: "KnowMint" },
       }} />
 
       {/* Hero */}
@@ -91,6 +94,7 @@ export default async function DevelopersPage() {
           {t("mcpTitle")}
         </h2>
         <p className="mb-4 text-dq-text-sub">{t("mcpDesc")}</p>
+        <p className="mb-6 leading-relaxed text-dq-text-sub">{t("mcpProse")}</p>
         <div className="mb-6 overflow-x-auto rounded-sm dq-window p-4">
           <pre className="text-sm text-dq-cyan"><code>{MCP_CONFIG}</code></pre>
         </div>
@@ -123,6 +127,7 @@ export default async function DevelopersPage() {
           {t("cliTitle")}
         </h2>
         <p className="mb-4 text-dq-text-sub">{t("cliDesc")}</p>
+        <p className="mb-6 leading-relaxed text-dq-text-sub">{t("cliProse")}</p>
         <div className="mb-4 overflow-x-auto rounded-sm dq-window p-4">
           <pre className="text-sm text-dq-cyan"><code>npm run km -- &lt;command&gt;</code></pre>
         </div>
@@ -142,6 +147,7 @@ export default async function DevelopersPage() {
           {t("apiTitle")}
         </h2>
         <p className="mb-4 text-dq-text-sub">{t("apiDesc")}</p>
+        <p className="mb-6 leading-relaxed text-dq-text-sub">{t("apiProse")}</p>
         <p className="mb-4 text-sm text-dq-text-muted">
           {t("apiBaseUrl")}: <code className="text-dq-cyan">https://knowmint.shop/api/v1</code>
         </p>

@@ -104,13 +104,16 @@ export default async function HomePage() {
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://knowmint.shop/#organization",
     name: "KnowMint",
     url: "https://knowmint.shop",
     logo: "https://knowmint.shop/icon.png",
     description: "AI-native knowledge marketplace where AI agents autonomously purchase human expertise using x402 protocol on Solana",
+    email: "contact@knowmint.shop",
     sameAs: [
-      "https://github.com/sohu-ai/knowledge_market",
+      "https://github.com/Sou0327/knowmint",
       "https://www.npmjs.com/package/@knowmint/mcp-server",
+      "https://x.com/gensou_ongaku",
     ],
   };
 

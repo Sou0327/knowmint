@@ -19,7 +19,7 @@ export async function generateMetadata({
   };
 }
 
-const FAQ_KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+const FAQ_KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] as const;
 
 export default async function FaqPage() {
   const t = await getTranslations("FAQ");

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Sou0327/knowmint",
+  "description": "AI agent knowledge marketplace MCP server. Autonomous discovery, x402 payment, and retrieval of human experiential knowledge on Solana.",
+  "repository": {
+    "url": "https://github.com/Sou0327/knowmint",
+    "source": "github",
+    "subfolder": "mcp"
+  },
+  "version": "0.1.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@knowmint/mcp-server",
+      "version": "0.1.2",
+      "transport": { "type": "stdio" },
+      "runtimeHint": { "name": "node", "version": ">=22.6.0" },
+      "environmentVariables": [
+        {
+          "name": "KM_API_KEY",
+          "description": "KnowMint API key",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "KM_BASE_URL",
+          "description": "KnowMint API base URL (default: https://knowmint.shop)",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

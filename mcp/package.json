@@ -1,5 +1,6 @@
 {
   "name": "@knowmint/mcp-server",
+  "mcpName": "io.github.Sou0327/knowmint",
   "version": "0.1.2",
   "description": "MCP server for KnowMint — lets AI agents discover and purchase human tacit knowledge",
   "keywords": [

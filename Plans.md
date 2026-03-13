@@ -52,11 +52,17 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 > 詳細: `docs/marketing/01-mcp-directories.md`, `02-awesome-lists.md`, `03-github-optimization.md`
 
-- [ ] 1.1 公式 MCP Registry 登録 (mcpName → server.json → publish) `cc:TODO`
-- [ ] 1.2 MCP ディレクトリ 5箇所 (mcp.so, PulseMCP, Smithery, MCP Server Finder, MCPServers.org) `cc:TODO`
-- [ ] 1.3 Awesome Lists PR 7箇所 (awesome-mcp-servers, x402×3, awesome-solana-ai, selfhosted-data, awesome-agents) `cc:TODO`
-- [ ] 1.4 GitHub 最適化 (Social Preview, Topics 20個, Discussions, FUNDING.yml) `cc:TODO`
-- [ ] 1.5 HN Second Chance メール `cc:TODO`
+- [ ] 1.1 公式 MCP Registry 登録 (mcpName → server.json → publish) `cc:完了` (server.json + mcpName 作成済み。publish は手動: `mcp-publisher login github && mcp-publisher publish`)
+- [ ] 1.2 MCP ディレクトリ 5箇所 (mcp.so, PulseMCP, Smithery, MCP Server Finder, MCPServers.org) `cc:完了` (提出テキスト生成済み: docs/marketing/submissions/mcp-directories.md。各サイトへの提出は手動)
+- [ ] 1.3 Awesome Lists PR 6/7箇所 `cc:完了` (awesome-selfhosted はスキップ: 初回コミット 2026-02-16 → 4ヶ月ルール未達 + Dockerfile なし)
+  - awesome-mcp-servers: https://github.com/punkpeye/awesome-mcp-servers/pull/3158
+  - xpaysh/awesome-x402: https://github.com/xpaysh/awesome-x402/pull/106
+  - Merit-Systems/awesome-x402: https://github.com/Merit-Systems/awesome-x402/pull/91
+  - solana-foundation/awesome-solana-ai: https://github.com/solana-foundation/awesome-solana-ai/pull/87
+  - kyrolabs/awesome-agents: https://github.com/kyrolabs/awesome-agents/pull/211
+  - jim-schwoebel/awesome_ai_agents: https://github.com/jim-schwoebel/awesome_ai_agents/pull/93
+- [ ] 1.4 GitHub 最適化 (Social Preview, Topics 20個, Discussions, FUNDING.yml) `cc:完了` (FUNDING.yml 作成済み。Social Preview/Topics/Discussions は手動)
+- [ ] 1.5 HN Second Chance メール `cc:完了` (メール下書き生成済み: docs/marketing/submissions/hn-second-chance.md。送信は手動)
 
 ---
 
@@ -76,7 +82,7 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 | GEO-4.5 | llms.txt に料金体系・レート制限・SLA セクション追加 | /llms.txt に Pricing, Rate Limits, SLA 記載 | - | cc:完了 |
 | GEO-4.6 | `/developers` ページ作成 (MCP/CLI/API ドキュメントをWeb公開) | /developers が存在 + MCP config 例含む | - | cc:完了 |
 | GEO-4.7 | ReviewSchema をレビューセクションに追加 | knowledge detail で Review JSON-LD 出力 | GEO-1.4 | cc:完了 |
-| GEO-4.8 | x402 ecosystem PR 送信 (coinbase/x402 へ metadata.json + logo) | PR URL 取得 | GEO-3.1 | cc:TODO (手動) |
+| GEO-4.8 | x402 ecosystem PR 送信 (coinbase/x402 へ metadata.json + logo) | PR URL 取得 | GEO-3.1 | cc:完了 https://github.com/coinbase/x402/pull/1595 |
 
 ---
 
@@ -106,7 +112,7 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 > 詳細: `docs/marketing/08-launch-platforms.md`
 > 前提: MKT-1 + DEMO-WEB 完了後
 
-- [ ] 4.1 先行提出 (BetaList, DevHunt, Uneed) `cc:TODO`
+- [ ] 4.1 先行提出 (BetaList, DevHunt, Uneed) `cc:完了` (提出テキスト生成済み: docs/marketing/submissions/launch-platforms.md。各サイトへの提出は手動)
 - [ ] 4.2 Product Hunt ローンチ (2週間活動 → アセット → Draft → 火-木 00:01 PST) `cc:TODO` depends:DEMO-WEB, 4.1
 
 ---

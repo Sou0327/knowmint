@@ -1,4 +1,4 @@
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { getConnection } from "./connection";
 
 export async function confirmTransaction(
@@ -65,7 +65,6 @@ export async function verifyTransactionDetails(
     }
 
     // SOL転送: pre/postBalances の差分で金額を検証
-    const recipientIndex = accountKeys.length;
     let recipientIdx = -1;
     for (let i = 0; i < accountKeys.length; i++) {
       const key = accountKeys.get(i);

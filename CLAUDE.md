@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Info
+
+- **GitHub**: `Sou0327/knowmint` — リポジトリ URL を使う際は必ずこれを使用すること
+- **本番**: https://knowmint.shop
+
 ## Project Overview
 
 KnowMint — AIエージェントが x402 プロトコルで SOL を直接自律支払いできる、初のナレッジマーケットプレイス。
@@ -85,7 +90,7 @@ KnowMint の UI はドラゴンクエスト等の**レトロRPGゲーム風**デ
 ## Development Rules
 
 - **Codex レビュー必須**: 実装後 `mcp__codex__codex` で Security/Performance/Quality レビュー。レビューなしマージ禁止
-- **Codex レビュー反復**: レビュー指摘を修正 → 再レビュー → 指摘ゼロになるまで繰り返す。指摘が残っている状態で完了としない
+- **Codex レビュー反復**: 最大4ラウンド。diff スコープ外（既存コード）の指摘はスキップ。動作確認済みのコードを Codex 指摘だけで revert しない — ユーザーに確認してから判断
 - **UI 実装は frontend-design スキル必須**: `document-skills:frontend-design` スキル経由で実装
 - **API route では Admin クライアント + 手動認可**: RLS に頼らず明示的にチェック
 - **API キーは SHA-256 ハッシュで保存**: 平文保存禁止

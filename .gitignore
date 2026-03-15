@@ -108,3 +108,12 @@ promo-images/
 
 docs/
 km-downloads/
+
+# Audit reports (generated, not tracked)
+GEO-AUDIT-REPORT.md
+GEO-SCHEMA-AUDIT.md
+GEO-TECHNICAL-AUDIT.md
+mobile_lighthouse.json
+
+# MCP registry tokens
+mcp/.mcpregistry_*

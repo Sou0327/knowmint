@@ -2,7 +2,6 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __supabaseAdminClient: SupabaseClient<Database> | undefined;
 }
 const globalForAdmin = globalThis as typeof globalThis & {

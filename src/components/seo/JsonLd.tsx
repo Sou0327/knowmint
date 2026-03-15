@@ -6,6 +6,7 @@ export async function JsonLd({ data }: { data: Record<string, unknown> }) {
     <script
       nonce={nonce}
       type="application/ld+json"
+      suppressHydrationWarning
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(data).replace(/</g, "\\u003c"),
       }}

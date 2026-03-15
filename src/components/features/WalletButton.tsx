@@ -8,11 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { requestWalletChallenge, verifyWalletSignature } from "@/app/actions/wallet";
 import { useTranslations } from "next-intl";
 
-interface WalletButtonProps {
-  showTabs?: boolean;
-}
-
-export default function WalletButton({ showTabs: _showTabs = false }: WalletButtonProps) {
+export default function WalletButton() {
   const t = useTranslations("Wallet");
   const { connected, publicKey, disconnect, connecting, signMessage } = useWallet();
   const { setVisible } = useWalletModal();
@@ -81,7 +77,7 @@ export default function WalletButton({ showTabs: _showTabs = false }: WalletButt
       setSiwsPending(false);
       siwsRunning.current = false;
     });
-  }, [authLoading, connected, publicKey, signMessage, profile?.wallet_address, refreshProfile]);
+  }, [authLoading, connected, publicKey, signMessage, profile?.wallet_address, refreshProfile, t]);
 
   useEffect(() => {
     if (!connected) {

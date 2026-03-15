@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: Props) {
     <html lang={locale} suppressHydrationWarning>
       <head>
         {/* テーマ初期化: localStorage 保存値を優先、未設定はダーク固定。FOUC を防ぐためインライン実行 */}
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `(function(){var t='dark';try{var s=localStorage.getItem('km-theme');if(s==='dark'||s==='light')t=s;}catch(e){}document.documentElement.classList.add(t);})();` }} />
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `(function(){var t='dark';try{var s=localStorage.getItem('km-theme');if(s==='dark'||s==='light')t=s;}catch(e){}document.documentElement.classList.add(t);})();` }} />
       </head>
       <body
         className={`${dotGothic.variable} ${geistSans.variable} ${geistMono.variable}`}

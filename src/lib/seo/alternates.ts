@@ -5,7 +5,7 @@ export function ogDefaults(locale: string = "en") {
   return {
     siteName: "KnowMint",
     locale: locale === "ja" ? "ja_JP" : "en_US",
-    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "KnowMint" }],
+    images: [{ url: `${BASE_URL}/og-default.png`, width: 1200, height: 630, alt: "KnowMint" }],
   };
 }
 
@@ -17,7 +17,7 @@ export function buildAlternates(path: string, locale: string = "en") {
     canonical: normalizedPath ? `${canonicalPrefix}${normalizedPath}` : (canonicalPrefix || "/"),
     languages: {
       en: `${BASE_URL}${normalizedPath || "/"}`,
-      ja: `${BASE_URL}/ja${normalizedPath}`,
+      ja: `${BASE_URL}/ja${normalizedPath || "/"}`,
       "x-default": `${BASE_URL}${normalizedPath || "/"}`,
     },
   };

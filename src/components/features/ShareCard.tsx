@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useState, useRef, useEffect } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import Button from "@/components/ui/Button";
 
 interface ShareCardProps {
@@ -13,16 +13,26 @@ interface ShareCardProps {
 export default function ShareCard({ title, itemId, onClose }: ShareCardProps) {
   const t = useTranslations("ShareCard");
   const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const itemUrl = `https://knowmint.shop/knowledge/${itemId}`;
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+  const itemUrl = `https://knowmint.shop${localePrefix}/knowledge/${itemId}`;
   const tweetText = t("tweetText", { title });
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(itemUrl)}`;
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(itemUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(itemUrl);
+      setCopied(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API unavailable (e.g. non-HTTPS) — silently ignore
+    }
   }
 
   return (
@@ -41,7 +51,7 @@ export default function ShareCard({ title, itemId, onClose }: ShareCardProps) {
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-2 px-4 py-2 text-base font-medium rounded-sm border-2 border-dq-border bg-dq-surface text-dq-text hover:bg-dq-hover transition-colors"
         >
-          <span>𝕏</span> Post on X
+          <span>𝕏</span> {t("postOnX")}
         </a>
 
         <Button variant="outline" onClick={handleCopy}>

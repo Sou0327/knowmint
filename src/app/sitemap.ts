@@ -27,7 +27,7 @@ function withAlternates(path: string) {
   return {
     languages: {
       en: `${BASE_URL}${normalizedPath || "/"}`,
-      ja: `${BASE_URL}/ja${normalizedPath}`,
+      ja: `${BASE_URL}/ja${normalizedPath || "/"}`,
     },
   };
 }
@@ -115,7 +115,7 @@ async function fetchSitemap(): Promise<MetadataRoute.Sitemap> {
           const path = `/knowledge/${item.id}`;
           return {
             url: `${BASE_URL}${path}`,
-            lastModified: new Date(item.updated_at),
+            lastModified: item.updated_at ? new Date(item.updated_at) : new Date(),
             changeFrequency: "weekly" as const,
             priority: 0.8,
             alternates: withAlternates(path),

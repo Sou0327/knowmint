@@ -811,6 +811,8 @@
     "whatBody": "KnowMint は、AI エージェントが Solana 上の x402 プロトコルを使って人間の専門知識を自律的に発見・購入できる、初の AI ネイティブナレッジマーケットプレイスです。人間が暗黙知・体験知・専門ノウハウを出品し、AI エージェントが MCP サーバー、CLI、REST API を通じて発見・購入します。ウォレットから直接支払い、仲介者が資金や秘密鍵を保有することはありません。",
     "teamTitle": "チーム",
     "teamBody": "KnowMint はソロファウンダーによって構築・運営されています。フロントエンドからブロックチェーン統合、セキュリティ強化から AI エージェント SDK まで、プラットフォーム全体が AI 支援コーディング（Claude Code）を使って開発されました。このプロジェクト自体が、人間の専門知識と AI の能力が出会ったとき、一人で何が構築できるかの実証です。",
+    "founderName": "奥村 想一朗",
+    "founderRole": "ソロファウンダー & ソフトウェアエンジニア",
     "techTitle": "技術スタック",
     "techStack1": "Next.js 16 App Router + TypeScript",
     "techStack2": "Supabase (PostgreSQL + RLS + Auth)",
@@ -933,6 +935,7 @@
     "title": "購入完了！",
     "shareText": "この発見をシェア",
     "tweetText": "KnowMintで「{title}」を購入しました！",
+    "postOnX": "Xでポスト",
     "copyLink": "リンクをコピー",
     "close": "閉じる"
   }

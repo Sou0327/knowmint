@@ -89,8 +89,10 @@ KnowMint の UI はドラゴンクエスト等の**レトロRPGゲーム風**デ
 
 ## Development Rules
 
-- **Codex レビュー必須**: 実装後 `mcp__codex__codex` で Security/Performance/Quality レビュー。レビューなしマージ禁止
-- **Codex レビュー反復**: 最大4ラウンド。diff スコープ外（既存コード）の指摘はスキップ。動作確認済みのコードを Codex 指摘だけで revert しない — ユーザーに確認してから判断
+- **Codex + CodeRabbit レビュー必須**: 実装後、以下の2つのレビューを両方実施。レビューなしマージ禁止
+  1. `mcp__codex__codex` — Security/Performance/Quality レビュー
+  2. `coderabbit review --plain -t committed` — AI コードレビュー (committed diff 対象)
+- **レビュー反復**: 最大4ラウンド。diff スコープ外（既存コード）の指摘はスキップ。動作確認済みのコードを レビュー指摘だけで revert しない — ユーザーに確認してから判断
 - **UI 実装は frontend-design スキル必須**: `document-skills:frontend-design` スキル経由で実装
 - **API route では Admin クライアント + 手動認可**: RLS に頼らず明示的にチェック
 - **API キーは SHA-256 ハッシュで保存**: 平文保存禁止

@@ -37,10 +37,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: item.title,
       description: desc,
       type: "article",
-      url: `${locale === "en" ? "" : `/${locale}`}/knowledge/${id}`,
-      tags: item.tags as string[] | undefined,
+      url: `https://knowmint.shop${locale === "en" ? "" : `/${locale}`}/knowledge/${id}`,
+      tags: Array.isArray(item.tags) ? item.tags : undefined,
     },
-    twitter: { card: "summary_large_image", site: "@gensou_ongaku", title: item.title, description: desc, images: ["/og-default.png"] },
+    twitter: { card: "summary_large_image", site: "@gensou_ongaku", title: item.title, description: desc, images: ["https://knowmint.shop/og-default.png"] },
     alternates: buildAlternates(`/knowledge/${id}`, locale),
   };
 }

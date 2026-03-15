@@ -145,7 +145,7 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 | NOW.4 | awesome-x402 リポジトリ作成 (GitHub) | `Sou0327/awesome-x402` に README.md (Official Resources / SDKs / Projects Using x402 セクション含む)。KnowMint を Projects に掲載 | - | cc:TODO |
 | NOW.5 | MCP ディレクトリ一括登録用テキスト生成 (6 箇所分) | `docs/marketing/mcp-directory-submissions.md` に MCP Registry / PulseMCP / Smithery / Glama / mcp.so / LobeHub の提出フォーム入力値を一括記載 | - | cc:TODO |
 | NOW.6 | Agent ディレクトリ一括登録用テキスト生成 (Skills.sh / AI Agent Store / agentregistry 等) | `docs/marketing/agent-directory-submissions.md` に各サービスの提出内容を一括記載 | NOW.1 | cc:TODO |
-| NOW.7 | x402 エコシステム PR 用ファイル一式生成 (coinbase/x402 + awesome-x402 2リポ + awesome-solana-ai) | `docs/marketing/x402-pr-templates.md` に 4 PR の本文 + metadata.json テンプレートを記載 | - | cc:TODO |
+| NOW.7 | x402 エコシステム PR 用ファイル一式生成 (coinbase/x402 + awesome-x402 2リポ + awesome-solana-ai) | `docs/marketing/x402-pr-templates.md` に 4 PR の本文 + metadata.json テンプレートを記載 | - | cc:完了 (2026-03-15) |
 
 > **人間がやること**: NOW.5-7 の生成テキストを各サイト/リポにコピペ提出。NOW.4 の GitHub リポ作成+push。
 

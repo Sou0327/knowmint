@@ -730,7 +730,7 @@
     "q3": "どの決済方法に対応していますか？",
     "a3": "現在、Solana ブロックチェーン上の SOL に対応しています。決済はウォレット間の直接送金で、運営が資金や秘密鍵を保有することはありません。今後、追加トークン（USDC）や EVM チェーンへの対応を予定しています。",
     "q4": "Claude Code や Cursor に MCP サーバーを設定するには？",
-    "a4": "~/.claude/mcp.json（Claude Code）または .cursor/mcp.json（Cursor）に以下を追加してください。command に 'npx'、args に ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server']、環境変数に KM_API_KEY と KM_BASE_URL を設定します。API キーはダッシュボードの API キーページから取得できます。",
+    "a4": "~/.claude/mcp.json（Claude Code）または .cursor/mcp.json（Cursor）に以下を追加してください。command に 'npx'、args に ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server']、環境変数に KM_API_KEY と KM_BASE_URL（https://knowmint.shop）を設定します。API キーはダッシュボードの API キーページから取得できます。",
     "q5": "ウォレットは安全ですか？",
     "a5": "はい。KnowMint は完全にノンカストディアル（非管理型）です。秘密鍵を保存・アクセスすることは一切ありません。すべての決済は購入者のウォレットから出品者のウォレットへの P2P 直接送金です。Solana ブロックチェーン上のトランザクションハッシュの検証と記録のみを行います。",
     "q6": "どのような知識を販売できますか？",
@@ -755,8 +755,6 @@
     "a15": "現在、プラットフォーム手数料はゼロです。支払い全額が購入者のウォレットから出品者のウォレットに直接送金されます。唯一の追加コストは Solana のネットワーク手数料（ガス代）で、通常 $0.01 未満です。",
     "q16": "CLI ツールの使い方は？",
     "a16": "'npm run km -- <command>' または npx でインストール。利用可能なコマンド: 'km search' でナレッジ検索、'km install <id>' で購入・ダウンロード、'km publish prompt <file> --price 0.1SOL' で出品、'km my purchases' で購入一覧表示。API キーは ~/.km/config.json で設定します。",
-    "q17": "Claude Code や Cursor で MCP サーバーを設定するには？",
-    "a17": "~/.claude/mcp.json（Claude Code）または .cursor/mcp.json（Cursor）に KnowMint MCP サーバーを追加します。command に 'npx'、args に ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server']、環境変数に KM_API_KEY と KM_BASE_URL（https://knowmint.shop）を設定します。API キーはダッシュボード > API キーから取得できます。",
     "q18": "KnowMint はどのブロックチェーンを使用していますか？",
     "a18": "すべての決済に Solana ブロックチェーンを使用しています。低い手数料（通常 $0.01 未満）、高速な確認時間、AI エージェントトランザクションにおける圧倒的なシェア（AI エージェント TX の 77% が Solana）が選定理由です。支払いは Solana のネイティブトークンである SOL で行われます。",
     "q19": "KnowMint はオープンソースですか？",
@@ -923,5 +921,19 @@
     "onlyPurchasedCanFeedback": "購入済みのアイテムのみフィードバックできます",
     "alreadyFeedback": "既にフィードバック済みです",
     "feedbackSaveFailed": "フィードバックの保存に失敗しました"
+  },
+  "EmailCapture": {
+    "title": "最新情報を受け取る",
+    "description": "AIエージェントコマース、新着ナレッジ、x402エコシステムの最新ニュースをお届けします。",
+    "placeholder": "your@email.com",
+    "subscribe": "登録",
+    "thankYou": "登録完了！最新情報をお届けします。"
+  },
+  "ShareCard": {
+    "title": "購入完了！",
+    "shareText": "この発見をシェア",
+    "tweetText": "KnowMintで「{title}」を購入しました！",
+    "copyLink": "リンクをコピー",
+    "close": "閉じる"
   }
 }

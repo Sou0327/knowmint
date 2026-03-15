@@ -1,5 +1,7 @@
-import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { getTranslations, getLocale } from "next-intl/server";
 import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 const EMAIL = "contact@knowmint.shop";
 const GITHUB_ISSUES = "https://github.com/Sou0327/knowmint/issues";
@@ -22,8 +24,35 @@ export async function generateMetadata({
 }
 
 export default async function ContactPage() {
-  const t = await getTranslations("Contact");
-  const tFooter = await getTranslations("Footer");
+  const [t, tFooter, tCommon, locale] = await Promise.all([
+    getTranslations("Contact"),
+    getTranslations("Footer"),
+    getTranslations("Common"),
+    getLocale(),
+  ]);
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: tCommon("breadcrumbHome"), item: `https://knowmint.shop${localePrefix}` },
+      { "@type": "ListItem", position: 2, name: t("title"), item: `https://knowmint.shop${localePrefix}/contact` },
+    ],
+  };
+
+  const contactPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: t("title"),
+    url: `https://knowmint.shop${localePrefix}/contact`,
+    mainEntity: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: "contact@knowmint.shop",
+      availableLanguage: ["English", "Japanese"],
+    },
+  };
 
   const categories = [
     {
@@ -55,6 +84,8 @@ export default async function ContactPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
+      <JsonLd data={breadcrumbJsonLd} />
+      <JsonLd data={contactPageJsonLd} />
       <h1 className="mb-2 text-3xl font-bold font-display text-dq-text">
         {t("title")}
       </h1>
@@ -118,26 +149,26 @@ export default async function ContactPage() {
       <div className="mt-6 text-center text-sm text-dq-text-muted">
         <p>
           {t("faqPrefix")}{" "}
-          <a
+          <Link
             href="/terms"
             className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
             {tFooter("terms")}
-          </a>
+          </Link>
           ・
-          <a
+          <Link
             href="/privacy"
             className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
             {tFooter("privacy")}
-          </a>
+          </Link>
           ・
-          <a
+          <Link
             href="/legal"
             className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
           >
             {tFooter("commercialLaw")}
-          </a>{" "}
+          </Link>{" "}
           {t("faqSuffix")}
         </p>
       </div>

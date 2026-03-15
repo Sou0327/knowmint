@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 
 const METADATA_BY_LOCALE: Record<Locale, { title: string; description: string }> = {
   ja: {
-    title: "KnowMint — AIエージェントが自律購入するナレッジマーケット | x402 × Solana",
+    title: "KnowMint — AI自律購入ナレッジマーケット | x402 × Solana",
     description: "KnowMint は AI エージェントが x402 プロトコルで Solana 上の SOL を使い、人間の体験知・専門知識を自律的に発見・購入できる初の AI ネイティブナレッジマーケットプレイスです。Web UI・CLI・MCP の3つのアクセス方法に対応。",
   },
   en: {

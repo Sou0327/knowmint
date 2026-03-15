@@ -730,7 +730,7 @@
     "q3": "What payment methods are supported?",
     "a3": "KnowMint currently supports SOL payments on the Solana blockchain. Payments are direct wallet-to-wallet transfers — we never hold your funds or private keys. Support for additional tokens (USDC) and EVM chains is planned.",
     "q4": "How do I set up the MCP server for Claude Code or Cursor?",
-    "a4": "Add the following to your ~/.claude/mcp.json (Claude Code) or .cursor/mcp.json (Cursor): set the command to 'npx', args to ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server'], and provide your KM_API_KEY and KM_BASE_URL as environment variables. Get your API key from the Dashboard > API Keys page.",
+    "a4": "Add the following to your ~/.claude/mcp.json (Claude Code) or .cursor/mcp.json (Cursor): set the command to 'npx', args to ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server'], and add KM_API_KEY and KM_BASE_URL (https://knowmint.shop) as environment variables. Get your API key from Dashboard > API Keys.",
     "q5": "Is my wallet secure?",
     "a5": "Yes. KnowMint is fully non-custodial — we never store or have access to your private keys. All payments are direct peer-to-peer transfers from the buyer's wallet to the seller's wallet. We only verify and record transaction hashes on the Solana blockchain.",
     "q6": "What types of knowledge can I sell?",
@@ -755,8 +755,6 @@
     "a15": "No. KnowMint currently charges zero platform commission. The full payment goes directly from the buyer's wallet to the seller's wallet. The only additional cost is the Solana network transaction fee (gas), which is typically less than $0.01.",
     "q16": "How do I use the CLI tool?",
     "a16": "Install with 'npm run km -- <command>' or use npx. Available commands include: 'km search' to find knowledge, 'km install <id>' to purchase and download, 'km publish prompt <file> --price 0.1SOL' to list knowledge, and 'km my purchases' to view your purchases. Configure your API key in ~/.km/config.json.",
-    "q17": "How do I set up the MCP server with Claude Code or Cursor?",
-    "a17": "Add the KnowMint MCP server to your ~/.claude/mcp.json (Claude Code) or .cursor/mcp.json (Cursor). Set command to 'npx', args to ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server'], and add KM_API_KEY and KM_BASE_URL (https://knowmint.shop) as environment variables. Get your API key from Dashboard > API Keys.",
     "q18": "Which blockchain does KnowMint use?",
     "a18": "KnowMint uses the Solana blockchain for all payments. Solana was chosen for its low transaction fees (typically < $0.01), fast confirmation times, and dominant position in AI agent transactions (77% of AI agent TX on Solana). Payments are made in SOL, the native token of Solana.",
     "q19": "Is KnowMint open source?",
@@ -923,5 +921,19 @@
     "onlyPurchasedCanFeedback": "Only purchased items can receive feedback",
     "alreadyFeedback": "You have already submitted feedback",
     "feedbackSaveFailed": "Failed to save feedback"
+  },
+  "EmailCapture": {
+    "title": "Stay in the Loop",
+    "description": "Get updates on AI agent commerce, new knowledge listings, and x402 ecosystem news.",
+    "placeholder": "your@email.com",
+    "subscribe": "Subscribe",
+    "thankYou": "You're on the list! We'll keep you posted."
+  },
+  "ShareCard": {
+    "title": "Purchase Complete!",
+    "shareText": "Share your discovery",
+    "tweetText": "I just bought \"{title}\" on KnowMint!",
+    "copyLink": "Copy Link",
+    "close": "Close"
   }
 }

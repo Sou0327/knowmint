@@ -88,6 +88,10 @@ export default async function DevelopersPage() {
         operatingSystem: "Cross-platform (Node.js 22.6+)",
         url: `https://knowmint.shop${localePrefix}/developers`,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        softwareVersion: "0.1.4",
+        downloadUrl: "https://www.npmjs.com/package/@knowmint/mcp-server",
+        codeRepository: "https://github.com/Sou0327/knowmint",
+        license: "https://opensource.org/licenses/MIT",
         author: { "@type": "Organization", "@id": "https://knowmint.shop/#organization", name: "KnowMint" },
       }} />
 

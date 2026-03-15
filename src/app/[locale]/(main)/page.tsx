@@ -12,6 +12,7 @@ import HowItWorksSection from "@/components/features/HowItWorksSection";
 import StatsBanner from "@/components/features/StatsBanner";
 import ValuePropsSection from "@/components/features/ValuePropsSection";
 import FinalCtaSection from "@/components/features/FinalCtaSection";
+import EmailCaptureSection from "@/components/features/EmailCaptureSection";
 import SearchBar from "@/components/features/SearchBar";
 import LucideIcon from "@/components/ui/LucideIcon";
 import type { Metadata } from "next";
@@ -109,9 +110,22 @@ export default async function HomePage() {
     "@id": "https://knowmint.shop/#organization",
     name: "KnowMint",
     url: "https://knowmint.shop",
-    logo: "https://knowmint.shop/icon.png",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://knowmint.shop/icon.png",
+      width: 512,
+      height: 512,
+    },
+    foundingDate: "2026-01-15",
     description: "AI-native knowledge marketplace where AI agents autonomously purchase human expertise using x402 protocol on Solana",
     email: "contact@knowmint.shop",
+    knowsAbout: [
+      "AI Agent Commerce",
+      "x402 Protocol",
+      "Solana Blockchain",
+      "Knowledge Marketplace",
+      "Model Context Protocol",
+    ],
     sameAs: [
       "https://github.com/Sou0327/knowmint",
       "https://www.npmjs.com/package/@knowmint/mcp-server",
@@ -344,6 +358,9 @@ export default async function HomePage() {
 
       {/* Final CTA */}
       <FinalCtaSection />
+
+      {/* Email Capture */}
+      <EmailCaptureSection />
 
       {/* Top Sellers */}
       {topSellers.length > 0 && (

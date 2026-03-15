@@ -4,9 +4,10 @@ import SearchBar from "@/components/features/SearchBar";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
 import { Link } from "@/i18n/navigation";
 import type { ContentType, ListingType } from "@/types/database.types";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
 import { buildAlternates } from "@/lib/seo/alternates";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export const dynamic = "force-dynamic";
 import { CONTENT_TYPES, getContentDisplayLabel } from "@/types/knowledge.types";
@@ -47,10 +48,22 @@ const SORT_OPTION_KEYS = [
 ] as const;
 
 export default async function SearchPage({ searchParams }: Props) {
-  const [t, tTypes] = await Promise.all([
+  const [t, tTypes, tCommon, locale] = await Promise.all([
     getTranslations("Search"),
     getTranslations("Types"),
+    getTranslations("Common"),
+    getLocale(),
   ]);
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: tCommon("breadcrumbHome"), item: `https://knowmint.shop${localePrefix}` },
+      { "@type": "ListItem", position: 2, name: t("title"), item: `https://knowmint.shop${localePrefix}/search` },
+    ],
+  };
 
   const { q, category, type, listing_type, sort, page: pageStr } = await searchParams;
   const parsedPage = parseInt(pageStr || "1", 10);
@@ -81,6 +94,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <div>
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="mb-6">
         <h1 className="mb-4 text-3xl font-bold font-display tracking-tight text-dq-text">
           {q ? t("resultCount", { count: result.total }) : t("title")}

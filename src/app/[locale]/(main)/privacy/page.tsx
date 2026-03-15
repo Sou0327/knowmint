@@ -1,5 +1,7 @@
-import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { getTranslations, getLocale } from "next-intl/server";
 import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export async function generateMetadata({
   params,
@@ -19,7 +21,21 @@ export async function generateMetadata({
 }
 
 export default async function PrivacyPage() {
-  const t = await getTranslations("Privacy");
+  const [t, tCommon, locale] = await Promise.all([
+    getTranslations("Privacy"),
+    getTranslations("Common"),
+    getLocale(),
+  ]);
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: tCommon("breadcrumbHome"), item: `https://knowmint.shop${localePrefix}` },
+      { "@type": "ListItem", position: 2, name: t("title"), item: `https://knowmint.shop${localePrefix}/privacy` },
+    ],
+  };
 
   const tableRows: [string, string][] = [
     [t("sec1DataType1"), t("sec1Purpose1")],
@@ -33,6 +49,7 @@ export default async function PrivacyPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
+      <JsonLd data={breadcrumbJsonLd} />
       <h1 className="mb-2 text-3xl font-bold font-display text-dq-gold">
         {t("title")}
       </h1>
@@ -158,12 +175,12 @@ export default async function PrivacyPage() {
           </h2>
           <p className="leading-relaxed">
             {t("sec8Body")}
-            <a
+            <Link
               href="/contact"
               className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
             >
               {t("sec8ContactLink")}
-            </a>
+            </Link>
             {t("sec8Suffix")}
           </p>
         </section>

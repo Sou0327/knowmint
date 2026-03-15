@@ -12,6 +12,8 @@ import HowItWorksSection from "@/components/features/HowItWorksSection";
 import StatsBanner from "@/components/features/StatsBanner";
 import ValuePropsSection from "@/components/features/ValuePropsSection";
 import FinalCtaSection from "@/components/features/FinalCtaSection";
+import SearchBar from "@/components/features/SearchBar";
+import LucideIcon from "@/components/ui/LucideIcon";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
@@ -37,16 +39,16 @@ export async function generateMetadata({
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  business: "💼",
-  "technology-it": "💻",
-  "design-creative": "🎨",
-  "education-learning": "📖",
-  lifestyle: "🌿",
-  prompt: "💬",
-  tool_def: "🔧",
-  dataset: "📊",
-  api: "🔌",
-  general: "📚",
+  business: "Briefcase",
+  "technology-it": "Laptop",
+  "design-creative": "Palette",
+  "education-learning": "GraduationCap",
+  lifestyle: "Leaf",
+  prompt: "MessageSquare",
+  tool_def: "Settings",
+  dataset: "BarChart3",
+  api: "Plug",
+  general: "BookOpen",
 };
 
 // 公開データのみキャッシュ (cookies() 不使用の Admin クライアントを使用)
@@ -114,6 +116,8 @@ export default async function HomePage() {
       "https://github.com/Sou0327/knowmint",
       "https://www.npmjs.com/package/@knowmint/mcp-server",
       "https://x.com/gensou_ongaku",
+      "https://www.wikidata.org/wiki/Q138664028",
+      "https://www.linkedin.com/in/souokumura/",
     ],
   };
 
@@ -151,69 +155,54 @@ export default async function HomePage() {
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-dq-text-sub sm:text-xl">
             {tHome("heroCatchphrase")}
           </p>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-dq-text-muted">
+            {tHome("heroTagline")}
+          </p>
 
           {/* CTAs */}
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/search"
-              className="rounded-sm bg-dq-gold px-9 py-4 text-sm font-bold text-dq-bg shadow-[0_0_30px_rgba(245,197,66,0.3)] transition-all hover:brightness-110 hover:shadow-[0_0_40px_rgba(245,197,66,0.4)]"
+              className="rounded-sm bg-dq-gold px-9 py-4 text-sm font-bold text-dq-bg shadow-[0_0_30px_rgba(245,197,66,0.3)] motion-safe:transition-all hover:brightness-110 hover:shadow-[0_0_40px_rgba(245,197,66,0.4)]"
             >
               {tHome("exploreMarket")}
             </Link>
             <Link
               href="#how-it-works"
-              className="rounded-sm border-2 border-dq-cyan/50 px-9 py-4 text-sm font-semibold text-dq-cyan transition-all hover:border-dq-cyan hover:bg-dq-cyan/5"
+              className="rounded-sm border-2 border-dq-cyan/50 px-9 py-4 text-sm font-semibold text-dq-cyan motion-safe:transition-all hover:border-dq-cyan hover:bg-dq-cyan/5"
             >
               {tHome("heroSubCtaLabel")}
             </Link>
           </div>
 
-          {/* Stats strip */}
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-            <div className="text-center">
-              <span className="font-display text-lg font-bold text-dq-gold">$10M+<sup className="text-[10px] text-dq-text-muted">1</sup></span>
-              <span className="ml-1.5 text-xs text-dq-text-muted">{tHome("statsX402Volume")}</span>
-            </div>
-            <span className="hidden text-dq-text-muted sm:inline" aria-hidden="true">·</span>
-            <div className="text-center">
-              <span className="font-display text-lg font-bold text-dq-gold">77%<sup className="text-[10px] text-dq-text-muted">2</sup></span>
-              <span className="ml-1.5 text-xs text-dq-text-muted">{tHome("statsAiAgentTx")}</span>
-            </div>
-            <span className="hidden text-dq-text-muted sm:inline" aria-hidden="true">·</span>
-            <div className="text-center">
-              <span className="font-display text-lg font-bold text-dq-gold">MCP · 3</span>
-              <span className="ml-1.5 text-xs text-dq-text-muted">{tHome("statsMcpSdks")}</span>
+          {/* Hero Search */}
+          <div className="mx-auto mt-10 max-w-lg">
+            <SearchBar className="w-full" />
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              {["MCP", "prompt", "Claude Code", "dataset", "Solana"].map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/search?q=${encodeURIComponent(tag)}`}
+                  className="rounded-sm border border-dq-border bg-dq-surface/50 px-3 py-1 text-xs text-dq-text-muted transition-colors hover:border-dq-gold/40 hover:text-dq-gold"
+                >
+                  {tag}
+                </Link>
+              ))}
             </div>
           </div>
-          <div className="mt-3 text-center">
-            <small className="text-[10px] leading-tight text-dq-text-muted">
-              <sup>1</sup>{" "}
-              <a href={tHome("statsCitation1Url")} target="_blank" rel="noopener noreferrer" className="underline hover:text-dq-cyan">
-                {tHome("statsCitation1")}
-              </a>{" "}
-              <sup>2</sup>{" "}
-              <a href={tHome("statsCitation2Url")} target="_blank" rel="noopener noreferrer" className="underline hover:text-dq-cyan">
-                {tHome("statsCitation2")}
-              </a>
-            </small>
-          </div>
-        </div>
-      </section>
 
-      {/* Definition block for AI citability */}
-      <section className="mx-auto max-w-3xl text-center">
-        <h2 className="mb-6 font-display text-xl font-bold text-dq-gold">
-          {tHome("definitionHeading")}
-        </h2>
-        <p className="leading-relaxed text-dq-text-sub">
-          {tHome("definitionLine1")}
-        </p>
-        <p className="mt-3 leading-relaxed text-dq-text-sub">
-          {tHome("definitionLine2")}
-        </p>
-        <p className="mt-3 leading-relaxed text-dq-text-sub">
-          {tHome("definitionLine3")}
-        </p>
+          {/* Seller CTA */}
+          <p className="mt-4 text-center text-sm text-dq-text-muted">
+            {tHome("heroSellerCta")}{" "}
+            <Link
+              href="/list"
+              className="font-semibold text-dq-cyan transition-colors hover:text-dq-gold"
+            >
+              {tHome("heroSellerCtaLink")}
+            </Link>
+          </p>
+
+        </div>
       </section>
 
       {/* Stats Banner */}
@@ -247,9 +236,7 @@ export default async function HomePage() {
               href={`/category/${cat.slug}`}
               className="group rounded-sm dq-window-sm dq-window-hover p-4 text-center"
             >
-              <span className="mb-2 block text-2xl" aria-hidden="true">
-                {CATEGORY_ICONS[cat.slug] ?? "📋"}
-              </span>
+              <LucideIcon name={CATEGORY_ICONS[cat.slug] ?? "BookOpen"} className="mx-auto mb-2 text-dq-gold" size={28} />
               <span className="text-sm font-medium text-dq-text-sub transition-colors group-hover:text-dq-gold">
                 {getCategoryDisplayName(tTypes, cat.slug, cat.name)}
               </span>

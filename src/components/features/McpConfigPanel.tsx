@@ -67,7 +67,7 @@ export default function McpConfigPanel({
           height="12"
           viewBox="0 0 12 12"
           fill="currentColor"
-          className={`transition-transform duration-200 ${showConfig ? "rotate-180" : ""}`}
+          className={`motion-safe:transition-transform motion-safe:duration-200 ${showConfig ? "rotate-180" : ""}`}
           aria-hidden="true"
         >
           <path d="M2 4l4 4 4-4H2z" />

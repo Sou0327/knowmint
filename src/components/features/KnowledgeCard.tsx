@@ -51,7 +51,7 @@ export default function KnowledgeCard({
 
   return (
     <Link href={`/knowledge/${id}`} className="group">
-      <Card hover padding="md" className="h-full transition-all duration-300">
+      <Card hover padding="md" className="h-full motion-safe:transition-all motion-safe:duration-300">
         <div className="flex h-full flex-col">
           <div className="mb-2 flex items-start justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1">

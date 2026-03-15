@@ -18,7 +18,7 @@ export default async function FinalCtaSection() {
             </p>
             <Link
               href="/list"
-              className="inline-block rounded-sm bg-dq-gold px-7 py-3 text-sm font-bold text-dq-bg shadow-[0_0_20px_rgba(245,197,66,0.2)] transition-all hover:brightness-110 hover:shadow-[0_0_30px_rgba(245,197,66,0.3)]"
+              className="inline-block rounded-sm bg-dq-gold px-7 py-3 text-sm font-bold text-dq-bg shadow-[0_0_20px_rgba(245,197,66,0.2)] motion-safe:transition-all hover:brightness-110 hover:shadow-[0_0_30px_rgba(245,197,66,0.3)]"
             >
               {t("finalCtaSellerBtn")}
             </Link>
@@ -34,7 +34,7 @@ export default async function FinalCtaSection() {
             </p>
             <Link
               href="/dashboard/api-keys"
-              className="inline-block rounded-sm border-2 border-dq-cyan/60 px-7 py-3 text-sm font-semibold text-dq-cyan transition-all hover:border-dq-cyan hover:bg-dq-cyan/5"
+              className="inline-block rounded-sm border-2 border-dq-cyan/60 px-7 py-3 text-sm font-semibold text-dq-cyan motion-safe:transition-all hover:border-dq-cyan hover:bg-dq-cyan/5"
             >
               {t("finalCtaAgentBtn")}
             </Link>

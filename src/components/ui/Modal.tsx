@@ -57,7 +57,7 @@ const Modal = ({
     >
       {/* DQ-style dark backdrop */}
       <div
-        className="fixed inset-0 bg-black/70 transition-opacity"
+        className="fixed inset-0 bg-black/70 motion-safe:transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -68,7 +68,7 @@ const Modal = ({
           relative w-full ${sizeStyles[size]}
           dq-window
           max-h-[90vh] overflow-y-auto
-          transform transition-all
+          transform motion-safe:transition-all
         `}
         onClick={(e) => e.stopPropagation()}
       >

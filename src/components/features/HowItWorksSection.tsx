@@ -1,11 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import McpConfigPanel from "@/components/features/McpConfigPanel";
+import LucideIcon from "@/components/ui/LucideIcon";
 
 const STEPS = [
-  { icon: "\u2699\ufe0f", key: "setup" },
-  { icon: "\ud83d\udd0d", key: "discover" },
-  { icon: "\u26a1", key: "autoPay" },
-  { icon: "\ud83d\udcda", key: "getKnowledge" },
+  { icon: "Settings", key: "setup" },
+  { icon: "Search", key: "discover" },
+  { icon: "Zap", key: "autoPay" },
+  { icon: "BookOpen", key: "getKnowledge" },
 ] as const;
 
 export default async function HowItWorksSection() {
@@ -35,9 +36,7 @@ export default async function HowItWorksSection() {
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-dq-gold/20 text-xs font-bold text-dq-gold">
                   {i + 1}
                 </span>
-                <span className="text-lg" aria-hidden="true">
-                  {s.icon}
-                </span>
+                <LucideIcon name={s.icon} className="text-dq-gold" size={20} />
               </div>
 
               <h3 className="mb-2 text-sm font-bold text-dq-gold">
@@ -70,7 +69,7 @@ export default async function HowItWorksSection() {
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {/* MCP */}
         <div className="dq-window-sm p-5">
-          <div className="mb-2 text-2xl" aria-hidden="true">🤖</div>
+          <LucideIcon name="Bot" className="mb-2 text-dq-gold" size={28} />
           <h3 className="mb-1 font-display text-sm font-bold text-dq-gold">
             {t("accessMethod1Title")}
           </h3>
@@ -87,7 +86,7 @@ export default async function HowItWorksSection() {
 
         {/* CLI */}
         <div className="dq-window-sm p-5">
-          <div className="mb-2 text-2xl" aria-hidden="true">⌨️</div>
+          <LucideIcon name="Terminal" className="mb-2 text-dq-gold" size={28} />
           <h3 className="mb-1 font-display text-sm font-bold text-dq-gold">
             {t("accessMethod2Title")}
           </h3>
@@ -106,7 +105,7 @@ export default async function HowItWorksSection() {
 
         {/* REST API */}
         <div className="dq-window-sm p-5">
-          <div className="mb-2 text-2xl" aria-hidden="true">🔌</div>
+          <LucideIcon name="Plug" className="mb-2 text-dq-gold" size={28} />
           <h3 className="mb-1 font-display text-sm font-bold text-dq-gold">
             {t("accessMethod3Title")}
           </h3>

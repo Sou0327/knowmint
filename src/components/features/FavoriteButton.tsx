@@ -43,7 +43,7 @@ export default function FavoriteButton({
       aria-pressed={favorited}
     >
       <svg
-        className={`${iconSize} transition-transform duration-200 ${
+        className={`${iconSize} motion-safe:transition-transform motion-safe:duration-200 ${
           animating ? "scale-125" : "scale-100"
         }`}
         viewBox="0 0 24 24"

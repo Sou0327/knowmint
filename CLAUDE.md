@@ -91,3 +91,7 @@ KnowMint の UI はドラゴンクエスト等の**レトロRPGゲーム風**デ
 - **API キーは SHA-256 ハッシュで保存**: 平文保存禁止
 - **fire-and-forget は reject handler 必須**: `.then(() => {}, () => {})`
 - **ライブラリ仕様は Context7 で確認**: バージョン依存の API・設定・型定義が不明な場合、`mcp__context7__resolve-library-id` → `mcp__context7__query-docs` で最新ドキュメントを参照してから実装する
+
+## Skill 自動適用ルール
+
+@.claude/rules/skill-autoload.md 参照

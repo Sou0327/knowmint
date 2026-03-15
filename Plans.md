@@ -153,6 +153,23 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
+## Phase UX-1: ホームページ UX 改善 [P1]
+
+> ui-ux-pro-max レビュー結果。DQ テーマ維持 + Marketplace UX ベストプラクティス適用。
+> 目標: 認知負荷削減、コンバージョン動線強化、アクセシビリティ改善。
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| UX-1.1 | Hero に検索バー追加（Marketplace パターン） | `/` にDQテーマの検索フォームが表示され、入力→`/search?q=` に遷移 | - | cc:完了 (2026-03-15) |
+| UX-1.2 | emoji → Lucide SVG アイコン置換（ValueProps, HowItWorks, Categories, AccessMethods） | 全セクションで emoji が 0、Lucide アイコンが `text-dq-gold`/`text-dq-cyan` で表示 | - | cc:完了 (2026-03-15) |
+| UX-1.3 | Stats 重複解消（Hero 内 Stats strip 削除 → StatsBanner に一本化） | Hero セクションに stats 表示なし、StatsBanner のみに集約 | - | cc:完了 (2026-03-15) |
+| UX-1.4 | Definition ブロックを Hero サブテキストに統合（セクション数削減） | 独立 Definition section が消え、Hero の catchphrase に内容が統合 | UX-1.3 | cc:完了 (2026-03-15) |
+| UX-1.5 | `prefers-reduced-motion` 対応（transition-all → motion-safe prefix） | `@media (prefers-reduced-motion: reduce)` でアニメーション無効化 | - | cc:完了 (2026-03-15) |
+| UX-1.6 | モバイル CTA 到達改善（Hero 下にセカンダリ CTA 追加 or スティッキーバー） | モバイル375pxで出品/API CTA がスクロールなしでアクセス可能 | UX-1.1 | cc:完了 (2026-03-15) |
+| UX-1.7 | カテゴリカードのアイコンを SVG に統一 | カテゴリ一覧で Lucide アイコンが表示、emoji なし | UX-1.2 | cc:完了 (2026-03-15、UX-1.2 に包含) |
+
+---
+
 ## Phase PERF-1: sitemap パフォーマンス改善 [P3]
 
 > Codex GEO-5 レビューで検出。sitemap の動的生成を最適化。

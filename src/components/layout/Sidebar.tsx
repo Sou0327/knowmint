@@ -3,12 +3,13 @@
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from 'next-intl';
 import { getCategoryDisplayName } from '@/lib/i18n/category';
+import LucideIcon from "@/components/ui/LucideIcon";
 
 interface Category {
   id: string;
   name: string;
   slug: string;
-  icon: string;
+  icon: string | null;
 }
 
 interface SidebarProps {
@@ -44,9 +45,7 @@ export function Sidebar({ categories, currentSlug }: SidebarProps) {
                     {isActive && (
                       <span className="dq-cursor text-dq-gold">▶</span>
                     )}
-                    <span className="text-xl" role="img" aria-label={getCategoryDisplayName(tTypes, category.slug, category.name)}>
-                      {category.icon}
-                    </span>
+                    <LucideIcon name={category.icon ?? "BookOpen"} className="text-dq-gold" size={20} />
                     <span className="text-sm font-medium">{getCategoryDisplayName(tTypes, category.slug, category.name)}</span>
                   </Link>
                 </li>

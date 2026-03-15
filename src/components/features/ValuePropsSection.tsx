@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
+import LucideIcon from "@/components/ui/LucideIcon";
 
-const PROP_ICONS = ["⚙️", "⚡", "🔐"] as const;
+const PROP_ICONS = ["Settings", "Zap", "Shield"] as const;
 
 export default async function ValuePropsSection() {
   const t = await getTranslations("Home");
@@ -22,9 +23,7 @@ export default async function ValuePropsSection() {
       <div className="grid gap-4 sm:grid-cols-3">
         {props.map((prop) => (
           <div key={prop.icon} className="dq-window-sm dq-window-hover p-6">
-            <span className="mb-4 block text-3xl" aria-hidden="true">
-              {prop.icon}
-            </span>
+            <LucideIcon name={prop.icon} className="mb-4 text-dq-gold" size={32} />
             <h3 className="mb-2 font-display text-base font-bold text-dq-gold">{prop.title}</h3>
             <p className="text-sm leading-relaxed text-dq-text-sub">{prop.desc}</p>
           </div>

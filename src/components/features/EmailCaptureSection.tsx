@@ -19,14 +19,19 @@ export default function EmailCaptureSection() {
     setStatus("submitting");
     setErrorMsg("");
 
-    const result = await subscribeEmail(email.trim());
+    try {
+      const result = await subscribeEmail(email.trim());
 
-    if (result.success) {
-      setStatus("success");
-      setEmail("");
-    } else {
+      if (result.success) {
+        setStatus("success");
+        setEmail("");
+      } else {
+        setStatus("error");
+        setErrorMsg(result.error);
+      }
+    } catch {
       setStatus("error");
-      setErrorMsg(result.error);
+      setErrorMsg("Something went wrong. Please try again.");
     }
   }
 

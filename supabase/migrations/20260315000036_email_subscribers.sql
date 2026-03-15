@@ -1,6 +1,6 @@
 -- Phase MKT-NOW: メールキャプチャ用テーブル
 CREATE TABLE IF NOT EXISTS email_subscribers (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT NOT NULL,
   source TEXT NOT NULL DEFAULT 'homepage',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

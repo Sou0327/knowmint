@@ -183,3 +183,48 @@ export async function checkAuthRateLimit(
   }
   return memoryCheckRateLimit(`auth:${ip}`, AUTH_MAX_TOKENS);
 }
+
+const EMAIL_CAPTURE_MAX_TOKENS = 5; // 5 requests per minute per IP
+
+let redisEmailCaptureRatelimiter: Ratelimit | null = null;
+
+/**
+ * Email capture 専用 IP rate limit (5/min)。
+ * 共有 pre-auth バケットとは独立した namespace で管理。
+ * Redis 利用可能時は Redis、不可時はインメモリフォールバック。
+ */
+export async function checkEmailCaptureRateLimit(
+  ip: string
+): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
+  // Redis path
+  if (
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    try {
+      if (!redisEmailCaptureRatelimiter) {
+        redisEmailCaptureRatelimiter = new Ratelimit({
+          redis: new Redis({
+            url: process.env.UPSTASH_REDIS_REST_URL,
+            token: process.env.UPSTASH_REDIS_REST_TOKEN,
+          }),
+          limiter: Ratelimit.slidingWindow(EMAIL_CAPTURE_MAX_TOKENS, "1 m"),
+          prefix: "km:rl:emailcap",
+        });
+      }
+      const { success, remaining, reset } =
+        await redisEmailCaptureRatelimiter.limit(ip);
+      return {
+        allowed: success,
+        remaining,
+        resetMs: Math.max(0, reset - Date.now()),
+      };
+    } catch {
+      console.warn(
+        "[rate-limit] Redis error for emailcap, falling back to in-memory"
+      );
+    }
+  }
+  // In-memory fallback
+  return memoryCheckRateLimit(`emailcap:${ip}`, EMAIL_CAPTURE_MAX_TOKENS);
+}

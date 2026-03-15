@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
@@ -177,13 +178,13 @@ export const POST = withApiAuth(async (request, user) => {
     sanitizedUrl = parsed.toString();
   } catch { /* invalid URL はそのまま保存 */ }
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: user.userId,
     action: "webhook.created",
     resourceType: "webhook",
     resourceId: data.id,
     metadata: { url: sanitizedUrl, events },
-  });
+  }));
 
   return apiSuccess({ ...data, secret }, 201);
 }, { requiredPermissions: ["write"] });
@@ -232,13 +233,13 @@ export const DELETE = withApiAuth(async (request, user) => {
     return apiError(API_ERRORS.NOT_FOUND, "Webhook not found");
   }
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: user.userId,
     action: "webhook.deleted",
     resourceType: "webhook",
     resourceId: webhookId,
     metadata: {},
-  });
+  }));
 
   return apiSuccess({ deleted: true });
 }, { requiredPermissions: ["write"] });

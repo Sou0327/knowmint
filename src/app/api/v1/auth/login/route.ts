@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { apiSuccess, apiError, API_ERRORS, withRateLimitHeaders } from "@/lib/api/response";
 import { checkAuthRateLimit } from "@/lib/api/rate-limit";
@@ -146,13 +147,13 @@ export async function POST(request: Request) {
     return apiError(API_ERRORS.INTERNAL_ERROR, "Failed to create API key");
   }
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: profile.id,
     action: "agent.login",
     resourceType: "user",
     resourceId: profile.id,
     metadata: { wallet, method: "wallet_signature" },
-  });
+  }));
 
   return withRateLimitHeaders(
     apiSuccess({ api_key: raw, user_id: profile.id, wallet }),

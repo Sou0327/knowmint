@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { apiSuccess, apiError, API_ERRORS, withRateLimitHeaders } from "@/lib/api/response";
 import { checkAuthRateLimit } from "@/lib/api/rate-limit";
@@ -153,13 +154,13 @@ export async function POST(request: Request) {
 
     const raw = keyResult.raw;
 
-    logAuditEvent({
+    after(() => logAuditEvent({
       userId: newUserId,
       action: "agent.registered",
       resourceType: "user",
       resourceId: newUserId,
       metadata: { wallet, method: "wallet_signature" },
-    });
+    }));
 
     return withRateLimitHeaders(
       apiSuccess({ api_key: raw, user_id: newUserId, wallet }),

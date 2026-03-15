@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
@@ -81,13 +82,13 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     .rpc("maybe_flag_for_review", { p_item_id: id })
     .then(() => {}, (err: unknown) => console.error("[report] maybe_flag_for_review failed:", err));
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: user.userId,
     action: "report.created",
     resourceType: "knowledge_item",
     resourceId: id,
     metadata: { reason },
-  });
+  }));
 
   return apiSuccess({ reported: true }, 201);
 }, { requiredPermissions: ["write"] });

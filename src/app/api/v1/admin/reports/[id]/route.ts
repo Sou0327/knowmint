@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
@@ -66,13 +67,13 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: user.userId,
     action: "report.reviewed",
     resourceType: "knowledge_item_report",
     resourceId: id,
     metadata: { action, remove_item: remove_item ?? false, knowledge_item_id: report.knowledge_item_id },
-  });
+  }));
 
   return apiSuccess({ reviewed: true, status: newStatus });
 }, { requiredPermissions: ["admin"] });

@@ -93,6 +93,7 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
     .update({ status: "published" })
     .eq("id", id)
     .eq("seller_id", user.userId)
+    .eq("status", "draft")
     .select(ITEM_SELECT_COLUMNS)
     .single();
 

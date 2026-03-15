@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { authenticateApiKey, generateApiKey } from "@/lib/api/auth";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
@@ -168,13 +169,13 @@ export const POST = async (request: Request) => {
       return apiError(API_ERRORS.INTERNAL_ERROR);
     }
 
-    logAuditEvent({
+    after(() => logAuditEvent({
       userId: auth.userId,
       action: "key.created",
       resourceType: "api_key",
       resourceId: newKey.id,
       metadata: { name: newKey.name, permissions: newKey.permissions },
-    });
+    }));
 
     // APIキー作成メール送信 (fire-and-forget)
     // セッション認証時は auth.email が既に取得済みのため getUserById を省略
@@ -261,13 +262,13 @@ export const DELETE = async (request: Request) => {
       return apiError(API_ERRORS.NOT_FOUND, "API key not found");
     }
 
-    logAuditEvent({
+    after(() => logAuditEvent({
       userId: auth.userId,
       action: "key.deleted",
       resourceType: "api_key",
       resourceId: keyId,
       metadata: {},
-    });
+    }));
 
     // APIキー削除メール送信 (fire-and-forget)
     const deletedKeyName = (deleted[0] as { name?: string } | undefined)?.name ?? keyId;

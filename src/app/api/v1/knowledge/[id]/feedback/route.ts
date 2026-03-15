@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
@@ -80,13 +81,13 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: user.userId,
     action: "feedback.created",
     resourceType: "knowledge_item",
     resourceId: id,
     metadata: { useful: body.useful },
-  });
+  }));
 
   // Fire webhook event (fire-and-forget)
   fireWebhookEvent(user.userId, "review.created", {

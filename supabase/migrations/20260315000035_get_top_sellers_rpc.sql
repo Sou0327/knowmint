@@ -25,7 +25,7 @@ RETURNS TABLE(
     FROM transactions
     WHERE status = 'confirmed'
     GROUP BY seller_id
-    ORDER BY cnt DESC
+    ORDER BY cnt DESC, seller_id
     LIMIT p_limit
   ) t ON p.id = t.seller_id
   LEFT JOIN (
@@ -34,7 +34,7 @@ RETURNS TABLE(
     WHERE status = 'published'
     GROUP BY seller_id
   ) k ON p.id = k.seller_id
-  ORDER BY total_sales DESC;
+  ORDER BY total_sales DESC, p.id;
 $$ LANGUAGE sql STABLE SECURITY INVOKER;
 
 -- Phase 21/24 パターン踏襲: anon からのアクセスを禁止

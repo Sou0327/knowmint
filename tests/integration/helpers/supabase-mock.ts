@@ -571,7 +571,9 @@ export function setupContentMocks(): void {
   injectModule(resolveAlias("@/lib/audit/log"), { logAuditEvent: () => {} });
 
   // NextResponse.json を native Response で代替（Next.js ランタイム不要）
+  // after() は no-op stub（テストは Next.js request scope 外で実行されるため）
   injectModule(resolveAlias("next/server"), {
+    after: (fn: () => unknown) => { fn(); },
     NextResponse: {
       json: (
         body: unknown,

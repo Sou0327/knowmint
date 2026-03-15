@@ -95,11 +95,31 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
     .eq("seller_id", user.userId)
     .eq("status", "draft")
     .select(ITEM_SELECT_COLUMNS)
-    .single();
+    .maybeSingle();
 
-  if (updateError || !updated) {
+  if (updateError) {
     console.error("[publish] Failed to publish knowledge item:", updateError);
     return apiError(API_ERRORS.INTERNAL_ERROR);
+  }
+
+  // 0行マッチ: 並行リクエストが先に publish or delete した可能性 → 再取得して冪等に返す
+  if (!updated) {
+    const { data: current, error: refetchError } = await admin
+      .from("knowledge_items")
+      .select(ITEM_SELECT_COLUMNS)
+      .eq("id", id)
+      .maybeSingle();
+    if (refetchError) {
+      console.error("[publish] Re-fetch after 0-row update failed:", refetchError);
+      return apiError(API_ERRORS.INTERNAL_ERROR);
+    }
+    if (!current) {
+      return apiError(API_ERRORS.NOT_FOUND, "Knowledge item not found");
+    }
+    if (current.status === "published") {
+      return apiSuccess(current);
+    }
+    return apiError(API_ERRORS.CONFLICT, "Item status changed concurrently");
   }
 
   // Schedule background work to run after the response is sent.
@@ -111,14 +131,14 @@ export const POST = withApiAuth(async (_request, user, _rateLimit, context) => {
         title: updated.title,
       }),
       notifyIndexNow(`https://knowmint.shop/knowledge/${id}`),
+      logAuditEvent({
+        userId: user.userId,
+        action: "listing.published",
+        resourceType: "knowledge_item",
+        resourceId: id,
+        metadata: {},
+      }),
     ]);
-    logAuditEvent({
-      userId: user.userId,
-      action: "listing.published",
-      resourceType: "knowledge_item",
-      resourceId: id,
-      metadata: {},
-    });
   });
 
   return apiSuccess(updated);

@@ -146,6 +146,7 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 | NOW.5 | MCP ディレクトリ一括登録用テキスト生成 (6 箇所分) | `docs/marketing/mcp-directory-submissions.md` 生成済み。人間がコピペ提出 | - | cc:完了 |
 | NOW.6 | Agent ディレクトリ一括登録用テキスト生成 (Skills.sh / AI Agent Store / agentregistry 等) | `docs/marketing/agent-directory-submissions.md` 生成済み。人間がコピペ提出 | NOW.1 | cc:完了 |
 | NOW.7 | x402 エコシステム PR 用ファイル一式生成 (coinbase/x402 + awesome-x402 2リポ + awesome-solana-ai) | `docs/marketing/x402-pr-templates.md` 生成済み。人間が PR 作成 | - | cc:完了 |
+| NOW.8 | About ページ追加 (創業者実名 + LinkedIn + GitHub + E-E-A-T 信頼構築) | `/about` に Soichiro Okumura プロフィール表示。LinkedIn/GitHub リンク。DQ テーマ。i18n 対応 (en/ja) | - | cc:TODO |
 
 > **人間がやること**: NOW.5-7 の生成テキストを各サイト/リポにコピペ提出。NOW.4 の GitHub リポ作成+push。
 

@@ -46,6 +46,15 @@ export default async function AboutPage() {
       "@type": "Organization",
       "@id": "https://knowmint.shop/#organization",
       name: "KnowMint",
+      founder: {
+        "@type": "Person",
+        name: "Soichiro Okumura",
+        jobTitle: "Software Engineer",
+        sameAs: [
+          "https://www.linkedin.com/in/souokumura/",
+          "https://github.com/Sou0327",
+        ],
+      },
     },
   };
 
@@ -54,18 +63,18 @@ export default async function AboutPage() {
       <JsonLd data={breadcrumbJsonLd} />
       <JsonLd data={aboutJsonLd} />
 
-      <h1 className="mb-8 text-3xl font-bold font-display text-dq-gold">
-        {t("title")}
-      </h1>
+      {/* Hero */}
+      <div className="dq-window p-6 sm:p-8 mb-12 text-center">
+        <h1 className="text-3xl font-bold font-display text-dq-gold mb-3">
+          {t("title")}
+        </h1>
+        <p className="text-dq-text-sub leading-relaxed max-w-xl mx-auto">
+          {t("whatBody")}
+        </p>
+      </div>
 
       <div className="space-y-10 text-dq-text-sub">
-        <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
-            {t("whatTitle")}
-          </h2>
-          <p className="leading-relaxed">{t("whatBody")}</p>
-        </section>
-
+        {/* Mission */}
         <section>
           <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             {t("missionTitle")}
@@ -73,41 +82,7 @@ export default async function AboutPage() {
           <p className="leading-relaxed">{t("missionBody")}</p>
         </section>
 
-        <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
-            {t("teamTitle")}
-          </h2>
-          <p className="leading-relaxed">{t("teamBody")}</p>
-        </section>
-
-        <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
-            {t("techTitle")}
-          </h2>
-          <ul className="list-disc space-y-1.5 pl-5">
-            <li>{t("techStack1")}</li>
-            <li>{t("techStack2")}</li>
-            <li>{t("techStack3")}</li>
-            <li>{t("techStack4")}</li>
-            <li>{t("techStack5")}</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
-            {t("openSourceTitle")}
-          </h2>
-          <p className="leading-relaxed">{t("openSourceBody")}</p>
-          <a
-            href="https://github.com/Sou0327/knowmint"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 text-sm text-dq-cyan hover:text-dq-gold transition-colors"
-          >
-            {t("openSourceLink")} →
-          </a>
-        </section>
-
+        {/* Story */}
         <section>
           <h2 className="mb-3 text-xl font-semibold text-dq-gold">
             {t("storyTitle")}
@@ -116,47 +91,102 @@ export default async function AboutPage() {
           <p className="mt-3 leading-relaxed">{t("storyBody2")}</p>
         </section>
 
+        {/* Team / Founder */}
         <section>
           <h2 className="mb-3 text-xl font-semibold text-dq-gold">
+            {t("teamTitle")}
+          </h2>
+          <p className="leading-relaxed">{t("teamBody")}</p>
+
+          <div className="mt-6 dq-window-sm p-5">
+            <p className="text-lg font-semibold text-dq-gold">{t("founderName")}</p>
+            <p className="text-sm text-dq-text-sub mt-1">{t("founderRole")}</p>
+            <div className="mt-4 flex gap-4">
+              <a
+                href="https://www.linkedin.com/in/souokumura/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("founderLinkedinLabel")}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-sm border border-dq-border text-dq-cyan hover:text-dq-gold hover:border-dq-gold transition-colors"
+              >
+                {t("founderLinkedin")}
+              </a>
+              <a
+                href="https://github.com/Sou0327"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("founderGithubLabel")}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-sm border border-dq-border text-dq-cyan hover:text-dq-gold hover:border-dq-gold transition-colors"
+              >
+                {t("founderGithub")}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Why Solana / x402 / MCP — grouped */}
+        <section>
+          <h2 className="mb-4 text-xl font-semibold text-dq-gold">
             {t("whySolanaTitle")}
           </h2>
           <p className="leading-relaxed">{t("whySolanaBody")}</p>
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
+          <h2 className="mb-4 text-xl font-semibold text-dq-gold">
             {t("whyX402Title")}
           </h2>
           <p className="leading-relaxed">{t("whyX402Body")}</p>
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
+          <h2 className="mb-4 text-xl font-semibold text-dq-gold">
             {t("whyMcpTitle")}
           </h2>
           <p className="leading-relaxed">{t("whyMcpBody")}</p>
         </section>
 
+        {/* Tech Stack — card grid */}
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
+          <h2 className="mb-4 text-xl font-semibold text-dq-gold">
+            {t("techTitle")}
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(["techStack1", "techStack2", "techStack3", "techStack4", "techStack5"] as const).map((key) => (
+              <div key={key} className="dq-window-sm px-4 py-3 text-sm">
+                {t(key)}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Values */}
+        <section>
+          <h2 className="mb-4 text-xl font-semibold text-dq-gold">
             {t("valuesTitle")}
           </h2>
           <div className="grid gap-6 sm:grid-cols-2">
-            {([1, 2, 3, 4] as const).map((n) => (
-              <div key={n} className="rounded-sm dq-window-sm p-4">
+            {([
+              { title: "value1Title", body: "value1Body" },
+              { title: "value2Title", body: "value2Body" },
+              { title: "value3Title", body: "value3Body" },
+              { title: "value4Title", body: "value4Body" },
+            ] as const).map(({ title, body }) => (
+              <div key={title} className="rounded-sm dq-window-sm p-4">
                 <h3 className="mb-2 text-base font-semibold text-dq-cyan">
-                  {t(`value${n}Title` as Parameters<typeof t>[0])}
+                  {t(title)}
                 </h3>
                 <p className="text-sm leading-relaxed">
-                  {t(`value${n}Body` as Parameters<typeof t>[0])}
+                  {t(body)}
                 </p>
               </div>
             ))}
           </div>
         </section>
 
+        {/* Roadmap */}
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
+          <h2 className="mb-4 text-xl font-semibold text-dq-gold">
             {t("roadmapTitle")}
           </h2>
           <ul className="list-disc space-y-1.5 pl-5">
@@ -167,6 +197,22 @@ export default async function AboutPage() {
             <li>{t("roadmapItem5")}</li>
             <li>{t("roadmapItem6")}</li>
           </ul>
+        </section>
+
+        {/* Open Source CTA */}
+        <section className="dq-window p-6 sm:p-8 text-center">
+          <h2 className="mb-3 text-xl font-semibold text-dq-gold">
+            {t("openSourceTitle")}
+          </h2>
+          <p className="leading-relaxed mb-5">{t("openSourceBody")}</p>
+          <a
+            href="https://github.com/Sou0327/knowmint"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 text-base font-medium rounded-sm border-2 border-dq-gold text-dq-gold hover:bg-dq-gold/10 transition-colors"
+          >
+            {t("openSourceLink")} →
+          </a>
         </section>
       </div>
     </div>

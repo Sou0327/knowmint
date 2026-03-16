@@ -76,8 +76,8 @@ export default async function FaqPage() {
             className="group dq-window overflow-hidden"
             open={i === 0}
           >
-            <summary className="cursor-pointer px-6 py-4 text-lg font-semibold text-dq-text transition-colors hover:text-dq-gold">
-              <span className="ml-1">{item.question}</span>
+            <summary className="cursor-pointer px-6 py-4 text-lg font-semibold text-dq-text transition-colors hover:text-dq-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-dq-gold focus-visible:ring-offset-2 focus-visible:ring-offset-dq-window-bg">
+              {item.question}
             </summary>
             <div className="border-t border-dq-border px-6 py-4 leading-relaxed text-dq-text-sub">
               {item.answer}

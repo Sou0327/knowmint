@@ -180,6 +180,15 @@
   text-shadow: 0 0 24px rgba(64, 192, 224, 0.3), 0 0 48px rgba(64, 192, 224, 0.1);
 }
 
+/* ===== Scrollbar Hide Utility ===== */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* ===== DQ Window Hover Effect ===== */
 .dq-window-hover {
   transition: box-shadow 0.3s ease, transform 0.3s ease;
@@ -353,6 +362,31 @@ body {
 .prose-dq input[type="checkbox"] {
   margin-right: 0.5em;
   accent-color: var(--dq-gold);
+}
+
+/* ===== DQ-themed details marker ===== */
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details > summary::before {
+  content: '▶';
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: var(--dq-gold);
+  font-size: 0.75rem;
+  transition: transform 200ms ease;
+}
+details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  details > summary::before {
+    transition: none;
+  }
 }
 
 /* Legal pages use Geist for readability */

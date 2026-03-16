@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Filter, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { ContentType } from "@/types/database.types";
@@ -16,7 +16,8 @@ interface SearchMobileFiltersProps {
   contentTypes: ContentType[];
   currentCategory?: string;
   currentType?: string;
-  buildUrl: (overrides: Record<string, string | undefined>) => string;
+  /** Current search params as serializable data (functions cannot cross RSC→Client boundary) */
+  currentParams: { q?: string; category?: string; type?: string; sort?: string };
   labels: {
     filter: string;
     category: string;
@@ -33,12 +34,26 @@ export default function SearchMobileFilters({
   contentTypes,
   currentCategory,
   currentType,
-  buildUrl,
+  currentParams,
   labels,
   categoryNames,
   typeNames,
 }: SearchMobileFiltersProps) {
   const [open, setOpen] = useState(false);
+
+  const buildUrl = useCallback(
+    (overrides: Record<string, string | undefined>) => {
+      const params = new URLSearchParams();
+      const merged = { ...currentParams, ...overrides };
+      Object.entries(merged).forEach(([key, val]) => {
+        if (val) params.set(key, val);
+      });
+      params.delete("page");
+      const qs = params.toString();
+      return qs ? `/search?${qs}` : "/search";
+    },
+    [currentParams],
+  );
 
   const hasActiveFilter = Boolean(currentCategory || currentType);
 
@@ -110,7 +125,7 @@ export default function SearchMobileFilters({
               <ul className="space-y-0.5">
                 <li>
                   <Link
-                    href={buildUrl({ category: undefined, page: undefined })}
+                    href={buildUrl({ category: undefined })}
                     onClick={() => setOpen(false)}
                     className={`block rounded-sm px-2 py-2 text-sm ${
                       !currentCategory
@@ -124,7 +139,7 @@ export default function SearchMobileFilters({
                 {categories.map((cat) => (
                   <li key={cat.id}>
                     <Link
-                      href={buildUrl({ category: cat.slug, page: undefined })}
+                      href={buildUrl({ category: cat.slug })}
                       onClick={() => setOpen(false)}
                       className={`block rounded-sm px-2 py-2 text-sm ${
                         currentCategory === cat.slug
@@ -147,7 +162,7 @@ export default function SearchMobileFilters({
               <ul className="space-y-0.5">
                 <li>
                   <Link
-                    href={buildUrl({ type: undefined, page: undefined })}
+                    href={buildUrl({ type: undefined })}
                     onClick={() => setOpen(false)}
                     className={`block rounded-sm px-2 py-2 text-sm ${
                       !currentType
@@ -161,7 +176,7 @@ export default function SearchMobileFilters({
                 {contentTypes.map((ct) => (
                   <li key={ct}>
                     <Link
-                      href={buildUrl({ type: ct, page: undefined })}
+                      href={buildUrl({ type: ct })}
                       onClick={() => setOpen(false)}
                       className={`block rounded-sm px-2 py-2 text-sm ${
                         currentType === ct

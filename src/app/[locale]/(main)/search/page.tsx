@@ -120,7 +120,7 @@ export default async function SearchPage({ searchParams }: Props) {
           contentTypes={CONTENT_TYPES}
           currentCategory={category}
           currentType={type}
-          buildUrl={buildUrl}
+          currentParams={{ q, category, type, sort }}
           labels={{
             filter: t("filter"),
             category: t("categoryFilter"),

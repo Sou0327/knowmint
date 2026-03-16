@@ -687,7 +687,14 @@
     "trust": "Trusted",
     "trustScore": "Trust Score",
     "trustScoreNone": "Not yet evaluated",
-    "newSeller": "New"
+    "newSeller": "New",
+    "uploadAvatar": "Upload Photo",
+    "removeAvatar": "Remove Photo",
+    "avatarUploading": "Uploading...",
+    "avatarRemoved": "Photo removed",
+    "fileTooLarge": "File must be under 2MB",
+    "invalidFileType": "Only JPEG, PNG, and WebP are supported",
+    "uploadFailed": "Upload failed. Please try again."
   },
   "Notifications": {
     "title": "Notifications",

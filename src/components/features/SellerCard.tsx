@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import Card from "@/components/ui/Card";
+import UserAvatar from "@/components/ui/UserAvatar";
 import { getTranslations } from "next-intl/server";
 import { TRUST_HIGH_THRESHOLD, TRUST_THRESHOLD } from "@/types/knowledge.types";
 import FollowButton from "./FollowButton";
@@ -37,9 +38,7 @@ export default async function SellerCard({
         {resolvedHeading}
       </p>
       <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-dq-surface text-base font-bold text-dq-cyan border-2 border-dq-border">
-          {(seller.display_name || "?")[0].toUpperCase()}
-        </div>
+        <UserAvatar userId={seller.id} displayName={seller.display_name} avatarUrl={seller.avatar_url} size="md" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Link

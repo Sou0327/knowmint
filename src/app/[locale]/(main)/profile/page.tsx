@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslations } from "next-intl";
+import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import UserAvatar from "@/components/ui/UserAvatar";
+import {
+  AVATAR_BUCKET,
+  buildAvatarPublicUrl,
+  validateAvatarFile,
+} from "@/lib/storage/avatars";
 import type { UserType } from "@/types/database.types";
 
 export default function ProfilePage() {
@@ -15,22 +22,102 @@ export default function ProfilePage() {
     human: t("userTypeHuman"),
     agent: t("userTypeAgent"),
   };
-  const { profile, updateProfile, loading: authLoading } = useAuth();
+  const { user, profile, updateProfile, loading: authLoading } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
     if (profile) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayName(profile.display_name || "");
       setBio(profile.bio || "");
     }
   }, [profile]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    const validationError = validateAvatarFile(file);
+    if (validationError) {
+      setMessage({ type: "error", text: t(validationError) });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setAvatarUploading(true);
+    setMessage(null);
+
+    try {
+      const storagePath = `${user.id}/avatar`;
+      const { error } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .upload(storagePath, file, {
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (error) {
+        setMessage({ type: "error", text: t("uploadFailed") });
+        return;
+      }
+
+      const avatarUrl = `${buildAvatarPublicUrl(user.id)}?t=${Date.now()}`;
+      const { error: profileError } = await updateProfile({ avatar_url: avatarUrl });
+
+      if (profileError) {
+        // Retry once — the file is already uploaded and the old cache-bust
+        // URL would cause CDN to serve the stale cached version
+        const { error: retryError } = await updateProfile({ avatar_url: avatarUrl });
+        if (retryError) {
+          setMessage({ type: "error", text: retryError });
+        }
+      }
+    } catch {
+      setMessage({ type: "error", text: t("uploadFailed") });
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    if (!user) return;
+    setAvatarUploading(true);
+    setMessage(null);
+
+    try {
+      // Update DB first to maintain consistency — orphan files are acceptable
+      const { error } = await updateProfile({ avatar_url: null });
+      if (error) {
+        setMessage({ type: "error", text: error });
+        return;
+      }
+
+      // Storage cleanup — DB reference is already removed, so orphan is non-critical
+      const { error: removeError } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .remove([`${user.id}/avatar`]);
+
+      if (removeError) {
+        // DB avatar_url is already null — avatar won't display.
+        // Storage orphan will be cleaned up eventually.
+        console.warn("[avatar] storage cleanup failed:", removeError.message);
+      }
+      setMessage({ type: "success", text: t("avatarRemoved") });
+    } catch {
+      setMessage({ type: "error", text: t("uploadFailed") });
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,14 +152,52 @@ export default function ProfilePage() {
       </h1>
 
       <div className="rounded-sm border border-dq-border bg-dq-window-bg p-6">
-        {/* Avatar */}
+        {/* Avatar Upload */}
         <div className="mb-8 flex flex-col items-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-sm bg-dq-surface text-2xl font-bold text-dq-cyan ring-4 ring-dq-border">
-            {(displayName || "?")[0].toUpperCase()}
+          <div className="relative">
+            <UserAvatar
+              userId={user?.id ?? ""}
+              displayName={displayName}
+              avatarUrl={profile?.avatar_url ?? null}
+              size="lg"
+              className={avatarUploading ? "opacity-50" : ""}
+            />
+            {avatarUploading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-dq-gold border-t-transparent" />
+              </div>
+            )}
           </div>
-          <p className="mt-3 text-sm text-dq-text-muted">
-            {t("photo")}
-          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="text-sm text-dq-cyan hover:text-dq-gold transition-colors disabled:opacity-50"
+            >
+              {avatarUploading ? t("avatarUploading") : t("uploadAvatar")}
+            </button>
+            {profile?.avatar_url && (
+              <>
+                <span className="text-dq-text-muted">|</span>
+                <button
+                  type="button"
+                  onClick={handleAvatarRemove}
+                  disabled={avatarUploading}
+                  className="text-sm text-dq-red hover:text-dq-red/80 transition-colors disabled:opacity-50"
+                >
+                  {t("removeAvatar")}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

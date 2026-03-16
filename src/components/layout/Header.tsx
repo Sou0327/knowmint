@@ -10,6 +10,7 @@ import LanguageToggle from '@/components/i18n/LanguageToggle';
 
 const WalletButton = dynamic(() => import('@/components/features/WalletButton'), { ssr: false });
 import { ThemeToggle } from '@/components/features/ThemeToggle';
+import UserAvatar from '@/components/ui/UserAvatar';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
@@ -137,20 +138,24 @@ export function Header() {
                 aria-label={t('userMenu')}
                 aria-expanded={userMenuOpen}
               >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+                {profile?.avatar_url ? (
+                  <UserAvatar userId={profile.id} displayName={profile.display_name} avatarUrl={profile.avatar_url} size="sm" />
+                ) : (
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                )}
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 dq-window-sm">

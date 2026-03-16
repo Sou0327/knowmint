@@ -152,6 +152,21 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
+## Phase AVATAR: プロフィールアイコン設定 [P1]
+
+> ユーザーがプロフィール画像をアップロード・表示できるようにする。
+> DB (`profiles.avatar_url`) と AuthContext (`updateProfile`) は準備済み。Storage バケット + UI が未実装。
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| AV.1 | Supabase Storage `avatars` バケット作成 (migration + RLS ポリシー) | public バケット作成。認証ユーザーが自分のパス (`{user_id}/*`) にのみ upload/update/delete 可能。他ユーザーは読み取りのみ | - | cc:完了 |
+| AV.2 | `src/lib/storage/avatars.ts` ヘルパー作成 (upload, getPublicUrl, delete) | アップロード (2MB上限, JPEG/PNG/WebP), 公開URL取得, 削除。既存 `datasets.ts` パターンに準拠 | - | cc:完了 |
+| AV.3 | `UserAvatar` 共通コンポーネント作成 | `avatar_url` があれば画像表示、なければイニシャル文字フォールバック。size prop (sm/md/lg)。DQ テーマ維持 | - | cc:完了 |
+| AV.4 | プロフィールページにアバターアップロード UI 追加 | 画像選択→プレビュー→アップロード→`updateProfile({ avatar_url })`。削除ボタン。i18n (en/ja) | AV.2, AV.3 | cc:完了 |
+| AV.5 | 既存コンポーネントを `UserAvatar` に置換 (SellerCard, SellerRankingCard, ReviewList, Header) | 全4箇所でイニシャル文字表示を `UserAvatar` に統一。画像があれば表示 | AV.3 | cc:完了 |
+
+---
+
 ## Phase GEO-6 残課題 [P2]
 
 > GEO-6 の14/16タスク完了。残りの未完了タスクのみ。完了分は `plans/archive-geo6-ux1.md` 参照。

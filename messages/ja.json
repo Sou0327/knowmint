@@ -687,7 +687,14 @@
     "trust": "信頼",
     "trustScore": "信頼スコア",
     "trustScoreNone": "未評価",
-    "newSeller": "New"
+    "newSeller": "New",
+    "uploadAvatar": "写真をアップロード",
+    "removeAvatar": "写真を削除",
+    "avatarUploading": "アップロード中...",
+    "avatarRemoved": "写真を削除しました",
+    "fileTooLarge": "ファイルは2MB以下にしてください",
+    "invalidFileType": "JPEG、PNG、WebPのみ対応しています",
+    "uploadFailed": "アップロードに失敗しました。もう一度お試しください。"
   },
   "Notifications": {
     "title": "通知",

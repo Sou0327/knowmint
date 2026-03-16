@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import UserAvatar from "@/components/ui/UserAvatar";
 import type { TopSeller } from "@/lib/rankings/queries";
 
 interface Props {
@@ -30,9 +31,7 @@ export default function SellerRankingCard({ seller, rank }: Props) {
       </div>
 
       {/* Avatar */}
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-dq-surface text-base font-bold text-dq-cyan border-2 border-dq-border">
-        {(seller.display_name || "?")[0].toUpperCase()}
-      </div>
+      <UserAvatar userId={seller.id} displayName={seller.display_name} avatarUrl={seller.avatar_url} size="md" />
 
       {/* Info */}
       <div className="min-w-0 flex-1">

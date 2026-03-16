@@ -4,6 +4,7 @@ import { getNotifications } from "@/lib/notifications/queries";
 import { Link } from "@/i18n/navigation";
 import { getTranslations, getLocale } from "next-intl/server";
 import LucideIcon from "@/components/ui/LucideIcon";
+import MarkAllReadButton from "@/components/features/MarkAllReadButton";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,12 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-2xl font-bold font-display text-dq-text">{t("title")}</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold font-display text-dq-text">{t("title")}</h1>
+        {notifications.some(n => !n.read) && (
+          <MarkAllReadButton label={t("markAllRead")} />
+        )}
+      </div>
 
       {notifications.length === 0 ? (
         <div className="py-12 text-center">
@@ -43,7 +49,7 @@ export default async function NotificationsPage() {
               className={`rounded-sm border p-4 transition-colors ${
                 n.read
                   ? "border-dq-border"
-                  : "border-dq-border bg-dq-surface"
+                  : "border-dq-border border-l-4 border-l-dq-gold bg-dq-surface"
               }`}
             >
               <div className="flex gap-3">

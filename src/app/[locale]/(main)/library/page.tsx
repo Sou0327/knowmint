@@ -74,39 +74,41 @@ export default async function LibraryPage() {
           </div>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul role="list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {purchases.map((purchase) => {
             const item = toSingle(purchase.knowledge_item);
             if (!item) return null;
             const seller = toSingle(item.seller);
             return (
-              <Link key={purchase.id} href={`/library/${item.id}`} className="group">
-                <Card hover padding="md" className="h-full transition-all duration-200 group-hover:border-dq-gold/50">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-start justify-between">
-                      <Badge>{getContentDisplayLabel(item.content_type, tTypes)}</Badge>
+              <li key={purchase.id}>
+                <Link href={`/library/${item.id}`} className="group">
+                  <Card hover padding="md" className="h-full transition-all duration-200 group-hover:border-dq-gold/50">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start justify-between">
+                        <Badge>{getContentDisplayLabel(item.content_type, tTypes)}</Badge>
+                      </div>
+                      <h3 className="font-semibold text-dq-text transition-colors group-hover:text-dq-gold">
+                        {item.title}
+                      </h3>
+                      <p className="line-clamp-2 text-sm text-dq-text-sub">
+                        {item.description}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-xs text-dq-text-muted">
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                          {seller?.display_name || tCommon("anonymous")} ・{" "}
+                          {new Date(purchase.created_at).toLocaleDateString(locale === "ja" ? "ja-JP" : "en-US")}
+                        </span>
+                      </div>
                     </div>
-                    <h3 className="font-semibold text-dq-text transition-colors group-hover:text-dq-gold">
-                      {item.title}
-                    </h3>
-                    <p className="line-clamp-2 text-sm text-dq-text-sub">
-                      {item.description}
-                    </p>
-                    <div className="flex items-center gap-1.5 text-xs text-dq-text-muted">
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>
-                        {seller?.display_name || tCommon("anonymous")} ・{" "}
-                        {new Date(purchase.created_at).toLocaleDateString(locale === "ja" ? "ja-JP" : "en-US")}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
+                  </Card>
+                </Link>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

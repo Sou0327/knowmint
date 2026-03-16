@@ -69,28 +69,29 @@ export default async function FavoritesPage() {
           </Link>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul role="list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {favorites.map((fav) => {
             const item = fav.knowledge_item;
             if (!item) return null;
             return (
-              <KnowledgeCard
-                key={fav.id}
-                id={item.id}
-                listing_type={item.listing_type}
-                title={item.title}
-                description={item.description}
-                content_type={item.content_type}
-                price_sol={item.price_sol}
-                seller={item.seller ?? { display_name: null }}
-                category={item.category}
-                tags={item.tags}
-                average_rating={item.average_rating}
-                purchase_count={item.purchase_count}
-              />
+              <li key={fav.id}>
+                <KnowledgeCard
+                  id={item.id}
+                  listing_type={item.listing_type}
+                  title={item.title}
+                  description={item.description}
+                  content_type={item.content_type}
+                  price_sol={item.price_sol}
+                  seller={item.seller ?? { display_name: null }}
+                  category={item.category}
+                  tags={item.tags}
+                  average_rating={item.average_rating}
+                  purchase_count={item.purchase_count}
+                />
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

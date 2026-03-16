@@ -57,17 +57,29 @@ const CATEGORY_ICONS: Record<string, string> = {
 const getCachedHomeData = unstable_cache(
   async () => {
     const admin = getAdminClient();
-    const [newest, popular, categories, topSellers] = await Promise.all([
+    const [newest, popular, categories, topSellers, countData] = await Promise.all([
       getPublishedKnowledge({ sort_by: "newest", per_page: 6 }, admin),
       getPublishedKnowledge({ sort_by: "popular", per_page: 6 }, admin),
       getCategories(admin),
       getTopSellers(5),
+      admin
+        .from("knowledge_items")
+        .select("category_id")
+        .eq("status", "published"),
     ]);
     // カテゴリは常に存在するはず。空ならDB障害とみなしキャッシュしない
     if (categories.length === 0) {
       throw new Error("home data unavailable: categories empty");
     }
-    return { newest, popular, categories, topSellers };
+    const categoryCounts: Record<string, number> = {};
+    if (countData.data) {
+      for (const row of countData.data) {
+        if (row.category_id) {
+          categoryCounts[row.category_id] = (categoryCounts[row.category_id] ?? 0) + 1;
+        }
+      }
+    }
+    return { newest, popular, categories, topSellers, categoryCounts };
   },
   ["home-data"],
   { revalidate: 60 }
@@ -82,11 +94,12 @@ export default async function HomePage() {
   ]);
 
   // DB 障害時はキャッシュせずに空データでフォールバック
-  const { newest, popular, categories, topSellers } = await getCachedHomeData().catch(() => ({
+  const { newest, popular, categories, topSellers, categoryCounts } = await getCachedHomeData().catch(() => ({
     newest: { data: [], total: 0, page: 1, per_page: 6, total_pages: 0 },
     popular: { data: [], total: 0, page: 1, per_page: 6, total_pages: 0 },
     categories: [] as Awaited<ReturnType<typeof getCategories>>,
     topSellers: [] as Awaited<ReturnType<typeof getTopSellers>>,
+    categoryCounts: {} as Record<string, number>,
   }));
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
@@ -254,6 +267,11 @@ export default async function HomePage() {
               <span className="text-sm font-medium text-dq-text-sub transition-colors group-hover:text-dq-gold">
                 {getCategoryDisplayName(tTypes, cat.slug, cat.name)}
               </span>
+              {(categoryCounts[cat.id] ?? 0) > 0 && (
+                <span className="text-xs text-dq-text-muted">
+                  ({categoryCounts[cat.id]})
+                </span>
+              )}
             </Link>
           ))}
         </div>

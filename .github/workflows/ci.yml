@@ -17,9 +17,9 @@ jobs:
     name: DB Type Drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
@@ -29,7 +29,7 @@ jobs:
       - id: supabase-version
         run: echo "version=$(cat .supabase-version)" >> "$GITHUB_OUTPUT"
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v1.6.0
         with:
           version: ${{ steps.supabase-version.outputs.version }}
 
@@ -47,9 +47,9 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
@@ -72,9 +72,9 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm

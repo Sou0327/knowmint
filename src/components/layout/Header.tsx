@@ -57,28 +57,28 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/"
-              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
+              className="group px-3 py-3 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               {t('market')}
             </Link>
             <Link
               href="/list"
-              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
+              className="group px-3 py-3 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               {t('listItem')}
             </Link>
             <Link
               href="/library"
-              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
+              className="group px-3 py-3 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               {t('myLibrary')}
             </Link>
             <Link
               href="/dashboard"
-              className="group px-3 py-2 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
+              className="group px-3 py-3 text-sm text-dq-text-sub hover:text-dq-gold transition-colors"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity dq-cursor mr-1">▶</span>
               {t('dashboard')}
@@ -177,7 +177,7 @@ export function Header() {
                       </div>
                       <Link
                         href="/profile"
-                        className="group flex items-center px-4 py-2 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
+                        className="group flex items-center px-4 py-2.5 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
@@ -185,7 +185,7 @@ export function Header() {
                       </Link>
                       <button
                         type="button"
-                        className="group flex w-full items-center px-4 py-2 text-left text-sm text-dq-red hover:bg-dq-surface"
+                        className="group flex w-full items-center px-4 py-2.5 text-left text-sm text-dq-red hover:bg-dq-surface"
                         onClick={handleSignOut}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
@@ -196,7 +196,7 @@ export function Header() {
                     <>
                       <Link
                         href="/login"
-                        className="group flex items-center px-4 py-2 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
+                        className="group flex items-center px-4 py-2.5 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
@@ -204,7 +204,7 @@ export function Header() {
                       </Link>
                       <Link
                         href="/signup"
-                        className="group flex items-center px-4 py-2 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
+                        className="group flex items-center px-4 py-2.5 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
@@ -220,7 +220,7 @@ export function Header() {
           {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden p-2 text-dq-text-sub hover:text-dq-gold"
+            className="md:hidden p-2.5 text-dq-text-sub hover:text-dq-gold"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={mobileMenuOpen}
@@ -280,7 +280,7 @@ export function Header() {
             <nav className="flex flex-col gap-1">
               <Link
                 href="/"
-                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
+                className="group flex items-center px-4 py-2.5 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
@@ -288,7 +288,7 @@ export function Header() {
               </Link>
               <Link
                 href="/list"
-                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
+                className="group flex items-center px-4 py-2.5 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
@@ -296,7 +296,7 @@ export function Header() {
               </Link>
               <Link
                 href="/library"
-                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
+                className="group flex items-center px-4 py-2.5 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
@@ -304,7 +304,7 @@ export function Header() {
               </Link>
               <Link
                 href="/dashboard"
-                className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
+                className="group flex items-center px-4 py-2.5 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
@@ -319,7 +319,7 @@ export function Header() {
                 <>
                   <Link
                     href="/profile"
-                    className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
+                    className="group flex items-center px-4 py-2.5 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
@@ -327,7 +327,7 @@ export function Header() {
                   </Link>
                   <button
                     type="button"
-                    className="group flex items-center rounded-sm px-4 py-2 text-left text-dq-red hover:bg-dq-surface"
+                    className="group flex items-center rounded-sm px-4 py-2.5 text-left text-dq-red hover:bg-dq-surface"
                     onClick={handleSignOut}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
@@ -338,7 +338,7 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
+                    className="group flex items-center px-4 py-2.5 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>
@@ -346,7 +346,7 @@ export function Header() {
                   </Link>
                   <Link
                     href="/signup"
-                    className="group flex items-center px-4 py-2 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
+                    className="group flex items-center px-4 py-2.5 text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface rounded-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span className="opacity-0 group-hover:opacity-100 mr-2 dq-cursor">▶</span>

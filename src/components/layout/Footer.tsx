@@ -2,7 +2,7 @@ import { Link } from "@/i18n/navigation";
 import { getTranslations } from 'next-intl/server';
 
 const linkClass =
-  "text-sm text-dq-cyan hover:text-dq-gold hover:underline underline-offset-4 transition-colors duration-200";
+  "inline-block py-1 text-sm text-dq-cyan hover:text-dq-gold hover:underline underline-offset-4 transition-colors duration-200";
 
 export async function Footer() {
   const t = await getTranslations('Footer');
@@ -42,7 +42,7 @@ export async function Footer() {
             <h4 className="text-sm font-semibold font-display text-dq-gold">
               {t('platform')}
             </h4>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-1">
               <li>
                 <Link href="/" className={linkClass}>
                   {tNav('market')}
@@ -71,7 +71,7 @@ export async function Footer() {
             <h4 className="text-sm font-semibold font-display text-dq-gold">
               {t('support')}
             </h4>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-1">
               <li>
                 <Link href="/faq" className={linkClass}>
                   {t('faq')}
@@ -100,7 +100,7 @@ export async function Footer() {
             <h4 className="text-sm font-semibold font-display text-dq-gold">
               {t('legal')}
             </h4>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-1">
               <li>
                 <Link href="/terms" className={linkClass}>
                   {t('terms')}

@@ -7,8 +7,6 @@ import {
   createMessage,
   createState,
   mockResponse,
-  TEST_API_KEY,
-  TEST_BASE_URL,
   TEST_SETTINGS,
 } from "./helpers.js";
 import type { HandlerCallback } from "@elizaos/core";

@@ -14,7 +14,22 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Cloudflare Workers build output:
     ".open-next/**",
+    // Package build outputs (compiled JS — lint source only):
+    "packages/*/dist/**",
   ]),
+  // Allow underscore-prefixed args/vars (interface-required but unused params).
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

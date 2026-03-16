@@ -74,7 +74,7 @@ function sanitizeText(raw: string): string {
   const cleaned = raw
     .replace(/<[^>]*>/g, "")
     .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "")
-    // eslint-disable-next-line no-control-regex
+     
     .replace(/[\x00-\x1f\x7f]/g, "")
     .trim();
   return cleaned.length > MAX_ERROR_MSG_LEN

@@ -8,14 +8,11 @@
  *
  * Run: KM_INTEGRATION=1 npm test -- tests/integration.test.ts
  */
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { knowmintPlugin } from "../src/index.js";
-import { searchKnowledgeAction } from "../src/actions/search.js";
-import { getContentAction } from "../src/actions/get-content.js";
-import { trendingKnowledgeProvider } from "../src/providers/trending.js";
-import type { IAgentRuntime, Memory, State, HandlerCallback, ActionResult } from "@elizaos/core";
+import type { IAgentRuntime } from "@elizaos/core";
 
 // Skip unless KM_INTEGRATION=1
 const SHOULD_RUN = process.env["KM_INTEGRATION"] === "1";
@@ -47,16 +44,7 @@ function createIntegrationRuntime(apiKey: string, baseUrl: string): IAgentRuntim
   } as unknown as IAgentRuntime;
 }
 
-function createMessage(fields: Record<string, unknown> = {}): Memory {
-  return {
-    entityId: "00000000-0000-0000-0000-000000000001" as `${string}-${string}-${string}-${string}-${string}`,
-    content: { text: "", ...fields },
-  } as Memory;
-}
 
-function createState(): State {
-  return {} as State;
-}
 
 describe.skipIf(!SHOULD_RUN)("Integration: Live API", () => {
   let apiKey: string;

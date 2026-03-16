@@ -68,7 +68,7 @@ function formatSearchResults(result: { data: unknown[]; pagination: unknown }): 
 /** Strip control characters and newlines from untrusted values */
 function sanitizeField(raw: unknown): string {
   const str = typeof raw === "string" ? raw : String(raw ?? "");
-  // eslint-disable-next-line no-control-regex
+   
   return str.replace(/[\x00-\x1f\x7f]/g, "").slice(0, 256);
 }
 

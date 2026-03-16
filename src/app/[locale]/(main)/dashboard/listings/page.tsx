@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
+import Modal from "@/components/ui/Modal";
 import { createClient } from "@/lib/supabase/client";
 import { deleteListing, publishListing } from "../../list/actions";
 import {
@@ -29,6 +30,98 @@ const STATUS_VARIANT: Record<
   suspended: "error",
 };
 
+// ─── ActionMenu (mobile dropdown) ───────────────────────────────────────────
+
+function ActionMenu({
+  itemId,
+  itemTitle,
+  isDraft,
+  onPublish,
+  onDelete,
+}: {
+  itemId: string;
+  itemTitle: string;
+  isDraft: boolean;
+  onPublish: (id: string) => void;
+  onDelete: (id: string, title: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const tCommon = useTranslations("Common");
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="rounded-sm p-2 text-dq-text-muted hover:text-dq-text hover:bg-dq-surface transition-colors"
+        aria-label="Actions"
+        aria-expanded={open}
+      >
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
+          />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-10 mt-1 w-40 dq-window-sm">
+          <Link
+            href={`/list/${itemId}/edit`}
+            className="block px-4 py-2.5 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
+            onClick={() => setOpen(false)}
+          >
+            {tCommon("edit")}
+          </Link>
+          {isDraft && (
+            <button
+              type="button"
+              className="w-full px-4 py-2.5 text-left text-sm text-dq-cyan hover:bg-dq-surface"
+              onClick={() => {
+                onPublish(itemId);
+                setOpen(false);
+              }}
+            >
+              {tCommon("publish")}
+            </button>
+          )}
+          <button
+            type="button"
+            className="w-full px-4 py-2.5 text-left text-sm text-dq-red hover:bg-dq-surface"
+            onClick={() => {
+              onDelete(itemId, itemTitle);
+              setOpen(false);
+            }}
+          >
+            {tCommon("delete")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
 export default function DashboardListingsPage() {
   const t = useTranslations("Dashboard");
   const tCommon = useTranslations("Common");
@@ -37,6 +130,7 @@ export default function DashboardListingsPage() {
   const tTypes = useTranslations("Types");
   const [listings, setListings] = useState<ListingWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const fetchListings = async () => {
     const supabase = createClient();
@@ -60,12 +154,17 @@ export default function DashboardListingsPage() {
     fetchListings();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(tListing("deleteConfirm"))) return;
-    const { error } = await deleteListing(id);
+  const handleDeleteClick = (id: string, title: string) => {
+    setDeleteTarget({ id, title });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    const { error } = await deleteListing(deleteTarget.id);
     if (!error) {
-      setListings((prev) => prev.filter((l) => l.id !== id));
+      setListings((prev) => prev.filter((l) => l.id !== deleteTarget.id));
     }
+    setDeleteTarget(null);
   };
 
   const handlePublish = async (id: string) => {
@@ -136,7 +235,9 @@ export default function DashboardListingsPage() {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2">
+
+                {/* Desktop: inline buttons */}
+                <div className="hidden sm:flex gap-2">
                   <Link href={`/list/${item.id}/edit`}>
                     <Button variant="outline" size="sm">
                       {tCommon("edit")}
@@ -154,16 +255,47 @@ export default function DashboardListingsPage() {
                   <Button
                     variant="danger"
                     size="sm"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => handleDeleteClick(item.id, item.title)}
                   >
                     {tCommon("delete")}
                   </Button>
+                </div>
+
+                {/* Mobile: dropdown menu */}
+                <div className="sm:hidden">
+                  <ActionMenu
+                    itemId={item.id}
+                    itemTitle={item.title}
+                    isDraft={item.status === "draft"}
+                    onPublish={handlePublish}
+                    onDelete={handleDeleteClick}
+                  />
                 </div>
               </div>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Delete confirmation modal */}
+      <Modal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={tListing("deleteConfirmTitle")}
+        size="sm"
+      >
+        <p className="mb-6 text-sm text-dq-text-sub">
+          {tListing("deleteConfirmMessage", { title: deleteTarget?.title ?? "" })}
+        </p>
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+            {tCommon("cancel")}
+          </Button>
+          <Button variant="danger" onClick={handleDeleteConfirm}>
+            {tCommon("delete")}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

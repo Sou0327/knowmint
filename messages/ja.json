@@ -416,7 +416,9 @@
     "reward": "報酬",
     "reaction": "反応",
     "accessDenied": "アクセス権限がありません",
-    "contentSection": "コンテンツ"
+    "contentSection": "コンテンツ",
+    "purchase": "購入する",
+    "submitResponse": "回答を提出"
   },
   "Purchase": {
     "confirmTitle": "購入確認",
@@ -565,6 +567,8 @@
     "priceSetRequired": "価格を設定してください",
     "titleAndDescRequired": "タイトルと説明は必須です",
     "deleteConfirm": "この出品を削除しますか？",
+    "deleteConfirmTitle": "出品を削除",
+    "deleteConfirmMessage": "「{title}」を削除しますか？この操作は元に戻せません。",
     "titleLabel": "タイトル",
     "descriptionLabel": "説明",
     "contentTypeLabel": "コンテンツタイプ",
@@ -697,12 +701,15 @@
     "avatarRemoved": "写真を削除しました",
     "fileTooLarge": "ファイルは2MB以下にしてください",
     "invalidFileType": "JPEG、PNG、WebPのみ対応しています",
-    "uploadFailed": "アップロードに失敗しました。もう一度お試しください。"
+    "uploadFailed": "アップロードに失敗しました。もう一度お試しください。",
+    "copied": "クリップボードにコピーしました",
+    "copyAddress": "アドレスをコピー"
   },
   "Notifications": {
     "title": "通知",
     "empty": "通知はありません",
     "markAsRead": "既読にする",
+    "markAllRead": "すべて既読にする",
     "newPurchase": "新しい購入がありました",
     "newReview": "新しいレビューが投稿されました",
     "newFollower": "新しいフォロワー",

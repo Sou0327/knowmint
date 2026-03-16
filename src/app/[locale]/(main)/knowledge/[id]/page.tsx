@@ -19,6 +19,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { getUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
+import MobilePurchaseBar from "@/components/features/MobilePurchaseBar";
 
 interface Props {
   params: Promise<{ id: string; locale: string }>;
@@ -307,7 +308,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
         {/* Sidebar */}
         <div className="space-y-4">
           {/* Price card */}
-          <div className="sticky top-24 space-y-4">
+          <div id="purchase-sidebar" className="sticky top-24 space-y-4">
             <div className="overflow-hidden rounded-sm dq-window p-6">
               <div className="h-1 bg-dq-gold -mx-6 -mt-6 mb-6" />
               <div className="mb-4 space-y-1">
@@ -337,6 +338,14 @@ export default async function KnowledgeDetailPage({ params }: Props) {
 
       {/* Recommendations */}
       <RecommendationSection title={t("relatedItems")} items={recommendations} />
+
+      <MobilePurchaseBar
+        priceSol={item.price_sol}
+        knowledgeId={item.id}
+        priceLabel={isRequest ? t("rewardEstimate") : t("price")}
+        buyLabel={isRequest ? t("submitResponse") : t("purchase")}
+        isRequest={isRequest}
+      />
     </div>
   );
 }

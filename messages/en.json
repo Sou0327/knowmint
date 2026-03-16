@@ -416,7 +416,9 @@
     "reward": "Reward",
     "reaction": "Reactions",
     "accessDenied": "Access denied",
-    "contentSection": "Content"
+    "contentSection": "Content",
+    "purchase": "Purchase",
+    "submitResponse": "Submit Response"
   },
   "Purchase": {
     "confirmTitle": "Confirm Purchase",
@@ -565,6 +567,8 @@
     "priceSetRequired": "Please set a price",
     "titleAndDescRequired": "Title and description are required",
     "deleteConfirm": "Delete this listing?",
+    "deleteConfirmTitle": "Delete Listing",
+    "deleteConfirmMessage": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
     "contentTypeLabel": "Content Type",
@@ -697,12 +701,15 @@
     "avatarRemoved": "Photo removed",
     "fileTooLarge": "File must be under 2MB",
     "invalidFileType": "Only JPEG, PNG, and WebP are supported",
-    "uploadFailed": "Upload failed. Please try again."
+    "uploadFailed": "Upload failed. Please try again.",
+    "copied": "Copied to clipboard",
+    "copyAddress": "Copy address"
   },
   "Notifications": {
     "title": "Notifications",
     "empty": "No notifications",
     "markAsRead": "Mark as read",
+    "markAllRead": "Mark all as read",
     "newPurchase": "New purchase received",
     "newReview": "New review posted",
     "newFollower": "New follower",

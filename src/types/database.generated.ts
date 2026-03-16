@@ -167,6 +167,27 @@ export type Database = {
           },
         ]
       }
+      email_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          source?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -900,6 +921,18 @@ export type Database = {
           p_title: string
         }
         Returns: Json
+      }
+      get_top_sellers: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          follower_count: number
+          id: string
+          total_items: number
+          total_sales: number
+          trust_score: number
+        }[]
       }
       increment_purchase_count: {
         Args: { item_id: string }

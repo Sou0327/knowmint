@@ -3,12 +3,14 @@ import {
   Briefcase, Laptop, Palette, GraduationCap, Leaf,
   Settings, Zap, Shield, Search, BookOpen,
   Bot, Terminal, Plug, BarChart3, MessageSquare,
+  Coins, Star, UserPlus, Package, Bell,
 } from "lucide-react";
 
 const ICON_MAP = {
   Briefcase, Laptop, Palette, GraduationCap, Leaf,
   Settings, Zap, Shield, Search, BookOpen,
   Bot, Terminal, Plug, BarChart3, MessageSquare,
+  Coins, Star, UserPlus, Package, Bell,
 } satisfies Record<string, LucideIconType>;
 
 export type IconName = keyof typeof ICON_MAP;

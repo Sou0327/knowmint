@@ -3,15 +3,17 @@ import { redirect } from "next/navigation";
 import { getNotifications } from "@/lib/notifications/queries";
 import { Link } from "@/i18n/navigation";
 import { getTranslations, getLocale } from "next-intl/server";
+import LucideIcon from "@/components/ui/LucideIcon";
 
 export const dynamic = "force-dynamic";
 
-const TYPE_ICON: Record<string, string> = {
-  purchase: "💰",
-  review: "⭐",
-  follow: "👤",
-  new_listing: "📦",
+const TYPE_ICON: Record<string, { icon: string; color: string }> = {
+  purchase: { icon: "Coins", color: "text-dq-gold" },
+  review: { icon: "Star", color: "text-dq-gold" },
+  follow: { icon: "UserPlus", color: "text-dq-cyan" },
+  new_listing: { icon: "Package", color: "text-dq-green" },
 };
+const DEFAULT_ICON = { icon: "Bell", color: "text-dq-text-muted" };
 
 export default async function NotificationsPage() {
   const t = await getTranslations("Notifications");
@@ -45,7 +47,11 @@ export default async function NotificationsPage() {
               }`}
             >
               <div className="flex gap-3">
-                <span className="mt-0.5 text-lg">{TYPE_ICON[n.type] ?? "📢"}</span>
+                <LucideIcon
+                  name={(TYPE_ICON[n.type] ?? DEFAULT_ICON).icon}
+                  size={20}
+                  className={`mt-0.5 shrink-0 ${(TYPE_ICON[n.type] ?? DEFAULT_ICON).color}`}
+                />
                 <div className="min-w-0 flex-1">
                   {n.link ? (
                     <Link

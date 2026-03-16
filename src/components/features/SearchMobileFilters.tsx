@@ -78,9 +78,11 @@ export default function SearchMobileFilters({
       <div
         role="dialog"
         aria-label={labels.filter}
-        aria-modal="true"
+        aria-modal={open || undefined}
+        aria-hidden={!open || undefined}
+        inert={!open ? true : undefined}
         className={`fixed inset-x-0 bottom-0 z-50 transform transition-transform duration-300 ease-out ${
-          open ? "translate-y-0" : "translate-y-full"
+          open ? "translate-y-0" : "translate-y-full pointer-events-none"
         }`}
       >
         <div className="dq-window-sm max-h-[80vh] overflow-y-auto rounded-t-lg bg-dq-window-bg">

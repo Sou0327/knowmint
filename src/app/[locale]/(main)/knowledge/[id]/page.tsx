@@ -339,13 +339,15 @@ export default async function KnowledgeDetailPage({ params }: Props) {
       {/* Recommendations */}
       <RecommendationSection title={t("relatedItems")} items={recommendations} />
 
-      <MobilePurchaseBar
-        priceSol={item.price_sol}
-        knowledgeId={item.id}
-        priceLabel={isRequest ? t("rewardEstimate") : t("price")}
-        buyLabel={isRequest ? t("submitResponse") : t("purchase")}
-        isRequest={isRequest}
-      />
+      {!isRequest && (
+        <MobilePurchaseBar
+          priceSol={item.price_sol}
+          knowledgeId={item.id}
+          priceLabel={t("price")}
+          buyLabel={t("purchase")}
+          isRequest={false}
+        />
+      )}
     </div>
   );
 }

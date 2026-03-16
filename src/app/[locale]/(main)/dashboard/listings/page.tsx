@@ -133,20 +133,31 @@ export default function DashboardListingsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const fetchListings = async () => {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError || !user) {
+        if (authError) console.error("[listings] auth failed:", authError.message);
+        return;
+      }
 
-    const { data } = await supabase
-      .from("knowledge_items")
-      .select("*, category:categories(id, name, slug)")
-      .eq("seller_id", user.id)
-      .order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("knowledge_items")
+        .select("*, category:categories(id, name, slug)")
+        .eq("seller_id", user.id)
+        .order("created_at", { ascending: false });
 
-    setListings((data as ListingWithCategory[]) ?? []);
-    setLoading(false);
+      if (error) {
+        console.error("[listings] fetch failed:", error.message);
+        return;
+      }
+      setListings((data as ListingWithCategory[]) ?? []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

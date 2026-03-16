@@ -14,17 +14,30 @@ export default function MarkAllReadButton({ label }: Props) {
 
   const handleMarkAllRead = async () => {
     setLoading(true);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase
+    try {
+      const supabase = createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        if (authError) console.error("[notifications] auth failed:", authError.message);
+        return;
+      }
+
+      const { error } = await supabase
         .from("notifications")
         .update({ read: true })
         .eq("user_id", user.id)
         .eq("read", false);
+
+      if (error) {
+        console.error("[notifications] mark all read failed:", error.message);
+        return;
+      }
       router.refresh();
+    } catch (err) {
+      console.error("[notifications] mark all read failed:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

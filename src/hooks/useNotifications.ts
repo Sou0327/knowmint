@@ -37,9 +37,12 @@ export function useNotifications() {
 
   const handleOpen = useCallback(() => {
     setOpen((prev) => {
-      const next = !prev;
-      if (next) fetchNotifications();
-      return next;
+      if (!prev) {
+        // Schedule fetch outside setState updater to avoid
+        // "Cannot update a component while rendering" error
+        queueMicrotask(() => fetchNotifications());
+      }
+      return !prev;
     });
   }, [fetchNotifications]);
 

@@ -293,7 +293,9 @@
     "passwordMismatch": "パスワードが一致しません",
     "passwordTooShort": "パスワードは8文字以上で入力してください",
     "authApiError": "認証APIへの接続に失敗しました: {message}",
-    "accountType": "アカウント種別"
+    "accountType": "アカウント種別",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを非表示"
   },
   "Home": {
     "heroTitle": "KnowMint",

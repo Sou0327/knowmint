@@ -293,7 +293,9 @@
     "passwordMismatch": "Passwords do not match",
     "passwordTooShort": "Password must be at least 8 characters",
     "authApiError": "Failed to connect to auth API: {message}",
-    "accountType": "Account Type"
+    "accountType": "Account Type",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "Home": {
     "heroTitle": "KnowMint",

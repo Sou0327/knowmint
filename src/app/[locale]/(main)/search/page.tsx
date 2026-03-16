@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import KnowledgeCard from "@/components/features/KnowledgeCard";
 import SearchBar from "@/components/features/SearchBar";
+import SearchMobileFilters from "@/components/features/SearchMobileFilters";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
 import { Link } from "@/i18n/navigation";
 import type { ContentType, ListingType } from "@/types/database.types";
@@ -92,6 +93,16 @@ export default async function SearchPage({ searchParams }: Props) {
     return qs ? `/search?${qs}` : "/search";
   };
 
+  // Pre-build display name maps for SearchMobileFilters (Client Component cannot call server tTypes.has)
+  const categoryNames: Record<string, string> = {};
+  for (const cat of categories) {
+    categoryNames[cat.slug] = getCategoryDisplayName(tTypes, cat.slug, cat.name);
+  }
+  const typeNames: Record<string, string> = {};
+  for (const ct of CONTENT_TYPES) {
+    typeNames[ct] = getContentDisplayLabel(ct, tTypes);
+  }
+
   return (
     <div>
       <JsonLd data={breadcrumbJsonLd} />
@@ -100,6 +111,26 @@ export default async function SearchPage({ searchParams }: Props) {
           {q ? t("resultCount", { count: result.total }) : t("title")}
         </h1>
         <SearchBar defaultValue={q} className="max-w-xl" />
+      </div>
+
+      {/* Mobile filter button — visible only below lg breakpoint */}
+      <div className="mb-4 lg:hidden">
+        <SearchMobileFilters
+          categories={categories}
+          contentTypes={CONTENT_TYPES}
+          currentCategory={category}
+          currentType={type}
+          buildUrl={buildUrl}
+          labels={{
+            filter: t("filter"),
+            category: t("categoryFilter"),
+            contentType: t("contentType"),
+            all: t("all"),
+            close: tCommon("close"),
+          }}
+          categoryNames={categoryNames}
+          typeNames={typeNames}
+        />
       </div>
 
       <div className="flex gap-8">
@@ -189,12 +220,12 @@ export default async function SearchPage({ searchParams }: Props) {
                 </span>
               )}
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
               {SORT_OPTION_KEYS.map((opt) => (
                 <Link
                   key={opt.value}
                   href={buildUrl({ sort: opt.value, page: undefined })}
-                  className={`rounded-sm px-3 py-1 text-xs transition-all ${
+                  className={`shrink-0 rounded-sm px-3 py-1 text-xs transition-all ${
                     sortBy === opt.value
                       ? "bg-dq-gold text-dq-bg"
                       : "bg-dq-surface text-dq-text-sub hover:bg-dq-hover"

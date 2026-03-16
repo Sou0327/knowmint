@@ -384,7 +384,8 @@
     "categoryMetaTitle": "{name}の知識",
     "categoryMetaDescription": "{name}カテゴリの知識一覧",
     "categoryItemCount": "{count} 件のアイテム",
-    "searchMetaTitle": "「{query}」"
+    "searchMetaTitle": "「{query}」",
+    "filter": "フィルター"
   },
   "Knowledge": {
     "backToMarket": "マーケットに戻る",

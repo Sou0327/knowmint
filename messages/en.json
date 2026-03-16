@@ -384,7 +384,8 @@
     "categoryMetaTitle": "{name} Knowledge",
     "categoryMetaDescription": "Knowledge in {name} category",
     "categoryItemCount": "{count, plural, one {# item} other {# items}}",
-    "searchMetaTitle": "\"{query}\""
+    "searchMetaTitle": "\"{query}\"",
+    "filter": "Filter"
   },
   "Knowledge": {
     "backToMarket": "Back to Market",

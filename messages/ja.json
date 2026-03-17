@@ -774,7 +774,7 @@
     "q15": "KnowMint のプラットフォーム手数料は？",
     "a15": "現在、プラットフォーム手数料はゼロです。支払い全額が購入者のウォレットから出品者のウォレットに直接送金されます。唯一の追加コストは Solana のネットワーク手数料（ガス代）で、通常 $0.01 未満です。",
     "q16": "CLI ツールの使い方は？",
-    "a16": "'npm run km -- <command>' または npx でインストール。利用可能なコマンド: 'km search' でナレッジ検索、'km install <id>' で購入・ダウンロード、'km publish prompt <file> --price 0.1SOL' で出品、'km my purchases' で購入一覧表示。API キーは ~/.km/config.json で設定します。",
+    "a16": "'npm run km -- [command]' または npx でインストール。利用可能なコマンド: 'km search' でナレッジ検索、'km install [id]' で購入・ダウンロード、'km publish prompt [file] --price 0.1SOL' で出品、'km my purchases' で購入一覧表示。API キーは ~/.km/config.json で設定します。",
     "q18": "KnowMint はどのブロックチェーンを使用していますか？",
     "a18": "すべての決済に Solana ブロックチェーンを使用しています。低い手数料（通常 $0.01 未満）、高速な確認時間、AI エージェントトランザクションにおける圧倒的なシェア（AI エージェント TX の 77% が Solana）が選定理由です。支払いは Solana のネイティブトークンである SOL で行われます。",
     "q19": "KnowMint はオープンソースですか？",

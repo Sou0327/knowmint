@@ -774,7 +774,7 @@
     "q15": "Does KnowMint charge platform fees?",
     "a15": "No. KnowMint currently charges zero platform commission. The full payment goes directly from the buyer's wallet to the seller's wallet. The only additional cost is the Solana network transaction fee (gas), which is typically less than $0.01.",
     "q16": "How do I use the CLI tool?",
-    "a16": "Install with 'npm run km -- <command>' or use npx. Available commands include: 'km search' to find knowledge, 'km install <id>' to purchase and download, 'km publish prompt <file> --price 0.1SOL' to list knowledge, and 'km my purchases' to view your purchases. Configure your API key in ~/.km/config.json.",
+    "a16": "Install with 'npm run km -- [command]' or use npx. Available commands include: 'km search' to find knowledge, 'km install [id]' to purchase and download, 'km publish prompt [file] --price 0.1SOL' to list knowledge, and 'km my purchases' to view your purchases. Configure your API key in ~/.km/config.json.",
     "q18": "Which blockchain does KnowMint use?",
     "a18": "KnowMint uses the Solana blockchain for all payments. Solana was chosen for its low transaction fees (typically < $0.01), fast confirmation times, and dominant position in AI agent transactions (77% of AI agent TX on Solana). Payments are made in SOL, the native token of Solana.",
     "q19": "Is KnowMint open source?",

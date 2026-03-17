@@ -57,8 +57,8 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 | Task | 内容 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
 | 2.1 | GSC 登録 + Google Index 確認 + sitemap 送信 | GSC にプロパティ追加、sitemap.xml 送信済み | - | cc:完了 |
-| 2.2 | MCP Registry + mcp.so + PulseMCP + Smithery 一括登録 | 4ディレクトリに掲載確認 | - | cc:TODO |
-| 2.3 | Awesome MCP Servers + x402 ecosystem + awesome-x402 + awesome-solana-ai に PR | 4 PR 作成 | - | cc:TODO |
+| 2.2 | MCP Registry + mcp.so + PulseMCP + Smithery 一括登録 | 4ディレクトリに掲載確認 | - | cc:WIP (mcpservers.org 承認済み 2026-03-17) |
+| 2.3 | Awesome MCP Servers + x402 ecosystem + awesome-x402 + awesome-solana-ai に PR | 4 PR 作成 | - | cc:WIP (awesome-x402 PR#106 マージ済み 2026-03-17) |
 | 2.4 | BetaList 提出 (2ヶ月待ちなので即日) | BetaList にサブミット完了 | - | cc:TODO |
 | 2.5 | Colosseum Eternal ハッカソン登録 (非対称リターン: 工数2日 / 最大 $250K) | Arena アカウント作成 + スプリント開始 | - | cc:TODO |
 | 2.6 | HN second chance メール送信 | hn@ycombinator.com にメール送信 | - | cc:TODO |
@@ -211,30 +211,59 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 | Task | 内容 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| UX-2A.1 | 検索ページ: モバイルフィルター UI 追加 (カテゴリ/タイプ。`hidden lg:block` の代替) | 375px 幅でフィルターボタン→ドロワー or シート表示。フィルター適用で結果更新 | - | cc:TODO |
-| UX-2A.2 | 検索ページ: ソートボタンをモバイルで横スクロール or セレクト化 | 375px 幅でオーバーフローなし。全ソートオプションにアクセス可能 | - | cc:TODO |
-| UX-2A.3 | FAQ ページ: `<summary>` に focus スタイル追加 + details marker を DQ テーマ化 | Tab キーで focus ring 表示。`▶` → DQ テーマ矢印アイコン | - | cc:TODO |
-| UX-2A.4 | 通知ページ: 絵文字アイコン → Lucide SVG アイコンに置換 | 💰⭐👤📦 を LucideIcon に統一。DQ テーマカラー適用 | - | cc:TODO |
-| UX-2A.5 | Header/Footer: タッチターゲット拡大 (ナビリンク min 44px) | Lighthouse Accessibility で tap target 警告なし | - | cc:TODO |
+| UX-2A.1 | 検索ページ: モバイルフィルター UI 追加 (カテゴリ/タイプ。`hidden lg:block` の代替) | 375px 幅でフィルターボタン→ドロワー or シート表示。フィルター適用で結果更新 | - | cc:完了 [3b01242] |
+| UX-2A.2 | 検索ページ: ソートボタンをモバイルで横スクロール or セレクト化 | 375px 幅でオーバーフローなし。全ソートオプションにアクセス可能 | - | cc:完了 [3b01242] |
+| UX-2A.3 | FAQ ページ: `<summary>` に focus スタイル追加 + details marker を DQ テーマ化 | Tab キーで focus ring 表示。`▶` → DQ テーマ矢印アイコン | - | cc:完了 [5e73442] |
+| UX-2A.4 | 通知ページ: 絵文字アイコン → Lucide SVG アイコンに置換 | 💰⭐👤📦 を LucideIcon に統一。DQ テーマカラー適用 | - | cc:完了 [f299e8e] |
+| UX-2A.5 | Header/Footer: タッチターゲット拡大 (ナビリンク min 44px) | Lighthouse Accessibility で tap target 警告なし | - | cc:完了 [e51c3cd] |
 
 ### UX-2B: HIGH — コンバージョン & インタラクション改善
 
 | Task | 内容 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| UX-2B.1 | ログインページ: パスワード表示/非表示トグル追加 | 目アイコンクリックで type=password ↔ text 切替 | - | cc:TODO |
-| UX-2B.2 | サインアップページ: パスワード強度インラインバリデーション (8文字+一致チェック) | blur 時にエラー表示。submit 前にリアルタイムフィードバック | - | cc:TODO |
-| UX-2B.3 | Knowledge 詳細: モバイル購入 CTA を fixed bottom bar 化 | lg 未満で sticky bottom に価格+購入ボタン表示。スクロールで追従 | - | cc:TODO |
-| UX-2B.4 | ダッシュボード出品一覧: `confirm()` → カスタムモーダルに置換 | DQ テーマの確認ダイアログ。ブラウザ alert 不使用 | - | cc:TODO |
-| UX-2B.5 | ダッシュボード出品一覧: モバイルでアクションボタンをドロップダウン化 | sm 未満でボタン群が「...」メニューに収納 | UX-2B.4 | cc:TODO |
+| UX-2B.1 | ログインページ: パスワード表示/非表示トグル追加 | 目アイコンクリックで type=password ↔ text 切替 | - | cc:完了 [3d92e4f] |
+| UX-2B.2 | サインアップページ: パスワード強度インラインバリデーション (8文字+一致チェック) | blur 時にエラー表示。submit 前にリアルタイムフィードバック | - | cc:完了 [7c45cf1] |
+| UX-2B.3 | Knowledge 詳細: モバイル購入 CTA を fixed bottom bar 化 | lg 未満で sticky bottom に価格+購入ボタン表示。スクロールで追従 | - | cc:完了 [cf5f2e2] |
+| UX-2B.4 | ダッシュボード出品一覧: `confirm()` → カスタムモーダルに置換 | DQ テーマの確認ダイアログ。ブラウザ alert 不使用 | - | cc:完了 [6d34bb3] |
+| UX-2B.5 | ダッシュボード出品一覧: モバイルでアクションボタンをドロップダウン化 | sm 未満でボタン群が「...」メニューに収納 | UX-2B.4 | cc:完了 [6d34bb3] |
 
 ### UX-2C: MEDIUM — 体験の磨き込み
 
 | Task | 内容 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| UX-2C.1 | プロフィール: ウォレットアドレスにコピーボタン追加 | クリックでクリップボードにコピー + トースト表示 | - | cc:完了 |
-| UX-2C.2 | 通知: 既読/未読の視覚差強化 + 一括既読ボタン | 未読に左ボーダー追加。「すべて既読」ボタン | - | cc:完了 |
-| UX-2C.3 | ホームページ: カテゴリカードにアイテム数バッジ表示 | 各カテゴリに `(N件)` 表示 | - | cc:完了 |
-| UX-2C.4 | お気に入り/ライブラリ: グリッドを `<ul role="list">` に意味論改善 | スクリーンリーダーでリスト構造として認識 | - | cc:完了 |
+| UX-2C.1 | プロフィール: ウォレットアドレスにコピーボタン追加 | クリックでクリップボードにコピー + トースト表示 | - | cc:完了 [400242e] |
+| UX-2C.2 | 通知: 既読/未読の視覚差強化 + 一括既読ボタン | 未読に左ボーダー追加。「すべて既読」ボタン | - | cc:完了 [400242e] |
+| UX-2C.3 | ホームページ: カテゴリカードにアイテム数バッジ表示 | 各カテゴリに `(N件)` 表示 | - | cc:完了 [400242e] |
+| UX-2C.4 | お気に入り/ライブラリ: グリッドを `<ul role="list">` に意味論改善 | スクリーンリーダーでリスト構造として認識 | - | cc:完了 [400242e] |
+
+---
+
+## Phase GEO-8: エージェント向けオンサイト技術改善 [P1 — MKT-CS と並行可]
+
+> GEO-3 監査 (2026-03-17, 56/100) で検出。AI エージェント・AI 検索エンジンが KnowMint を「理解・引用」できるようにするオンサイト技術改善。
+> コードだけで完結。GEO-7 完了済みタスクとの重複なし。
+> 期待インパクト: AI Citability +7, Schema +13, Technical GEO +7 → Overall GEO +5-8pt
+
+### GEO-8A: HIGH — AI 引用確率を直接向上
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-8A.1 | ホームページ Hero 直下に自己完結型定義パラグラフ追加 | 「KnowMint is the first AI-native knowledge marketplace...」が Hero 直下に HTML `<p>` で存在。FAQ と同一定義。AI が単独引用可能 | - | cc:完了 |
+| GEO-8A.2 | llms-full.txt を 2500+ 語に拡張 (FAQ 全文, API ドキュメント, ユースケース例追加) | `wc -w public/llms-full.txt` が 2500 以上 | - | cc:完了 |
+| GEO-8A.3 | 全主要ページに「Last updated」日付表示追加 | ホーム, /about, /developers, /search, /faq, /contact に最終更新日が可視テキストで表示 | - | cc:完了 |
+| GEO-8A.4 | ホームページ見出しを質問型に変換 (「How It Works」→「How Do AI Agents Purchase Knowledge?」) | AI Overviews 抽出確率向上。宣言型→質問型の変換 | - | cc:完了 |
+
+### GEO-8B: MEDIUM — スキーマ補完
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-8B.1 | /developers に HowTo スキーマ追加 (MCP セットアップ手順) | JSON-LD HowTo が /developers の HTML に出力。Google Rich Results Test 通過 | - | cc:完了 |
+| GEO-8B.2 | CLI (km) SoftwareApplication スキーマ追加 | /developers に CLI 用 JSON-LD SoftwareApplication 出力 (name, description, applicationCategory, operatingSystem, codeRepository, license) | - | cc:完了 |
+| GEO-8B.3 | MCP SoftwareApplication に description 追加 | 既存の MCP スキーマに description フィールド追加 | - | cc:完了 |
+| GEO-8B.4 | Founder Person スキーマ拡充 (worksFor, image, knowsAbout, sameAs) | /about の Person JSON-LD にレポート Appendix テンプレート準拠のフィールド追加 | - | cc:完了 |
+| GEO-8B.5 | Seller Person スキーマ拡充 (url, image from avatar_url) | Knowledge item ページの売り手 Person に url, image 追加。DB の avatar_url を活用 | - | cc:完了 |
+| GEO-8B.6 | Product スキーマ price を文字列型に修正 | `offers.price` を `0.3` → `"0.3"` に変更。Google 期待形式に準拠 | - | cc:完了 |
+| GEO-8B.7 | /legal に BreadcrumbList スキーマ追加 | JSON-LD BreadcrumbList が /legal (terms, privacy) の HTML に出力 | - | cc:完了 |
 
 ---
 

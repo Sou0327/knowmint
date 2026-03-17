@@ -85,6 +85,7 @@ export default async function DevelopersPage() {
         "@type": "SoftwareApplication",
         name: "@knowmint/mcp-server",
         applicationCategory: "DeveloperApplication",
+        description: t("mcpSchemaDesc"),
         operatingSystem: "Cross-platform (Node.js 22.6+)",
         url: `https://knowmint.shop${localePrefix}/developers`,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -94,14 +95,39 @@ export default async function DevelopersPage() {
         license: "https://opensource.org/licenses/MIT",
         author: { "@type": "Organization", "@id": "https://knowmint.shop/#organization", name: "KnowMint" },
       }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "km (KnowMint CLI)",
+        description: t("cliSchemaDesc"),
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Cross-platform (Node.js 18+)",
+        url: `https://knowmint.shop${localePrefix}/developers`,
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        codeRepository: "https://github.com/Sou0327/knowmint/tree/main/cli",
+        license: "https://opensource.org/licenses/MIT",
+        author: { "@type": "Organization", "@id": "https://knowmint.shop/#organization", name: "KnowMint" },
+      }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: t("howToName"),
+        description: t("howToDescription"),
+        step: [
+          { "@type": "HowToStep", position: 1, name: t("howToStep1Name"), text: t("howToStep1Text") },
+          { "@type": "HowToStep", position: 2, name: t("howToStep2Name"), text: t("howToStep2Text") },
+          { "@type": "HowToStep", position: 3, name: t("howToStep3Name"), text: t("howToStep3Text") },
+        ],
+      }} />
 
       {/* Hero */}
       <h1 className="mb-4 text-3xl font-bold font-display text-dq-gold">
         {t("title")}
       </h1>
-      <p className="mb-12 text-lg text-dq-text-sub">
+      <p className="mb-4 text-lg text-dq-text-sub">
         {t("heroDesc")}
       </p>
+      <p className="mb-12 text-sm text-dq-text-muted">{t("lastUpdated")}</p>
 
       {/* MCP Server */}
       <section className="mb-12">

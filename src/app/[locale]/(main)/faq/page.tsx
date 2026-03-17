@@ -68,6 +68,7 @@ export default async function FaqPage() {
       <h1 className="mb-8 text-3xl font-bold font-display text-dq-gold">
         {t("title")}
       </h1>
+      <p className="mb-8 text-sm text-dq-text-muted">{t("lastUpdated")}</p>
 
       <div className="space-y-6">
         {faqItems.map((item, i) => (

@@ -2,7 +2,7 @@
 
 > KnowMint is the first AI-native knowledge marketplace where AI agents autonomously discover and purchase human expertise using the x402 protocol on Solana.
 
-Last-Updated: 2026-03-13
+Last-Updated: 2026-03-17
 
 ## What is KnowMint?
 
@@ -109,3 +109,191 @@ Configuration (Claude Code / Cursor — `~/.claude/mcp.json`):
 - Website: https://knowmint.shop
 - GitHub: https://github.com/Sou0327/knowmint
 - Email: contact@knowmint.shop
+
+---
+
+## Frequently Asked Questions
+
+### Q: What is x402?
+
+A: x402 is an open protocol by Coinbase that enables machine-to-machine payments via HTTP 402 status codes. When an AI agent requests paid content, the server responds with HTTP 402 and payment instructions. The agent then sends cryptocurrency (SOL on Solana) directly and resubmits the request with a payment proof. No human intervention required.
+
+### Q: How do AI agents purchase knowledge on KnowMint?
+
+A: AI agents use the MCP (Model Context Protocol) server to interact with KnowMint. The agent calls km_search to discover knowledge, km_get_detail to evaluate it, and km_get_content to purchase. When payment is required, the server returns HTTP 402 with the seller's wallet address and price. The agent sends SOL directly from its wallet and includes the transaction hash as payment proof.
+
+### Q: What payment methods are supported?
+
+A: KnowMint currently supports SOL payments on the Solana blockchain. Payments are direct wallet-to-wallet transfers — we never hold your funds or private keys. Support for additional tokens (USDC) and EVM chains is planned.
+
+### Q: How do I set up the MCP server for Claude Code or Cursor?
+
+A: Add the following to your ~/.claude/mcp.json (Claude Code) or .cursor/mcp.json (Cursor): set the command to 'npx', args to ['--yes', '--package', '@knowmint/mcp-server@latest', 'mcp-server'], and add KM_API_KEY and KM_BASE_URL (https://knowmint.shop) as environment variables. Get your API key from Dashboard > API Keys.
+
+### Q: Is my wallet secure?
+
+A: Yes. KnowMint is fully non-custodial — we never store or have access to your private keys. All payments are direct peer-to-peer transfers from the buyer's wallet to the seller's wallet. We only verify and record transaction hashes on the Solana blockchain.
+
+### Q: What types of knowledge can I sell?
+
+A: You can sell prompts, tool definitions and MCP configurations, datasets, API specifications, and general knowledge. Content is text-based and can include Markdown formatting. Each listing includes a preview (visible before purchase) and full content (accessible after purchase).
+
+### Q: How do refunds work?
+
+A: Due to the nature of digital content, refunds are generally not available once content has been disclosed. However, if the content materially differs from the description, a technical issue prevents access, or the seller provided false descriptions, we will work with the seller to find an appropriate resolution. Please review listings carefully before purchasing.
+
+### Q: What are Solana gas fees and how much do they cost?
+
+A: Solana gas fees are network transaction fees required to process blockchain transactions. On Solana, these fees are extremely low — typically less than $0.01 per transaction. The fee is paid by the buyer's wallet automatically when sending SOL to the seller. No additional platform fees are charged by KnowMint.
+
+### Q: My purchase didn't go through. What should I do?
+
+A: First, check your wallet for the transaction status. If the transaction was confirmed on-chain but content wasn't delivered, try refreshing the page or accessing the content again from your Library. If the issue persists, report it on our GitHub Issues page with your transaction hash — we can verify the on-chain transaction and resolve access issues.
+
+### Q: How is my data handled on KnowMint?
+
+A: We collect only what's necessary: email for authentication, wallet address for payments, and transaction hashes for verification. API keys are stored as SHA-256 hashes (plaintext is never stored). We don't share data with third-party advertising networks. All data is protected by Row Level Security (RLS) in our database. See our Privacy Policy for full details.
+
+### Q: Which AI agents are supported?
+
+A: KnowMint supports any AI agent that can make HTTP requests. We provide official integrations for: MCP Server (Claude Code, Cursor, and any MCP-compatible client), ElizaOS Plugin (@knowledge-market/eliza-plugin), and Coinbase AgentKit ActionProvider (@knowledge-market/agentkit-plugin). You can also integrate via the REST API or CLI (km) tool.
+
+### Q: How does KnowMint protect against fraud?
+
+A: Multiple layers: all transactions are verified on the Solana blockchain, API keys use SHA-256 hashing, rate limiting prevents abuse (120 req/min pre-auth, 60 req/min per key), content reports are reviewed by administrators, and SECURITY DEFINER functions with restricted search paths protect database operations. The platform is also fully non-custodial — we never hold funds.
+
+### Q: What is KnowMint?
+
+A: KnowMint is the first AI-native knowledge marketplace where AI agents autonomously discover and purchase human expertise using the x402 protocol on Solana. Humans list their tacit knowledge, experiential insights, and specialized expertise. AI agents find and buy this knowledge — paying SOL directly from their wallets to sellers' wallets with no intermediary.
+
+### Q: How do I list knowledge on KnowMint?
+
+A: Sign in, click 'List Item' in the navigation, fill in title, description, category, and price (in SOL), then add preview content (visible before purchase) and full content (accessible after purchase). You can save as draft or publish immediately. Content supports Markdown formatting.
+
+### Q: Does KnowMint charge platform fees?
+
+A: No. KnowMint currently charges zero platform commission. The full payment goes directly from the buyer's wallet to the seller's wallet. The only additional cost is the Solana network transaction fee (gas), which is typically less than $0.01.
+
+### Q: How do I use the CLI tool?
+
+A: Install with 'npm run km -- <command>' or use npx. Available commands include: 'km search' to find knowledge, 'km install <id>' to purchase and download, 'km publish prompt <file> --price 0.1SOL' to list knowledge, and 'km my purchases' to view your purchases. Configure your API key in ~/.km/config.json.
+
+### Q: Which blockchain does KnowMint use?
+
+A: KnowMint uses the Solana blockchain for all payments. Solana was chosen for its low transaction fees (typically < $0.01), fast confirmation times, and dominant position in AI agent transactions (77% of AI agent TX on Solana). Payments are made in SOL, the native token of Solana.
+
+### Q: Is KnowMint open source?
+
+A: Yes. KnowMint is fully open source under the MIT License. The entire codebase — including the marketplace, MCP server, CLI, ElizaOS plugin, and AgentKit plugin — is available on GitHub at github.com/Sou0327/knowmint. Contributions are welcome.
+
+### Q: How do I get an API key?
+
+A: Sign in to KnowMint, go to Dashboard > API Keys, and click 'Create new API key'. Choose a name, select permissions (read, write, or admin), and create. The key is shown only once — copy it immediately. API keys are stored as SHA-256 hashes; we cannot retrieve your key later.
+
+---
+
+## Detailed API Documentation
+
+### Authentication Flow
+
+1. Sign in to KnowMint at https://knowmint.shop and navigate to Dashboard > API Keys.
+2. Create a new API key and copy it immediately — it is shown only once.
+3. Include the key in every request using the Authorization header: `Authorization: Bearer km_your_key_here`.
+4. On the server side, keys are stored as SHA-256 hashes. The plaintext key is never persisted.
+5. Each key has a permission scope: read (search and fetch), write (publish items), or admin (full access including moderation).
+
+### Error Codes
+
+- `400 Bad Request` — Invalid input, missing required fields, or malformed request body. Check the `error` field in the response for details.
+- `401 Unauthorized` — Missing or invalid API key. Ensure the Authorization header is present and the key is correct.
+- `403 Forbidden` — Valid API key but insufficient permissions. Upgrade key permissions in Dashboard > API Keys.
+- `404 Not Found` — The requested resource does not exist. Verify the knowledge item ID is correct.
+- `402 Payment Required` — Content is available but requires purchase. The response body includes payment instructions: seller wallet address, price in SOL, and the required payment proof format.
+- `429 Too Many Requests` — Rate limit exceeded. Check the X-RateLimit-Reset header for when the limit resets. Default limits: 120 req/min per IP (unauthenticated), 60 req/min per API key.
+- `500 Internal Server Error` — Unexpected server error. Retry with exponential backoff. Report persistent issues on GitHub.
+
+### Request and Response Example
+
+Request — list published knowledge items filtered by category:
+
+```
+GET /api/v1/knowledge?category=technology-it&limit=10&offset=0
+Authorization: Bearer km_your_key_here
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Solana Program Development Patterns",
+      "description": "Battle-tested patterns for writing Anchor programs on Solana.",
+      "category": "technology-it",
+      "content_type": "prompt",
+      "price_sol": 0.05,
+      "seller_id": "user_abc123",
+      "view_count": 142,
+      "purchase_count": 38,
+      "average_rating": 4.7,
+      "preview_content": "This guide covers the most common pitfalls...",
+      "created_at": "2026-02-01T12:00:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "limit": 10,
+    "offset": 0
+  }
+}
+```
+
+### Rate Limit Details
+
+Rate limiting is applied at two levels. The IP-level limit (120 req/min) applies before authentication and protects the server from unauthenticated abuse. After authentication, each API key has its own limit (60 req/min), tracked separately from other keys. Authentication endpoints (login, key creation) have a stricter limit of 20 req/min per IP to prevent brute-force attacks. The response headers `X-RateLimit-Remaining` and `X-RateLimit-Reset` indicate how many requests remain in the current window and when the window resets (Unix timestamp).
+
+---
+
+## Use Cases
+
+### Use Case 1: AI Agent Autonomously Purchasing a Prompt Engineering Guide
+
+An ElizaOS agent is tasked with improving its response quality on a coding assistant project. Using the KnowMint MCP server, it calls `km_search` with the query "prompt engineering chain-of-thought reasoning" and receives a list of matching knowledge items. It calls `km_get_detail` on the top result to evaluate the description and preview. Satisfied with the content, it calls `km_get_content`, receives HTTP 402, sends 0.05 SOL directly from its Solana wallet to the seller's wallet, and resubmits the request with the transaction hash as payment proof. The full guide is delivered in seconds. No human approval was required at any step.
+
+### Use Case 2: Developer Integrating KnowMint MCP into a CI/CD Pipeline
+
+A software team wants their AI coding assistant to automatically look up best practices during code review. They add the KnowMint MCP server to their Claude Code configuration by editing `~/.claude/mcp.json`. The assistant can now search the marketplace mid-conversation, purchase relevant architecture guides or security checklists, and incorporate the guidance directly into its code review comments. The team preloads credits by topping up their agent's Solana wallet. Each knowledge purchase costs less than $0.10, making it practical to query specialized knowledge on demand.
+
+### Use Case 3: Knowledge Seller Listing Solana Development Expertise
+
+A senior Solana developer has accumulated deep expertise in Anchor program security patterns. They sign in to KnowMint, click "List Item", and fill in the title, description, category (technology-it), and price (0.1 SOL). They write a concise preview (visible to all) and a detailed full-content guide covering reentrancy guards, PDA ownership checks, and CPI validation patterns (accessible after purchase). Within a week, AI agents from three different teams have purchased the guide autonomously. The seller receives SOL directly to their wallet with zero platform commission.
+
+### Use Case 4: ElizaOS Agent Using KnowMint Plugin for Research
+
+A research automation agent built on ElizaOS is configured with the `@knowledge-market/eliza-plugin`. When the agent encounters a topic it lacks information on — for example, recent DeFi liquidation mechanisms — it triggers the SEARCH_KNOWLEDGE action automatically. The plugin queries the KnowMint marketplace, evaluates results, and if a relevant dataset is found below a configurable price threshold, triggers PURCHASE_KNOWLEDGE and then GET_CONTENT to retrieve the material. The agent incorporates the findings into its research report without any manual download or payment step from the operator.
+
+---
+
+## Content Type Details
+
+### prompt — Prompts and Text Articles
+
+Structured text designed to guide AI model behavior. Includes system prompts, chain-of-thought templates, role descriptions, and instructional articles. Example: "A step-by-step system prompt for an AI legal assistant that handles contract review with structured JSON output."
+
+### tool_def — Tool Definitions and MCP Configurations
+
+JSON or YAML definitions for AI tool calls, MCP server configurations, and function schemas. Example: "A complete MCP server configuration for querying a public REST API, including input schemas and error handling strategies."
+
+### dataset — Datasets and Research Materials
+
+Curated data collections, research summaries, annotated examples, and benchmark sets. Example: "500 annotated examples of ambiguous SQL queries with correct and incorrect rewrites for fine-tuning."
+
+### api — API Specifications and External Resources
+
+Documentation for external APIs, endpoint references, authentication guides, and integration playbooks. Example: "A practical guide to the Helius Solana API with working code examples for transaction parsing and webhook setup."
+
+### general — General Knowledge and Expertise
+
+Experiential knowledge, decision frameworks, how-to guides, and domain expertise that does not fit a stricter technical category. Example: "Lessons learned from shipping 10 Solana programs to mainnet — what to test, what breaks, and how to recover."

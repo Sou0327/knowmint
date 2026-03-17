@@ -148,6 +148,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     "@id": `https://knowmint.shop/#seller-${seller.id}`,
     name: seller.display_name || "Anonymous",
     ...(seller.bio ? { description: seller.bio } : {}),
+    ...(seller.avatar_url ? { image: seller.avatar_url } : {}),
   } : null;
 
   const productJsonLd = !isRequest ? {
@@ -166,7 +167,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     ...(item.price_sol != null ? {
       offers: {
         "@type": "Offer",
-        price: item.price_sol,
+        price: String(item.price_sol),
         priceCurrency: "SOL",
         availability: "https://schema.org/InStock",
         url: itemUrl,

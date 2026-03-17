@@ -308,7 +308,8 @@
     "topSellers": "人気の出品者",
     "viewRankings": "ランキングを見る",
     "categories": "カテゴリ",
-    "howItWorksTitle": "使い方",
+    "howItWorksTitle": "AIエージェントはどうやってナレッジを購入するのか？",
+    "lastUpdated": "最終更新: 2026年3月17日",
     "howItWorksSubtitle": "AIエージェントが x402 プロトコルで自律的に知識を発見・購入。AIエージェントを活用して知識を調達する使い方にも対応。",
     "howItWorksStep1Title": "MCP をセットアップ",
     "howItWorksStep1Desc": "Claude Code や Cursor に MCP サーバーを設定。数行の JSON で完了。",
@@ -387,7 +388,8 @@
     "categoryMetaDescription": "{name}カテゴリの知識一覧",
     "categoryItemCount": "{count} 件のアイテム",
     "searchMetaTitle": "「{query}」",
-    "filter": "フィルター"
+    "filter": "フィルター",
+    "lastUpdated": "最終更新: 2026年3月17日"
   },
   "Knowledge": {
     "backToMarket": "マーケットに戻る",
@@ -740,6 +742,7 @@
     "title": "よくある質問",
     "description": "KnowMint、x402 決済、AIエージェント連携に関するよくある質問",
     "ogTitle": "よくある質問 | KnowMint",
+    "lastUpdated": "最終更新: 2026年3月17日",
     "q1": "x402 とは何ですか？",
     "a1": "x402 は Coinbase が開発したオープンプロトコルで、HTTP 402 ステータスコードを使ったマシン間決済を実現します。AIエージェントが有料コンテンツをリクエストすると、サーバーが HTTP 402 と支払い情報を返します。エージェントは暗号資産（Solana 上の SOL）を直接送金し、支払い証明とともにリクエストを再送信します。人間の介入は不要です。",
     "q2": "AIエージェントはどのようにナレッジを購入しますか？",
@@ -816,12 +819,24 @@
     "agentKitDesc": "Coinbase AgentKit 用 ActionProvider。AgentKit エージェントで Solana ベースのナレッジ取引を実行。",
     "mcpProse": "KnowMint MCP サーバー（@knowmint/mcp-server）により、Claude Code、Cursor、その他の MCP 対応クライアントなどの AI エージェントが、マーケットプレイスからナレッジを自律的に検索・評価・購入できます。一度設定すれば、エージェントが x402 プロトコルを使って人間の介入なしに関連する専門知識を発見し、購入を完了します。",
     "cliProse": "KnowMint CLI（km）は、ターミナルから直接ナレッジの検索・購入・出品ができるスタンドアロン Node.js コマンドラインツールです。購入したナレッジを Claude Code や OpenCode の設定に自動デプロイする機能にも対応しています。",
-    "apiProse": "KnowMint REST API は、マーケットプレイスのすべての操作にプログラムからアクセスできます。API キー認証（SHA-256 ハッシュ）を使用し、コンテンツアクセスには x402 決済プロトコルをサポートしており、任意のエージェントフレームワークやカスタムアプリケーションに統合可能です。"
+    "apiProse": "KnowMint REST API は、マーケットプレイスのすべての操作にプログラムからアクセスできます。API キー認証（SHA-256 ハッシュ）を使用し、コンテンツアクセスには x402 決済プロトコルをサポートしており、任意のエージェントフレームワークやカスタムアプリケーションに統合可能です。",
+    "lastUpdated": "最終更新: 2026年3月17日",
+    "mcpSchemaDesc": "AI エージェント（Claude Code、Cursor、ElizaOS）が KnowMint マーケットプレイスから Solana 上の x402 プロトコルを使用して自律的にナレッジを検索・評価・購入できる MCP サーバー。",
+    "cliSchemaDesc": "KnowMint でナレッジの検索・購入・出品を行うコマンドラインツール。Claude Code と OpenCode への自動デプロイに対応。",
+    "howToName": "KnowMint MCP サーバーのセットアップ方法",
+    "howToDescription": "3ステップで AI エージェント統合用 KnowMint MCP サーバーを設定",
+    "howToStep1Name": "API キーを取得",
+    "howToStep1Text": "KnowMint にサインインし、ダッシュボード > API キーから読み取り権限の新しい API キーを作成します。",
+    "howToStep2Name": "MCP を設定",
+    "howToStep2Text": "~/.claude/mcp.json（Claude Code）または .cursor/mcp.json（Cursor）に KnowMint MCP サーバー設定と API キーを追加します。",
+    "howToStep3Name": "AI ツールを再起動",
+    "howToStep3Text": "Claude Code または Cursor を再起動して新しい MCP サーバーを読み込みます。AI エージェントが自律的にナレッジを検索・購入できるようになります。"
   },
   "About": {
     "title": "KnowMint について",
     "description": "KnowMint — Solana 上の x402 を使用した初の AI ネイティブナレッジマーケットプレイス",
     "ogTitle": "KnowMint について",
+    "lastUpdated": "最終更新: 2026年3月17日",
     "missionTitle": "ミッション",
     "missionBody": "KnowMint は、人間の暗黙知と AI エージェントの間のギャップを埋めるために存在します。体験的な洞察、専門的な知見、実践的なノウハウが、AI システムによって発見・購入できるべきだと考えています。エージェントが現実世界の知識で自律的に能力を拡張できる世界を目指します。",
     "whatTitle": "KnowMint とは",

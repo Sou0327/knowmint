@@ -308,7 +308,8 @@
     "topSellers": "Top Sellers",
     "viewRankings": "View Rankings",
     "categories": "Categories",
-    "howItWorksTitle": "How It Works",
+    "howItWorksTitle": "How Do AI Agents Purchase Knowledge?",
+    "lastUpdated": "Last updated: March 17, 2026",
     "howItWorksSubtitle": "AI agents autonomously discover and purchase knowledge via x402. Human-in-the-loop mode also supported — agent proposes, you approve.",
     "howItWorksStep1Title": "Setup MCP",
     "howItWorksStep1Desc": "Add the MCP server to Claude Code or Cursor. Just a few lines of JSON config.",
@@ -387,7 +388,8 @@
     "categoryMetaDescription": "Knowledge in {name} category",
     "categoryItemCount": "{count, plural, one {# item} other {# items}}",
     "searchMetaTitle": "\"{query}\"",
-    "filter": "Filter"
+    "filter": "Filter",
+    "lastUpdated": "Last updated: March 17, 2026"
   },
   "Knowledge": {
     "backToMarket": "Back to Market",
@@ -740,6 +742,7 @@
     "title": "Frequently Asked Questions",
     "description": "Common questions about KnowMint, x402 payments, and AI agent integration",
     "ogTitle": "FAQ | KnowMint",
+    "lastUpdated": "Last updated: March 17, 2026",
     "q1": "What is x402?",
     "a1": "x402 is an open protocol by Coinbase that enables machine-to-machine payments via HTTP 402 status codes. When an AI agent requests paid content, the server responds with HTTP 402 and payment instructions. The agent then sends cryptocurrency (SOL on Solana) directly and resubmits the request with a payment proof. No human intervention required.",
     "q2": "How do AI agents purchase knowledge on KnowMint?",
@@ -816,12 +819,24 @@
     "agentKitDesc": "ActionProvider for Coinbase AgentKit. Enables Solana-based knowledge transactions in AgentKit agents.",
     "mcpProse": "The KnowMint MCP server (@knowmint/mcp-server) lets AI agents like Claude Code, Cursor, and other MCP-compatible clients autonomously search, evaluate, and purchase knowledge from the marketplace. Once configured, agents can discover relevant expertise and complete purchases using the x402 protocol without human intervention.",
     "cliProse": "The KnowMint CLI (km) is a standalone Node.js command-line tool for searching, purchasing, and publishing knowledge directly from your terminal. It supports automated deployment of purchased knowledge to Claude Code and OpenCode configurations.",
-    "apiProse": "The KnowMint REST API provides programmatic access to all marketplace operations. It uses API key authentication (SHA-256 hashed), supports the x402 payment protocol for content access, and can be integrated into any agent framework or custom application."
+    "apiProse": "The KnowMint REST API provides programmatic access to all marketplace operations. It uses API key authentication (SHA-256 hashed), supports the x402 payment protocol for content access, and can be integrated into any agent framework or custom application.",
+    "lastUpdated": "Last updated: March 17, 2026",
+    "mcpSchemaDesc": "MCP server that enables AI agents (Claude Code, Cursor, ElizaOS) to autonomously search, evaluate, and purchase human expertise from the KnowMint marketplace using the x402 protocol on Solana.",
+    "cliSchemaDesc": "Command-line tool for searching, purchasing, and publishing knowledge on KnowMint. Supports automated deployment to Claude Code and OpenCode.",
+    "howToName": "How to Set Up KnowMint MCP Server",
+    "howToDescription": "Configure the KnowMint MCP server for AI agent integration in 3 steps",
+    "howToStep1Name": "Get API Key",
+    "howToStep1Text": "Sign in to KnowMint, navigate to Dashboard > API Keys, and create a new API key with read permission.",
+    "howToStep2Name": "Configure MCP",
+    "howToStep2Text": "Add the KnowMint MCP server configuration to ~/.claude/mcp.json (Claude Code) or .cursor/mcp.json (Cursor) with your API key.",
+    "howToStep3Name": "Restart Your AI Tool",
+    "howToStep3Text": "Restart Claude Code or Cursor to load the new MCP server. Your AI agent can now search and purchase knowledge autonomously."
   },
   "About": {
     "title": "About KnowMint",
     "description": "Learn about KnowMint — the first AI-native knowledge marketplace using x402 on Solana",
     "ogTitle": "About KnowMint",
+    "lastUpdated": "Last updated: March 17, 2026",
     "missionTitle": "Mission",
     "missionBody": "KnowMint exists to bridge the gap between human tacit knowledge and AI agents. We believe that experiential insights, specialized expertise, and practical know-how should be discoverable and purchasable by AI systems — enabling agents to autonomously augment their capabilities with real-world knowledge.",
     "whatTitle": "What is KnowMint?",

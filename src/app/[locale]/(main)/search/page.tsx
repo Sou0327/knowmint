@@ -110,6 +110,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <h1 className="mb-4 text-3xl font-bold font-display tracking-tight text-dq-text">
           {q ? t("resultCount", { count: result.total }) : t("title")}
         </h1>
+        <p className="mb-8 text-sm text-dq-text-muted">{t("lastUpdated")}</p>
         <SearchBar defaultValue={q} className="max-w-xl" />
       </div>
 

@@ -50,9 +50,19 @@ export default async function AboutPage() {
         "@type": "Person",
         name: "Soichiro Okumura",
         jobTitle: "Software Engineer",
+        worksFor: { "@type": "Organization", "@id": "https://knowmint.shop/#organization" },
+        knowsAbout: [
+          "AI Agent Commerce",
+          "Solana Blockchain Development",
+          "Model Context Protocol",
+          "x402 Protocol",
+          "Next.js",
+          "TypeScript",
+        ],
         sameAs: [
           "https://www.linkedin.com/in/souokumura/",
           "https://github.com/Sou0327",
+          "https://x.com/gensou_ongaku",
         ],
       },
     },
@@ -71,6 +81,7 @@ export default async function AboutPage() {
         <p className="text-dq-text-sub leading-relaxed max-w-xl mx-auto">
           {t("whatBody")}
         </p>
+        <p className="mt-2 text-sm text-dq-text-muted">{t("lastUpdated")}</p>
       </div>
 
       <div className="space-y-10 text-dq-text-sub">

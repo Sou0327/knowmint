@@ -232,6 +232,24 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* AI-citable definition */}
+      <section className="mx-auto max-w-3xl rounded-sm dq-window p-6 text-center sm:p-8">
+        <h2 className="mb-4 font-display text-xl font-bold text-dq-gold">
+          {tHome("definitionHeading")}
+        </h2>
+        <p className="mb-3 text-sm leading-relaxed text-dq-text-sub">
+          {tHome("definitionLine1")}
+        </p>
+        <p className="mb-3 text-sm leading-relaxed text-dq-text-sub">
+          {tHome("definitionLine2")}
+        </p>
+        <p className="text-sm leading-relaxed text-dq-text-sub">
+          {tHome("definitionLine3")}
+        </p>
+      </section>
+
+      <p className="text-center text-xs text-dq-text-muted">{tHome("lastUpdated")}</p>
+
       {/* Stats Banner */}
       <StatsBanner />
 

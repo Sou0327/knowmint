@@ -17,8 +17,8 @@ const Spinner = ({ size = 'md', className = '' }: SpinnerProps) => {
       aria-label="Loading"
     >
       <span className="dq-cursor text-dq-gold">▶</span>
-      <span className="dq-cursor text-dq-gold" style={{ animationDelay: '0.33s' }}>▶</span>
-      <span className="dq-cursor text-dq-gold" style={{ animationDelay: '0.66s' }}>▶</span>
+      <span className="dq-cursor dq-cursor-d3 text-dq-gold">▶</span>
+      <span className="dq-cursor dq-cursor-d6 text-dq-gold">▶</span>
     </div>
   );
 };

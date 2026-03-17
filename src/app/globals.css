@@ -171,6 +171,22 @@
   animation: dq-blink 1s step-end infinite;
 }
 
+@utility dq-cursor-d2 {
+  animation-delay: 0.2s;
+}
+
+@utility dq-cursor-d3 {
+  animation-delay: 0.33s;
+}
+
+@utility dq-cursor-d4 {
+  animation-delay: 0.4s;
+}
+
+@utility dq-cursor-d6 {
+  animation-delay: 0.66s;
+}
+
 /* ===== Text Glow Utilities ===== */
 @utility text-glow-gold {
   text-shadow: 0 0 24px rgba(245, 197, 66, 0.3), 0 0 48px rgba(245, 197, 66, 0.1);

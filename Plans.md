@@ -16,7 +16,7 @@
 Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1~6, SEC-1~2, OB-1, MKT-1, UX-1 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
 
-**手動TODO**: SEC-2.3 style-src unsafe-inline 削除検討
+~~**手動TODO**: SEC-2.3 style-src unsafe-inline 削除検討~~ ✅ GEO-9.1 で完了
 
 ---
 
@@ -264,6 +264,18 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 | GEO-8B.5 | Seller Person スキーマ拡充 (url, image from avatar_url) | Knowledge item ページの売り手 Person に url, image 追加。DB の avatar_url を活用 | - | cc:完了 |
 | GEO-8B.6 | Product スキーマ price を文字列型に修正 | `offers.price` を `0.3` → `"0.3"` に変更。Google 期待形式に準拠 | - | cc:完了 |
 | GEO-8B.7 | /legal に BreadcrumbList スキーマ追加 | JSON-LD BreadcrumbList が /legal (terms, privacy) の HTML に出力 | - | cc:完了 |
+
+---
+
+## Phase GEO-9: Technical GEO 残課題 (82→85+) [P2 — コードで完結]
+
+> GEO-4 監査 (65/100) Technical GEO (82/100) の残り改善。コードだけで 85+ を目指す。
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| GEO-9.1 | style-src unsafe-inline 除去 (CSP 強化) | CSP ヘッダーに `style-src 'self'` のみ。`unsafe-inline` なし。全ページのスタイル崩れなし | - | cc:完了 |
+| GEO-9.2 | GSC 検証メタタグ追加 (google-site-verification) | `<meta name="google-site-verification">` が HTML head に出力。GSC でプロパティ確認済み | - | cc:TODO (手動: GSC でトークン取得後) |
+| GEO-9.3 | Bing Webmaster 検証メタタグ追加 (msvalidate.01) | `<meta name="msvalidate.01">` が HTML head に出力 | - | cc:TODO (手動: Bing でトークン取得後) |
 
 ---
 

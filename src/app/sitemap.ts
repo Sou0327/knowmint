@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 
 const BASE_URL = "https://knowmint.shop";
 
-const STATIC_LAST_MODIFIED = new Date("2026-03-13");
+// Deploy date fallback — overridden by DB-derived dates in fetchSitemap()
+const DEPLOY_FALLBACK = new Date("2026-03-17");
 
 const STATIC_PATHS = [
   { path: "/", changeFrequency: "daily" as const, priority: 1.0 },
@@ -50,17 +51,11 @@ declare global {
 }
 
 async function fetchSitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((s) => ({
-    url: `${BASE_URL}${s.path}`,
-    lastModified: STATIC_LAST_MODIFIED,
-    changeFrequency: s.changeFrequency,
-    priority: s.priority,
-    alternates: withAlternates(s.path),
-  }));
-
   let categoryEntries: MetadataRoute.Sitemap = [];
   let knowledgeEntries: MetadataRoute.Sitemap = [];
   let querySucceeded = true;
+  // Derive lastmod from the most recent knowledge_items.updated_at (set after DB queries)
+  let siteLastModified: Date = DEPLOY_FALLBACK;
 
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -71,7 +66,8 @@ async function fetchSitemap(): Promise<MetadataRoute.Sitemap> {
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
-    const categoryBudget = MAX_SITEMAP_URLS - staticEntries.length;
+    const staticCount = STATIC_PATHS.length;
+    const categoryBudget = MAX_SITEMAP_URLS - staticCount;
 
     const { data: categories, error: catError } = await supabase
       .from("categories")
@@ -82,21 +78,10 @@ async function fetchSitemap(): Promise<MetadataRoute.Sitemap> {
     if (catError) {
       console.error("[sitemap] categories query failed:", catError.message);
       querySucceeded = false;
-    } else {
-      categoryEntries = (categories ?? []).map((cat) => {
-        const path = `/category/${cat.slug}`;
-        return {
-          url: `${BASE_URL}${path}`,
-          lastModified: STATIC_LAST_MODIFIED,
-          changeFrequency: "daily" as const,
-          priority: 0.7,
-          alternates: withAlternates(path),
-        };
-      });
     }
 
     // Skip knowledge query if categories already failed
-    const knowledgeLimit = Math.max(0, MAX_SITEMAP_URLS - staticEntries.length - categoryEntries.length);
+    const knowledgeLimit = Math.max(0, MAX_SITEMAP_URLS - staticCount - (categories?.length ?? 0));
 
     if (knowledgeLimit > 0 && querySucceeded) {
       const { data, error } = await supabase
@@ -111,11 +96,15 @@ async function fetchSitemap(): Promise<MetadataRoute.Sitemap> {
         console.error("[sitemap] DB query failed:", error.message);
         querySucceeded = false;
       } else {
+        // Use the most recent item's updated_at as the site-wide lastmod
+        if (data.length > 0 && data[0].updated_at) {
+          siteLastModified = new Date(data[0].updated_at);
+        }
         knowledgeEntries = data.map((item) => {
           const path = `/knowledge/${item.id}`;
           return {
             url: `${BASE_URL}${path}`,
-            lastModified: item.updated_at ? new Date(item.updated_at) : new Date(),
+            lastModified: item.updated_at ? new Date(item.updated_at) : siteLastModified,
             changeFrequency: "weekly" as const,
             priority: 0.8,
             alternates: withAlternates(path),
@@ -123,10 +112,32 @@ async function fetchSitemap(): Promise<MetadataRoute.Sitemap> {
         });
       }
     }
+
+    if (querySucceeded && categories) {
+      categoryEntries = categories.map((cat) => {
+        const path = `/category/${cat.slug}`;
+        return {
+          url: `${BASE_URL}${path}`,
+          lastModified: siteLastModified,
+          changeFrequency: "daily" as const,
+          priority: 0.7,
+          alternates: withAlternates(path),
+        };
+      });
+    }
   } catch (err) {
     console.error("[sitemap] Failed to fetch sitemap data:", err);
     querySucceeded = false;
   }
+
+  // Build static entries with content-derived lastmod (or deploy fallback)
+  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((s) => ({
+    url: `${BASE_URL}${s.path}`,
+    lastModified: siteLastModified,
+    changeFrequency: s.changeFrequency,
+    priority: s.priority,
+    alternates: withAlternates(s.path),
+  }));
 
   const result = [...staticEntries, ...categoryEntries, ...knowledgeEntries];
 

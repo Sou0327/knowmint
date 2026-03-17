@@ -17,7 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: disallowList,
       },
       {
-        userAgent: ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended", "Amazonbot", "CCBot", "Applebot-Extended", "OAI-SearchBot", "ChatGPT-User", "bingbot"],
+        userAgent: ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended", "Amazonbot", "CCBot", "Applebot-Extended", "OAI-SearchBot", "ChatGPT-User", "bingbot", "Bytespider", "FacebookBot", "cohere-ai"],
         allow: "/",
         disallow: disallowList,
       },

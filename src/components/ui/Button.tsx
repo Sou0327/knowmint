@@ -53,8 +53,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {loading && (
           <span className="inline-flex gap-0.5">
             <span className="h-1.5 w-1.5 bg-current rounded-full dq-cursor" />
-            <span className="h-1.5 w-1.5 bg-current rounded-full dq-cursor" style={{ animationDelay: '0.2s' }} />
-            <span className="h-1.5 w-1.5 bg-current rounded-full dq-cursor" style={{ animationDelay: '0.4s' }} />
+            <span className="h-1.5 w-1.5 bg-current rounded-full dq-cursor dq-cursor-d2" />
+            <span className="h-1.5 w-1.5 bg-current rounded-full dq-cursor dq-cursor-d4" />
           </span>
         )}
         {children}

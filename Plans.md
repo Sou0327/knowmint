@@ -13,10 +13,8 @@
 
 ## 完了済みフェーズ
 
-Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1~6, SEC-1~2, OB-1, MKT-1, UX-1 すべて `cc:DONE`
+Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TEST, CLI-PAY, CONTENT-1, DEMO-WEB, REVIEW-1, GEO-1~9.1, SEC-1~2, OB-1, MKT-1, UX-1~2, AVATAR, GEO-7~8 すべて `cc:DONE`
 詳細は `plans/archive-*.md` 参照。Maestro E2E: 18フロー (21/22 ページ, 95%)
-
-~~**手動TODO**: SEC-2.3 style-src unsafe-inline 削除検討~~ ✅ GEO-9.1 で完了
 
 ---
 
@@ -65,21 +63,29 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
-## Phase MKT-3: コンテンツ + Reddit [P1 — マーケティング]
+## Phase MKT-3: 記事シリーズ + Reddit [P1 — マーケティング]
 
-> CS 完了後に実行。技術記事で認知 → Reddit で直接ターゲットにリーチ。
-> 詳細: `docs/reddit-promotion-guide.md`, `docs/marketing-deep-dive.md`
+> 技術記事で認知 → Reddit で直接ターゲットにリーチ。
+> 公開順序: Hashnode (原文) → Dev.to (canonical=hashnode) → Reddit (1-2日後)
+> 投稿時間: 火-木 JST 21:00-24:00 (US東部 8-11AM)
+> 詳細: `docs/marketing/05-blog-content.md`, `docs/reddit-promotion-guide.md`, `memory/content_strategy.md`
 
 | Task | 内容 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
 | 3.1 | Hashnode ブログ (blog.knowmint.shop CNAME 設定) | `https://blog.knowmint.shop` にアクセス可能 | - | cc:完了 (2026-03-15) |
-| 3.2 | Dev.to 技術記事 1本目 (x402 + MCP 実装解説。宣伝ではなく技術教育) | Dev.to に公開、canonical URL 設定済み | 3.1 | cc:TODO |
-| 3.3 | Reddit 投稿 5本 (r/SideProject → r/ClaudeCode → r/solana → r/ClaudeAI → r/LocalLLaMA) | 5 subreddit に投稿完了。各テンプレートを自分の言葉で書き直し | CS.1 | cc:TODO |
-| 3.4 | Reddit 「Why not Stripe?」回答テンプレート追加 + 各投稿のリンク構成分散 | reddit-promotion-guide.md 更新済み | - | cc:TODO |
-| 3.5 | Colosseum ビデオピッチ提出 (3分) | ビデオピッチ + 技術ウォークスルー動画提出 | 2.5 | cc:TODO |
+| 3.2a | 記事1: 個人開発ストーリー — "I Built a Marketplace Where AI Agents Buy Knowledge Autonomously" | Hashnode 公開 + Dev.to クロスポスト (canonical設定) + 1500-2000語 + Demo GIF 埋め込み | 3.1 | cc:TODO |
+| 3.2b | 記事2: Claude 自律購入 — "I Made Claude Buy Knowledge Autonomously — Here's the x402 Flow" | Hashnode + Dev.to + MCP 設定コード付き + tags: ai, webdev, opensource, javascript | 3.2a | cc:TODO |
+| 3.2c | 記事3: x402 技術解説 — "x402 Explained: HTTP 402 + Crypto for AI Agent Payments" | Hashnode + Dev.to + コードウォークスルー付き + tags: web3, ai, opensource, javascript | 3.2b | cc:TODO |
+| 3.2d | 記事4: 技術スタック — "Next.js 16 + Cloudflare Workers + Solana: Full Stack Guide" | Hashnode + Dev.to + tags: webdev, nextjs, typescript, javascript | 3.2c | cc:TODO |
+| 3.3a | Reddit r/SideProject 投稿 (記事1と連動。本文はストーリー、記事リンクはOPコメント) | 投稿完了 | 3.2a | cc:TODO |
+| 3.3b | Reddit r/ClaudeCode 投稿 (記事2と連動。MCP 設定コードを本文に) | 投稿完了 | 3.2b | cc:TODO |
+| 3.3c | Reddit r/solana 投稿 (記事3と連動。x402 実装の技術詳細) | 投稿完了 | 3.2c | cc:TODO |
+| 3.3d | Reddit r/ClaudeAI + r/LocalLLaMA 投稿 | 投稿完了 | 3.2b | cc:TODO |
+| 3.4 | Reddit 「Why not Stripe?」回答テンプレート追加 | reddit-promotion-guide.md 更新済み | - | cc:TODO |
 | 3.6 | Bluesky アカウント + カスタムドメイン + 毎日投稿開始 | @knowmint.shop ハンドルで 10投稿以上 | - | cc:TODO |
 
-**Reddit 撤退条件**: 3本投稿して合計 upvote 20未満なら Reddit 戦略を停止し、Dev.to 記事集中に切り替え。
+**書き方ルール**: 80% 教育 / 20% プロダクト。CTA 末尾1箇所。失敗談も正直に。
+**Reddit 撤退条件**: 3本投稿して合計 upvote 20未満なら Reddit 停止、Dev.to 記事集中に切り替え。
 
 ---
 
@@ -132,148 +138,16 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, 26, UI-1, PROD-TE
 
 ---
 
-## Phase MKT-NOW: 知名度ゼロから即実行できるコード実装 [P1 — MKT-CS と並行可]
+## Phase GEO-6 残課題 (手動のみ) [P3]
 
-> TPP プレイブック (docs/marketing-tpp-playbook.md) より抽出。
-> フォロワー・実績・信頼が一切不要で、CC が即実装できるタスクのみ。
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| NOW.1 | SKILL.md をリポジトリルートに追加 (SkillsMP 96K+ skills が自動クロール) | `/SKILL.md` が存在し、name/description/tags/capabilities/install セクションを含む | - | cc:完了 |
-| NOW.2 | knowmint.shop にメールキャプチャフォーム追加 | ホームページにメール入力フォーム表示。Supabase `email_subscribers` テーブルに保存。重複排除 | - | cc:完了 |
-| NOW.3 | 購入後シェアカード生成 + Twitter シェアボタン | 購入完了画面に ShareCard + Twitter intent URL + リンクコピー表示 | - | cc:完了 |
-| NOW.4 | awesome-x402 リポジトリ作成 (GitHub) | `docs/marketing/awesome-x402-readme.md` に README 生成済み。人間が GitHub リポ作成+push | - | cc:完了 |
-| NOW.5 | MCP ディレクトリ一括登録用テキスト生成 (6 箇所分) | `docs/marketing/mcp-directory-submissions.md` 生成済み。人間がコピペ提出 | - | cc:完了 |
-| NOW.6 | Agent ディレクトリ一括登録用テキスト生成 (Skills.sh / AI Agent Store / agentregistry 等) | `docs/marketing/agent-directory-submissions.md` 生成済み。人間がコピペ提出 | NOW.1 | cc:完了 |
-| NOW.7 | x402 エコシステム PR 用ファイル一式生成 (coinbase/x402 + awesome-x402 2リポ + awesome-solana-ai) | `docs/marketing/x402-pr-templates.md` 生成済み。人間が PR 作成 | - | cc:完了 |
-| NOW.8 | About ページ追加 (創業者実名 + LinkedIn + GitHub + E-E-A-T 信頼構築) | `/about` に Soichiro Okumura プロフィール表示。LinkedIn/GitHub リンク。DQ テーマ。i18n 対応 (en/ja) | - | cc:TODO |
-
-> **人間がやること**: NOW.5-7 の生成テキストを各サイト/リポにコピペ提出。NOW.4 の GitHub リポ作成+push。
+| Task | 内容 | Status |
+|------|------|--------|
+| GEO-6.1 | Cloudflare HTTP→HTTPS リダイレクト | cc:TODO (手動) |
+| GEO-6.R4 | indexnow-key.txt デプロイ同期 | cc:TODO (手動) |
 
 ---
 
-## Phase AVATAR: プロフィールアイコン設定 [P1]
-
-> ユーザーがプロフィール画像をアップロード・表示できるようにする。
-> DB (`profiles.avatar_url`) と AuthContext (`updateProfile`) は準備済み。Storage バケット + UI が未実装。
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| AV.1 | Supabase Storage `avatars` バケット作成 (migration + RLS ポリシー) | public バケット作成。認証ユーザーが自分のパス (`{user_id}/*`) にのみ upload/update/delete 可能。他ユーザーは読み取りのみ | - | cc:完了 |
-| AV.2 | `src/lib/storage/avatars.ts` ヘルパー作成 (upload, getPublicUrl, delete) | アップロード (2MB上限, JPEG/PNG/WebP), 公開URL取得, 削除。既存 `datasets.ts` パターンに準拠 | - | cc:完了 |
-| AV.3 | `UserAvatar` 共通コンポーネント作成 | `avatar_url` があれば画像表示、なければイニシャル文字フォールバック。size prop (sm/md/lg)。DQ テーマ維持 | - | cc:完了 |
-| AV.4 | プロフィールページにアバターアップロード UI 追加 | 画像選択→プレビュー→アップロード→`updateProfile({ avatar_url })`。削除ボタン。i18n (en/ja) | AV.2, AV.3 | cc:完了 |
-| AV.5 | 既存コンポーネントを `UserAvatar` に置換 (SellerCard, SellerRankingCard, ReviewList, Header) | 全4箇所でイニシャル文字表示を `UserAvatar` に統一。画像があれば表示 | AV.3 | cc:完了 |
-
----
-
-## Phase GEO-6 残課題 [P2]
-
-> GEO-6 の14/16タスク完了。残りの未完了タスクのみ。完了分は `plans/archive-geo6-ux1.md` 参照。
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-6.1 | Cloudflare で HTTP→HTTPS リダイレクト有効化 | `curl -I http://knowmint.shop` が 301→https | - | cc:TODO (手動) |
-| GEO-6.R1 | getTopSellers を SQL GROUP BY に置換 | DB 側で集約 | - | cc:完了 |
-| GEO-6.R2 | logAuditEvent → Promise<void> + after() | serverless 完走保証 | - | cc:完了 |
-| GEO-6.R3 | publish route TOCTOU 修正 | status=draft 条件追加 | - | cc:完了 |
-| GEO-6.R4 | indexnow-key.txt デプロイ同期 | env+ファイル一致 | - | cc:TODO (手動) |
-
-> GEO オフサイト施策は MKT-3 (Reddit → Brand +15) / MKT-6 (X → Brand) で管理。
-
----
-
-## Phase GEO-7: コストゼロ技術修正バッチ [P2 — MKT-CS と並行可]
-
-> GEO 監査 (2026-03-14, 51/100) で検出。コードだけで完結し MKT-CS と並行実行可能な改善。
-> Brand Authority (11/100) は技術修正では動かないため、スキーマ/コンテンツの低コスト改善に絞る。
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-7.1 | llms.txt を標準仕様にリライト (`# Title`, `> Summary`, `## Section`) | Perplexity/ChatGPT の retrieval パイプラインが期待する形式に準拠 | - | cc:完了 (既に準拠済み) |
-| GEO-7.2 | FAQ Q4/Q17 重複統合 | MCP セットアップ FAQ が1つに統合、冗長解消 | - | cc:完了 |
-| GEO-7.3 | BreadcrumbList を /search, /contact, /terms, /privacy に追加 | 4ページに JSON-LD BreadcrumbList 出力 | - | cc:完了 |
-| GEO-7.4 | ContactPage + ContactPoint スキーマを /contact に追加 | JSON-LD 検証通過 | - | cc:完了 |
-| GEO-7.5 | Organization スキーマ強化 (foundingDate, knowsAbout, logo→ImageObject) | ホームページ JSON-LD に反映 | - | cc:完了 |
-| GEO-7.6 | SoftwareApplication スキーマ強化 (softwareVersion, downloadUrl, codeRepository, license) | /developers の JSON-LD に反映 | - | cc:完了 |
-| GEO-7.7 | title タグを 60文字以内に短縮 | SERP 切り詰めなし | - | cc:完了 |
-
-> **CS 完了後に再検討**: Wikidata Q-ID、「AI-Native Commerce」定義ページ、創業者身元公開、固有メトリクス公開
-
----
-
-## Phase UX-2: UI/UX 改善バッチ [P2 — MKT-CS と並行可]
-
-> UI/UX Pro Max 監査 (2026-03-17) で検出。コードだけで完結する改善。
-> DQ テーマの維持が前提。コンバージョン・アクセシビリティ・モバイル UX に直結する項目を優先。
-
-### UX-2A: CRITICAL — アクセシビリティ & モバイル基盤
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| UX-2A.1 | 検索ページ: モバイルフィルター UI 追加 (カテゴリ/タイプ。`hidden lg:block` の代替) | 375px 幅でフィルターボタン→ドロワー or シート表示。フィルター適用で結果更新 | - | cc:完了 [3b01242] |
-| UX-2A.2 | 検索ページ: ソートボタンをモバイルで横スクロール or セレクト化 | 375px 幅でオーバーフローなし。全ソートオプションにアクセス可能 | - | cc:完了 [3b01242] |
-| UX-2A.3 | FAQ ページ: `<summary>` に focus スタイル追加 + details marker を DQ テーマ化 | Tab キーで focus ring 表示。`▶` → DQ テーマ矢印アイコン | - | cc:完了 [5e73442] |
-| UX-2A.4 | 通知ページ: 絵文字アイコン → Lucide SVG アイコンに置換 | 💰⭐👤📦 を LucideIcon に統一。DQ テーマカラー適用 | - | cc:完了 [f299e8e] |
-| UX-2A.5 | Header/Footer: タッチターゲット拡大 (ナビリンク min 44px) | Lighthouse Accessibility で tap target 警告なし | - | cc:完了 [e51c3cd] |
-
-### UX-2B: HIGH — コンバージョン & インタラクション改善
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| UX-2B.1 | ログインページ: パスワード表示/非表示トグル追加 | 目アイコンクリックで type=password ↔ text 切替 | - | cc:完了 [3d92e4f] |
-| UX-2B.2 | サインアップページ: パスワード強度インラインバリデーション (8文字+一致チェック) | blur 時にエラー表示。submit 前にリアルタイムフィードバック | - | cc:完了 [7c45cf1] |
-| UX-2B.3 | Knowledge 詳細: モバイル購入 CTA を fixed bottom bar 化 | lg 未満で sticky bottom に価格+購入ボタン表示。スクロールで追従 | - | cc:完了 [cf5f2e2] |
-| UX-2B.4 | ダッシュボード出品一覧: `confirm()` → カスタムモーダルに置換 | DQ テーマの確認ダイアログ。ブラウザ alert 不使用 | - | cc:完了 [6d34bb3] |
-| UX-2B.5 | ダッシュボード出品一覧: モバイルでアクションボタンをドロップダウン化 | sm 未満でボタン群が「...」メニューに収納 | UX-2B.4 | cc:完了 [6d34bb3] |
-
-### UX-2C: MEDIUM — 体験の磨き込み
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| UX-2C.1 | プロフィール: ウォレットアドレスにコピーボタン追加 | クリックでクリップボードにコピー + トースト表示 | - | cc:完了 [400242e] |
-| UX-2C.2 | 通知: 既読/未読の視覚差強化 + 一括既読ボタン | 未読に左ボーダー追加。「すべて既読」ボタン | - | cc:完了 [400242e] |
-| UX-2C.3 | ホームページ: カテゴリカードにアイテム数バッジ表示 | 各カテゴリに `(N件)` 表示 | - | cc:完了 [400242e] |
-| UX-2C.4 | お気に入り/ライブラリ: グリッドを `<ul role="list">` に意味論改善 | スクリーンリーダーでリスト構造として認識 | - | cc:完了 [400242e] |
-
----
-
-## Phase GEO-8: エージェント向けオンサイト技術改善 [P1 — MKT-CS と並行可]
-
-> GEO-3 監査 (2026-03-17, 56/100) で検出。AI エージェント・AI 検索エンジンが KnowMint を「理解・引用」できるようにするオンサイト技術改善。
-> コードだけで完結。GEO-7 完了済みタスクとの重複なし。
-> 期待インパクト: AI Citability +7, Schema +13, Technical GEO +7 → Overall GEO +5-8pt
-
-### GEO-8A: HIGH — AI 引用確率を直接向上
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-8A.1 | ホームページ Hero 直下に自己完結型定義パラグラフ追加 | 「KnowMint is the first AI-native knowledge marketplace...」が Hero 直下に HTML `<p>` で存在。FAQ と同一定義。AI が単独引用可能 | - | cc:完了 |
-| GEO-8A.2 | llms-full.txt を 2500+ 語に拡張 (FAQ 全文, API ドキュメント, ユースケース例追加) | `wc -w public/llms-full.txt` が 2500 以上 | - | cc:完了 |
-| GEO-8A.3 | 全主要ページに「Last updated」日付表示追加 | ホーム, /about, /developers, /search, /faq, /contact に最終更新日が可視テキストで表示 | - | cc:完了 |
-| GEO-8A.4 | ホームページ見出しを質問型に変換 (「How It Works」→「How Do AI Agents Purchase Knowledge?」) | AI Overviews 抽出確率向上。宣言型→質問型の変換 | - | cc:完了 |
-
-### GEO-8B: MEDIUM — スキーマ補完
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-8B.1 | /developers に HowTo スキーマ追加 (MCP セットアップ手順) | JSON-LD HowTo が /developers の HTML に出力。Google Rich Results Test 通過 | - | cc:完了 |
-| GEO-8B.2 | CLI (km) SoftwareApplication スキーマ追加 | /developers に CLI 用 JSON-LD SoftwareApplication 出力 (name, description, applicationCategory, operatingSystem, codeRepository, license) | - | cc:完了 |
-| GEO-8B.3 | MCP SoftwareApplication に description 追加 | 既存の MCP スキーマに description フィールド追加 | - | cc:完了 |
-| GEO-8B.4 | Founder Person スキーマ拡充 (worksFor, image, knowsAbout, sameAs) | /about の Person JSON-LD にレポート Appendix テンプレート準拠のフィールド追加 | - | cc:完了 |
-| GEO-8B.5 | Seller Person スキーマ拡充 (url, image from avatar_url) | Knowledge item ページの売り手 Person に url, image 追加。DB の avatar_url を活用 | - | cc:完了 |
-| GEO-8B.6 | Product スキーマ price を文字列型に修正 | `offers.price` を `0.3` → `"0.3"` に変更。Google 期待形式に準拠 | - | cc:完了 |
-| GEO-8B.7 | /legal に BreadcrumbList スキーマ追加 | JSON-LD BreadcrumbList が /legal (terms, privacy) の HTML に出力 | - | cc:完了 |
-
----
-
-## Phase GEO-9: Technical GEO 残課題 (82→85+) [P2 — コードで完結]
-
-> GEO-4 監査 (65/100) Technical GEO (82/100) の残り改善。コードだけで 85+ を目指す。
-
-| Task | 内容 | DoD | Depends | Status |
-|------|------|-----|---------|--------|
-| GEO-9.1 | style-src unsafe-inline 除去 (CSP 強化) | CSP ヘッダーに `style-src 'self'` のみ。`unsafe-inline` なし。全ページのスタイル崩れなし | - | cc:完了 |
+## Phase GEO-9 残課題 (手動トークン取得後) [P2]
 | GEO-9.2 | GSC 検証メタタグ追加 (google-site-verification) | `<meta name="google-site-verification">` が HTML head に出力。GSC でプロパティ確認済み | - | cc:TODO (手動: GSC でトークン取得後) |
 | GEO-9.3 | Bing Webmaster 検証メタタグ追加 (msvalidate.01) | `<meta name="msvalidate.01">` が HTML head に出力 | - | cc:TODO (手動: Bing でトークン取得後) |
 

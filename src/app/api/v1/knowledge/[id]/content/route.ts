@@ -16,6 +16,11 @@ import {
   verifySolanaPurchaseTransaction,
   isValidSolanaTxHash,
 } from "@/lib/solana/verify-transaction";
+import {
+  isMppEnabled,
+  createMppCharge,
+  generateMppChallenge,
+} from "@/lib/mpp";
 
 const X402_HEADERS = {
   "Cache-Control": "no-store",
@@ -28,6 +33,7 @@ const SUPABASE_NOT_FOUND = "PGRST116";
 /**
  * GET /api/v1/knowledge/[id]/content
  * Returns full content for purchased items or seller's own items.
+ * Supports MPP (Machine Payments Protocol) via Authorization: Payment header.
  * Supports x402 HTTP payment protocol via X-PAYMENT header.
  * Supports ?format=raw for plain text output.
  */
@@ -59,6 +65,114 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
   }
 
   const isSeller = item.seller_id === user.userId;
+
+  // ── MPP payment flow (Machine Payments Protocol via Tempo) ──────────────
+  const authHeader = request.headers.get("Authorization");
+  const isMppRequest = authHeader?.startsWith("Payment ") && !isSeller && isMppEnabled();
+
+  if (isMppRequest) {
+    if (!item.price_usdc || item.price_usdc <= 0) {
+      return apiError(API_ERRORS.BAD_REQUEST, "No USDC price set for MPP payment");
+    }
+
+    const mppResult = await createMppCharge(request, item.price_usdc.toString(), id);
+
+    if (mppResult.paid) {
+      // Scope validation: mppx SDK verifies credential against HMAC-bound challenge ID.
+      // The challenge request includes externalId (= knowledge_id), and the HMAC
+      // ensures the credential was issued for this specific challenge.
+      // Additional app-level check when externalId is available in receipt/credential:
+      if (mppResult.verifiedExternalId && mppResult.verifiedExternalId !== id) {
+        console.warn("[content] mpp credential externalId mismatch:", {
+          expected: id, got: mppResult.verifiedExternalId, userId: user.userId,
+        });
+        return apiError(API_ERRORS.BAD_REQUEST, "Payment credential scope mismatch");
+      }
+
+      // Fail-close: refuse to serve content without a verifiable tx hash
+      if (!mppResult.txHash) {
+        console.error("[content] mpp payment succeeded but no txHash in receipt:", { userId: user.userId, itemId: id });
+        return apiError(API_ERRORS.INTERNAL_ERROR, "Payment receipt missing transaction hash");
+      }
+      const txHash = mppResult.txHash;
+
+      // Idempotency: check if this tx is already recorded
+      {
+        const { data: existingMppTx, error: existingMppTxErr } = await admin
+          .from("transactions")
+          .select("id, buyer_id, knowledge_item_id, status")
+          .eq("tx_hash", txHash)
+          .maybeSingle();
+
+        if (existingMppTxErr) {
+          console.error("[content] mpp check existing tx failed:", { userId: user.userId, itemId: id, error: existingMppTxErr });
+          return apiError(API_ERRORS.INTERNAL_ERROR);
+        }
+
+        if (existingMppTx) {
+          if (
+            existingMppTx.buyer_id === user.userId &&
+            existingMppTx.knowledge_item_id === id &&
+            existingMppTx.status === "confirmed"
+          ) {
+            // Idempotent match → fall through to serve content
+          } else {
+            return apiError(API_ERRORS.CONFLICT, "Transaction hash already used");
+          }
+          // Skip insert, serve content below
+        } else {
+          // Insert new transaction
+          const { error: mppInsertErr } = await admin.from("transactions").insert({
+            buyer_id: user.userId,
+            seller_id: item.seller_id,
+            knowledge_item_id: id,
+            amount: item.price_usdc,
+            token: "USDC" as const,
+            chain: "tempo" as const,
+            tx_hash: txHash,
+            status: "confirmed" as const,
+            protocol_fee: 0,
+            fee_vault_address: null,
+          });
+
+          if (mppInsertErr) {
+            if (mppInsertErr.code === "23505") {
+              // TOCTOU: concurrent request — re-read and validate (same pattern as x402)
+              const { data: raceTx, error: raceTxError } = await admin
+                .from("transactions")
+                .select("buyer_id, knowledge_item_id, status")
+                .eq("tx_hash", txHash)
+                .maybeSingle();
+
+              if (raceTxError) {
+                console.error("[content] mpp re-read tx after conflict failed:", { userId: user.userId, itemId: id, error: raceTxError });
+                return apiError(API_ERRORS.INTERNAL_ERROR);
+              }
+              if (
+                raceTx?.buyer_id !== user.userId ||
+                raceTx?.knowledge_item_id !== id ||
+                raceTx?.status !== "confirmed"
+              ) {
+                return apiError(API_ERRORS.CONFLICT, "Transaction hash already used");
+              }
+              // Concurrent insert by same user for same item — safe to continue
+            } else {
+              console.error("[content] mpp record transaction failed:", { userId: user.userId, itemId: id, error: mppInsertErr });
+              return apiError(API_ERRORS.INTERNAL_ERROR);
+            }
+          } else {
+            // Increment purchase count (fire-and-forget)
+            admin.rpc("increment_purchase_count", { item_id: id }).then(() => {}, () => {});
+          }
+        }
+      }
+      // MPP payment verified → fall through to serve content
+
+    } else {
+      // MPP payment not provided or invalid — fall through to combined 402 below
+    }
+  }
+
   const xPaymentHeader = request.headers.get("X-PAYMENT");
 
   if (xPaymentHeader && !isSeller) {
@@ -282,19 +396,29 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
         return apiError(API_ERRORS.INTERNAL_ERROR, "Seller wallet not configured");
       }
 
-      return NextResponse.json(
-        buildX402Body({
-          resourceUrl: new URL(
-            `/api/v1/knowledge/${id}/content`,
-            request.url
-          ).toString(),
-          description: `Knowledge item ${id}`,
-          price_sol: item.price_sol,
-          price_usdc: item.price_usdc,
-          sellerAddress: sp.wallet_address,
-        }),
-        { status: 402, headers: X402_HEADERS }
-      );
+      // Build combined 402: x402 body + MPP WWW-Authenticate header
+      const x402Body = buildX402Body({
+        resourceUrl: new URL(
+          `/api/v1/knowledge/${id}/content`,
+          request.url
+        ).toString(),
+        description: `Knowledge item ${id}`,
+        price_sol: item.price_sol,
+        price_usdc: item.price_usdc,
+        sellerAddress: sp.wallet_address,
+      });
+
+      const responseHeaders: Record<string, string> = { ...X402_HEADERS };
+
+      // Add MPP challenge header if enabled and USDC price is set
+      if (isMppEnabled() && item.price_usdc && item.price_usdc > 0) {
+        const mppChallenge = await generateMppChallenge(request, item.price_usdc.toString(), id);
+        if (mppChallenge) {
+          responseHeaders["WWW-Authenticate"] = mppChallenge;
+        }
+      }
+
+      return NextResponse.json(x402Body, { status: 402, headers: responseHeaders });
     }
   }
 

@@ -13,10 +13,19 @@ const THROTTLE_MS = 5 * 60 * 1000;
 export async function authenticateApiKey(
   request: Request
 ): Promise<AuthenticatedUser | null> {
+  // Support two authentication methods:
+  // 1. Authorization: Bearer km_xxx (standard)
+  // 2. X-API-Key: km_xxx (alternative — needed when Authorization is used for MPP Payment credential)
   const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
+  const xApiKey = request.headers.get("x-api-key");
 
-  const token = authHeader.slice(7);
+  let token: string | null = null;
+  if (xApiKey?.startsWith("km_")) {
+    token = xApiKey;
+  } else if (authHeader?.startsWith("Bearer ")) {
+    token = authHeader.slice(7);
+  }
+  if (!token) return null;
   if (!token.startsWith("km_")) return null;
 
   // SHA-256 hash the raw token

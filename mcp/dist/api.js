@@ -169,7 +169,14 @@ async function parseResponse(response) {
 export async function apiRequestWithPayment(config, apiPath, extraHeaders) {
     requireApiKey(config);
     const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
-    const headers = { ...buildHeaders(config), ...extraHeaders };
+    const baseHeaders = buildHeaders(config);
+    // If extraHeaders overrides Authorization (e.g., MPP Payment credential),
+    // move the API key to X-API-Key so server auth still works
+    if (extraHeaders?.["Authorization"] && baseHeaders["Authorization"] && config.apiKey) {
+        delete baseHeaders["Authorization"];
+        baseHeaders["X-API-Key"] = config.apiKey;
+    }
+    const headers = { ...baseHeaders, ...extraHeaders };
     const { signal, cleanup } = withTimeout();
     try {
         const response = await fetch(url, { method: "GET", headers, signal });
@@ -183,11 +190,15 @@ export async function apiRequestWithPayment(config, apiPath, extraHeaders) {
                 json = null;
             }
             const body = (json ?? {});
+            // Extract MPP challenge from WWW-Authenticate header (if present)
+            const wwwAuth = response.headers.get("WWW-Authenticate");
+            const mppChallenge = wwwAuth?.startsWith("Payment ") ? wwwAuth : undefined;
             return {
                 payment_required: true,
                 x402Version: typeof body["x402Version"] === "number" ? body["x402Version"] : undefined,
                 accepts: Array.isArray(body["accepts"]) ? body["accepts"] : [],
                 error: typeof body["error"] === "string" ? body["error"] : undefined,
+                mpp_challenge: mppChallenge,
             };
         }
         return await parseResponse(response);

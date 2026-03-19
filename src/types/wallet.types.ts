@@ -26,7 +26,7 @@ export interface PaymentResult {
 }
 
 // EVM chain types
-export type EVMChain = 'base' | 'ethereum';
+export type EVMChain = 'base' | 'ethereum' | 'tempo';
 
 export type ChainType = 'solana' | EVMChain;
 

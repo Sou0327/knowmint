@@ -150,18 +150,29 @@ export function registerTools(server, config) {
         }
     });
     // ── km_get_content ────────────────────────────────────────────────────────
-    server.tool("km_get_content", "Retrieve the full content of a knowledge item. If payment_required: true is returned, send on-chain payment and retry with payment_proof (base64-encoded X-PAYMENT).", {
+    server.tool("km_get_content", "Retrieve the full content of a knowledge item. If payment_required: true is returned, choose a payment method: (1) x402: send on-chain Solana payment and retry with payment_proof, or (2) MPP: use mppx client to create credential from mpp_challenge and retry with payment_authorization.", {
         knowledge_id: knowledgeIdSchema.describe("Knowledge item ID"),
         payment_proof: z
             .string()
             .optional()
-            .describe("base64-encoded X-PAYMENT proof. Format: base64({scheme,network,payload:{txHash,asset?}}). Obtain after sending on-chain payment and retry."),
-    }, async ({ knowledge_id, payment_proof }) => {
+            .describe("x402 payment proof (base64-encoded X-PAYMENT). Format: base64({scheme,network,payload:{txHash,asset?}}). Use for Solana payments."),
+        payment_authorization: z
+            .string()
+            .optional()
+            .describe("MPP payment authorization header value. Format: 'Payment <base64url-encoded credential>'. Obtain from mpp_challenge field of a payment_required response using mppx client."),
+    }, async ({ knowledge_id, payment_proof, payment_authorization }) => {
         try {
-            const extraHeaders = payment_proof
-                ? { "X-PAYMENT": payment_proof }
-                : undefined;
-            const data = await apiRequestWithPayment(config, `/api/v1/knowledge/${encodeURIComponent(knowledge_id)}/content`, extraHeaders);
+            const extraHeaders = {};
+            if (payment_proof) {
+                // x402 takes priority if both are provided
+                extraHeaders["X-PAYMENT"] = payment_proof;
+            }
+            else if (payment_authorization) {
+                extraHeaders["Authorization"] = payment_authorization.startsWith("Payment ")
+                    ? payment_authorization
+                    : `Payment ${payment_authorization}`;
+            }
+            const data = await apiRequestWithPayment(config, `/api/v1/knowledge/${encodeURIComponent(knowledge_id)}/content`, Object.keys(extraHeaders).length > 0 ? extraHeaders : undefined);
             return ok(data);
         }
         catch (e) {

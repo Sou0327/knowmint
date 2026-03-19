@@ -193,12 +193,14 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return result.data;
 }
 
-/** x402 HTTP 402 Payment Required レスポンスの型 */
+/** x402 / MPP HTTP 402 Payment Required レスポンスの型 */
 export interface PaymentRequiredResponse {
   payment_required: true;
   x402Version?: number;
   accepts?: unknown[];
   error?: string;
+  /** MPP WWW-Authenticate challenge header (if MPP is enabled on server) */
+  mpp_challenge?: string;
 }
 
 /**
@@ -212,7 +214,14 @@ export async function apiRequestWithPayment<T>(
 ): Promise<T | PaymentRequiredResponse> {
   requireApiKey(config);
   const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
-  const headers: Record<string, string> = { ...buildHeaders(config), ...extraHeaders };
+  const baseHeaders = buildHeaders(config);
+  // If extraHeaders overrides Authorization (e.g., MPP Payment credential),
+  // move the API key to X-API-Key so server auth still works
+  if (extraHeaders?.["Authorization"] && baseHeaders["Authorization"] && config.apiKey) {
+    delete baseHeaders["Authorization"];
+    baseHeaders["X-API-Key"] = config.apiKey;
+  }
+  const headers: Record<string, string> = { ...baseHeaders, ...extraHeaders };
   const { signal, cleanup } = withTimeout();
 
   try {
@@ -223,11 +232,17 @@ export async function apiRequestWithPayment<T>(
       let json: unknown = null;
       try { json = text ? JSON.parse(text) : null; } catch { json = null; }
       const body = (json ?? {}) as Record<string, unknown>;
+
+      // Extract MPP challenge from WWW-Authenticate header (if present)
+      const wwwAuth = response.headers.get("WWW-Authenticate");
+      const mppChallenge = wwwAuth?.startsWith("Payment ") ? wwwAuth : undefined;
+
       return {
         payment_required: true,
         x402Version: typeof body["x402Version"] === "number" ? body["x402Version"] : undefined,
         accepts: Array.isArray(body["accepts"]) ? body["accepts"] : [],
         error: typeof body["error"] === "string" ? body["error"] : undefined,
+        mpp_challenge: mppChallenge,
       } satisfies PaymentRequiredResponse;
     }
 

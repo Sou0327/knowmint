@@ -52,7 +52,8 @@ export async function middleware(request: NextRequest) {
     if (request.method === "OPTIONS") {
       const headers: Record<string, string> = {
         "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT, X-API-Key",
+        "Access-Control-Expose-Headers": "WWW-Authenticate, Payment-Receipt",
         "Access-Control-Max-Age": "86400",
       };
       if (allowedOrigin) {
@@ -66,6 +67,7 @@ export async function middleware(request: NextRequest) {
     }
     apiResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     apiResponse.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
+    apiResponse.headers.set("Access-Control-Expose-Headers", "WWW-Authenticate, Payment-Receipt");
     apiResponse.headers.set("Content-Security-Policy", "default-src 'none'; script-src 'none'; frame-ancestors 'none'");
     return apiResponse;
   }

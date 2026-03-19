@@ -16,7 +16,7 @@ export type KnowledgeStatus = "draft" | "published" | "archived" | "suspended";
 export type TransactionStatus = "pending" | "confirmed" | "failed" | "refunded";
 
 // Supported blockchain
-export type Chain = "solana" | "base" | "ethereum";
+export type Chain = "solana" | "base" | "ethereum" | "tempo";
 
 // Supported token
 export type Token = "SOL" | "USDC" | "ETH";

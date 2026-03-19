@@ -47,6 +47,7 @@
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.34.9",
     "lucide-react": "^0.577.0",
+    "mppx": "^0.4.7",
     "next": "16.1.6",
     "next-intl": "^4.8.3",
     "react": "19.2.3",
@@ -55,6 +56,7 @@
     "recharts": "^3.7.0",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
+    "viem": "^2.47.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {

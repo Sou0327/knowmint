@@ -65,6 +65,7 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
   }
 
   const isSeller = item.seller_id === user.userId;
+  let mppPaymentVerified = false;
 
   // ── MPP payment flow (Machine Payments Protocol via Tempo) ──────────────
   const authHeader = request.headers.get("Authorization");
@@ -167,6 +168,7 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
         }
       }
       // MPP payment verified → fall through to serve content
+      mppPaymentVerified = true;
 
     } else {
       // MPP payment not provided or invalid — fall through to combined 402 below
@@ -175,7 +177,7 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
 
   const xPaymentHeader = request.headers.get("X-PAYMENT");
 
-  if (xPaymentHeader && !isSeller) {
+  if (xPaymentHeader && !isSeller && !mppPaymentVerified) {
     // ── x402 payment flow (出品者は X-PAYMENT ヘッダ無視で直接閲覧可) ───────
     const payment = parseXPaymentHeader(xPaymentHeader);
     if (!payment || !isValidSolanaTxHash(payment.txHash)) {

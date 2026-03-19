@@ -47,7 +47,8 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, B.1, 26, UI-1, PR
 | MPP.2 | content route に MPP 決済レール追加 + DB migration + MPP アダプター + CORS + Codex レビュー 6R | 既存 x402 テスト不壊 + MPP challenge 返却 + Codex ISSUES_FOUND: 1 (medium: generated types のみ) | - | cc:完了 |
 | MPP.3 | Tempo ウォレット受取設定（プラットフォーム EVM ウォレット: 0x208F6Ae8...） | testnet でウォレット作成+fund済み | MPP.2 | cc:完了 |
 | MPP.4 | MCP サーバー (`km_get_content`) に MPP payment_authorization 対応追加 | `mppx` CLI or MCP 経由で content 取得が testnet で完了 | MPP.2 | cc:完了 |
-| MPP.5 | testnet PoC + mainnet 切り替え + E2E テスト | Tempo testnet 決済成功 (mppx CLI → 402 → Payment → 200 + content) + DB に chain=tempo 記録確認 | MPP.1-4 | cc:完了 (testnet PoC) / mainnet は MPP.6 前に実施 |
+| MPP.5a | testnet PoC | mppx CLI → 402 → Payment → 200 + content + DB chain=tempo 記録 | MPP.1-4 | cc:完了 |
+| MPP.5b | mainnet 切り替え (MPP_TESTNET=false, CF Workers env 設定, デプロイ) | Tempo mainnet で実決済 → コンテンツ取得 | MPP.5a | cc:TODO |
 | MPP.6 | 発表: README 更新 + X/Reddit 投稿 + 記事ドラフト ("First marketplace supporting both x402 AND MPP") | README に MPP セクション追加、X 投稿完了 | MPP.5 | cc:TODO |
 
 **技術メモ**:

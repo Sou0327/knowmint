@@ -35,6 +35,20 @@ export async function Footer() {
                 @gensou_ongaku
               </a>
             </div>
+            <div className="mt-3">
+              <a
+                href="https://orynth.dev/projects/knowmint"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="https://orynth.dev/api/badge/knowmint?theme=light&style=minimal"
+                  alt="Featured on Orynth"
+                  width={152}
+                  height={48}
+                />
+              </a>
+            </div>
           </div>
 
           {/* Platform Links */}

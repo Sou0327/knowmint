@@ -18,6 +18,31 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, B.1, 26, UI-1, PR
 
 ---
 
+## Phase ADMIN: 管理画面 [P1 — 運用基盤]
+
+> **背景**: 管理UIゼロ。報告レビューAPI 2本のみ。Supabase Dashboard で直接SQL叩くしかない状態。
+> 通報対応・ユーザーBAN・コンテンツ非公開化を即座にできないと運用リスク。
+> 管理者判定: profiles.is_admin (boolean) を追加。API Key permissions の "admin" とは別レイヤー。
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| ADM.1 | DB migration: profiles に `is_admin` boolean 追加 + 自アカウントを true に設定 | migration 適用 + `database.types.ts` 型更新 + 自分のプロフィールが is_admin=true | - | cc:完了 |
+| ADM.2 | Middleware: `/admin` ルート保護 (Supabase session + is_admin チェック) | 未ログイン→/login リダイレクト、非admin→/ リダイレクト | ADM.1 | cc:完了 |
+| ADM.3 | Admin レイアウト + サイドバー + ダッシュボード (ユーザー数・出品数・取引数・売上サマリー) | `/admin` にアクセスで統計表示。DQテーマ維持 | ADM.2 | cc:完了 |
+| ADM.4 | ユーザー管理 (一覧・検索・BAN/凍結・詳細) + DB migration (profiles.banned_at) | `/admin/users` で一覧表示、BAN トグル動作 | ADM.2 | cc:完了 |
+| ADM.5 | コンテンツモデレーション UI (報告一覧 + レビュー操作。既存 admin_review_report RPC 活用) | `/admin/reports` で報告一覧表示、resolve/dismiss 操作完了 | ADM.2 | cc:完了 |
+| ADM.6 | 出品管理 (全出品一覧・検索・フィルタ・非公開化・内容プレビュー) | `/admin/listings` で全出品表示、非公開化操作動作 | ADM.2 | cc:完了 |
+| ADM.7 | トランザクション履歴 (全取引一覧・フィルタ・詳細表示) | `/admin/transactions` で全取引表示、ステータスフィルタ動作 | ADM.2 | cc:完了 |
+| ADM.8 | APIキー管理 (発行済み一覧・無効化・権限確認) | `/admin/api-keys` で一覧表示、無効化操作動作 | ADM.2 | cc:完了 |
+
+**技術方針**:
+- Server Components 中心 (getAdminClient で RLS バイパス)。クライアント操作のみ Client Component
+- ADM.3-8 は ADM.2 完了後に並列実装可
+- 既存の `/api/v1/admin/reports` API は UI から直接呼ぶか Server Action に移行
+- BAN ユーザーのログインブロックは middleware で is_admin チェックと同時に実装
+
+---
+
 ## Phase MKT-CS: コールドスタート解消 [**最優先** — マーケティング以前の前提条件]
 
 > **2026-03-15 パネル合意**: マーケットプレイスの鶏卵問題を解決しない限り、全マーケティング施策の変換率はゼロ。
@@ -48,25 +73,35 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, B.1, 26, UI-1, PR
 | MPP.3 | Tempo ウォレット受取設定（プラットフォーム EVM ウォレット: 0x208F6Ae8...） | testnet でウォレット作成+fund済み | MPP.2 | cc:完了 |
 | MPP.4 | MCP サーバー (`km_get_content`) に MPP payment_authorization 対応追加 | `mppx` CLI or MCP 経由で content 取得が testnet で完了 | MPP.2 | cc:完了 |
 | MPP.5a | testnet PoC | mppx CLI → 402 → Payment → 200 + content + DB chain=tempo 記録 | MPP.1-4 | cc:完了 |
-| MPP.5b | mainnet 切り替え (MPP_TESTNET=false, CF Workers env 設定, デプロイ) | Tempo mainnet で実決済 → コンテンツ取得 | MPP.5a | cc:TODO |
-| MPP.6 | 発表: README 更新 + X/Reddit 投稿 + 記事ドラフト ("First marketplace supporting both x402 AND MPP") | README に MPP セクション追加、X 投稿完了 | MPP.5 | cc:TODO |
+| MPP.5b | mainnet 切り替え (MPP_TESTNET=false, CF Workers env 設定, デプロイ) | Tempo mainnet で実決済 → コンテンツ取得 | MPP.5a | blocked (MPP-2 の Connect 実装が先。Tempo 単体はカストディアルになるため本番無効のまま) |
+| MPP.6 | 発表: README 更新 + X/Reddit 投稿 + 記事ドラフト | README に MPP セクション追加、X 投稿完了 | MPP-2 完了後 | blocked |
 
 **技術メモ**:
 - `mppx/tempo` は Stripe ゼロ依存。Tempo RPC で直接オンチェーン検証
 - Testnet (Moderato): `rpc.moderato.tempo.xyz`、ファウセットで 1M pathUSD 無料
 - Mainnet: `rpc.tempo.xyz`、USDC: `0x20c000000000000000000000b9537d11c60e8b50`
 - mppx SDK は Fetch API ベース → Next.js / Cloudflare Workers 互換
+- **本番では `MPP_ENABLED` 未設定 = 無効**。Tempo 単体はプラットフォームウォレット受取 → カストディアルになるため、Stripe Connect 実装まで有効化しない
+
+**⚠️ カストディアル問題**:
+- MPP Tempo 単体: プラットフォームウォレットに入金 → 売り手への分配手段なし → 資金決済法に抵触リスク
+- 有効化条件: (1) Stripe Connect で売り手に自動分配 OR (2) 売り手 EVM アドレスに直接送金
 
 ---
 
-## Phase MPP-2: Stripe SPT レール (fiat) [P2 — Stripe 承認後]
+## Phase MPP-2: Stripe SPT + Connect (fiat, ノンカストディアル) [P2 — Stripe 承認後]
 
-> Stripe early access 承認待ち。承認後に着手。
+> **前提**: Stripe early access 承認 + Stripe Connect 実装が両方必要。
+> Connect なしで SPT を有効化すると、プラットフォームが資金を預かる形になり日本の資金決済法に抵触する。
+> SPT 有効化 = Connect で売り手に自動分配できる状態であること。
 
 | Task | 内容 | DoD | Depends | Status |
 |------|------|-----|---------|--------|
-| MPP-2.1 | Stripe SPT 統合（カード/BNPL 決済を MPP 経由で受付） | sandbox で SPT 決済が通る | Stripe 承認 | blocked (early access 申請中 2026-03-20) |
-| MPP-2.2 | 本番デプロイ + Stripe Dashboard 確認 | Stripe Dashboard に tx が表示される | MPP-2.1 | blocked |
+| MPP-2.1 | Stripe early access 有効化確認 | Dashboard に「ステーブルコインと暗号資産」表示 | Stripe の地域拡大 | blocked (US only — sandbox 含む。Ben が地域拡大時に即有効化を約束 2026-03-20) |
+| MPP-2.2 | Stripe Connect 実装 (売り手 onboarding + 自動分配) | 売り手が Stripe アカウント連携 → 購入時に transfer_data.destination で自動送金 | MPP-2.1 | blocked |
+| MPP-2.3 | profiles テーブルに stripe_account_id カラム追加 | migration 適用 + 型更新 | MPP-2.2 | blocked |
+| MPP-2.4 | Stripe SPT 統合（カード/Apple Pay/Link 決済を MPP 経由で受付） | sandbox で SPT 決済 → 売り手 Stripe アカウントに入金確認 | MPP-2.2, MPP-2.3 | blocked |
+| MPP-2.5 | 本番デプロイ + `MPP_ENABLED=true` | Stripe Dashboard に tx 表示 + 売り手に自動分配 | MPP-2.4 | blocked |
 
 ---
 
@@ -165,6 +200,9 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, B.1, 26, UI-1, PR
 ## 依存関係
 
 ```
+ADMIN (管理画面) ←─ 運用基盤・即着手可
+  ├─ ADM.1 → ADM.2 (DB + Middleware: 直列)
+  └─ ADM.3-8 並列可 (ADM.2 完了後)
 MPP-1 (Tempo レール) ←─ 最優先・即着手 (Stripe 不要)
   ├─ MPP.1-4 並列可 (MPP.3-4 は MPP.2 に依存)
   ├─ MPP.5 mainnet → MPP.6 発表

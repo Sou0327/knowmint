@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const handleI18nRouting = createIntlMiddleware(routing);
 
-const PROTECTED_ROUTES = ["/list", "/library", "/dashboard", "/profile", "/favorites", "/notifications"];
+const PROTECTED_ROUTES = ["/list", "/library", "/dashboard", "/profile", "/favorites", "/notifications", "/admin"];
 
 /** Canonicalize path: decode encoded separators (%2F, %5C), normalize slashes */
 function canonicalizePath(raw: string): string {
@@ -157,6 +157,25 @@ export async function middleware(request: NextRequest) {
       redirectResponse.cookies.set(cookie);
     }
     return redirectResponse;
+  }
+
+  // 8b. Banned user → sign out and redirect to login (fail-closed)
+  if (isProtected && user) {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("banned_at")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile || profile.banned_at) {
+      await supabase.auth.signOut();
+      const loginUrl = new URL(`${localePrefix}/login`, request.url);
+      const redirectResponse = NextResponse.redirect(loginUrl, 303);
+      for (const cookie of response.cookies.getAll()) {
+        redirectResponse.cookies.set(cookie);
+      }
+      return redirectResponse;
+    }
   }
 
   // 9. Auth page + logged in → redirect to home (preserve cookies with attributes)

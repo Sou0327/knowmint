@@ -1,6 +1,7 @@
 import { authenticateApiKey, AuthenticatedUser } from "@/lib/api/auth";
 import { checkRateLimit, checkPreAuthRateLimit } from "@/lib/api/rate-limit";
 import { apiError, withRateLimitHeaders, API_ERRORS } from "@/lib/api/response";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 type RouteContext = { params: Promise<Record<string, string>> };
 
@@ -31,6 +32,22 @@ export function withApiAuth(handler: ApiHandler, options?: WithApiAuthOptions) {
     const user = await authenticateApiKey(request);
     if (!user) {
       return apiError(API_ERRORS.UNAUTHORIZED);
+    }
+
+    // Ban check — reject banned users from API access (fail-closed)
+    const { data: profile, error: profileError } = await getAdminClient()
+      .from("profiles")
+      .select("banned_at")
+      .eq("id", user.userId)
+      .single();
+
+    if (profileError || !profile) {
+      console.error("[api] ban check failed for user:", user.userId, profileError);
+      return apiError(API_ERRORS.FORBIDDEN);
+    }
+
+    if (profile.banned_at) {
+      return apiError(API_ERRORS.FORBIDDEN);
     }
 
     // Permission check

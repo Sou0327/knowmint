@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAdminClient } from "@/lib/supabase/admin";
 import { getPersonalRecommendations } from "@/lib/recommendations/queries";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 
@@ -15,6 +16,17 @@ export async function GET() {
 
   if (!user) {
     return apiError(API_ERRORS.UNAUTHORIZED);
+  }
+
+  // Ban check
+  const { data: profile } = await getAdminClient()
+    .from("profiles")
+    .select("banned_at")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.banned_at) {
+    return apiError(API_ERRORS.FORBIDDEN);
   }
 
   const recs = await getPersonalRecommendations(user.id);

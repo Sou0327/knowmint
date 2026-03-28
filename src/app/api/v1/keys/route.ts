@@ -19,6 +19,10 @@ interface ResolvedAuth {
 }
 
 async function resolveKeysAuth(request: Request): Promise<ResolvedAuth | Response> {
+  let userId: string;
+  let currentKeyId: string | null = null;
+  let email: string | undefined;
+
   const authHeader = request.headers.get("authorization");
   if (authHeader) {
     const apiUser = await authenticateApiKey(request);
@@ -28,19 +32,34 @@ async function resolveKeysAuth(request: Request): Promise<ResolvedAuth | Respons
     if (!apiUser.permissions.includes("admin")) {
       return apiError(API_ERRORS.FORBIDDEN);
     }
-    return { userId: apiUser.userId, currentKeyId: apiUser.keyId };
+    userId = apiUser.userId;
+    currentKeyId = apiUser.keyId;
+  } else {
+    const sessionSupabase = await createSessionClient();
+    const {
+      data: { user },
+    } = await sessionSupabase.auth.getUser();
+
+    if (!user) {
+      return apiError(API_ERRORS.UNAUTHORIZED);
+    }
+    userId = user.id;
+    email = user.email;
   }
 
-  const sessionSupabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await sessionSupabase.auth.getUser();
+  // Ban check (fail-closed)
+  const admin = getAdminClient();
+  const { data: profile, error: profileError } = await admin
+    .from("profiles")
+    .select("banned_at")
+    .eq("id", userId)
+    .single();
 
-  if (!user) {
-    return apiError(API_ERRORS.UNAUTHORIZED);
+  if (profileError || !profile || profile.banned_at) {
+    return apiError(API_ERRORS.FORBIDDEN);
   }
 
-  return { userId: user.id, currentKeyId: null, email: user.email };
+  return { userId, currentKeyId, email };
 }
 
 /**

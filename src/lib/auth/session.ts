@@ -22,6 +22,20 @@ export async function requireAuth() {
   if (!user) {
     redirect("/login");
   }
+
+  // Check if user is banned (fail-closed)
+  const supabase = await createClient();
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("banned_at")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile || profile.banned_at) {
+    await supabase.auth.signOut();
+    redirect("/login");
+  }
+
   return user;
 }
 
@@ -33,4 +47,25 @@ export async function getProfile(userId: string) {
     .eq("id", userId)
     .single();
   return data;
+}
+
+export async function requireAdmin() {
+  const user = await getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { getAdminClient } = await import("@/lib/supabase/admin");
+  const admin = getAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("is_admin, banned_at")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_admin || profile.banned_at) {
+    redirect("/");
+  }
+
+  return user;
 }

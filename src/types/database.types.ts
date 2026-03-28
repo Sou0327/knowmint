@@ -36,7 +36,11 @@ export type AuditAction =
   | "report.created"
   | "report.reviewed"
   | "agent.registered"
-  | "agent.login";
+  | "agent.login"
+  | "admin.user_banned"
+  | "admin.user_unbanned"
+  | "admin.listing_suspended"
+  | "admin.apikey_revoked";
 
 // Report reason
 export type ReportReason = "spam" | "illegal" | "misleading" | "inappropriate" | "copyright" | "other";
@@ -64,6 +68,8 @@ export type Profile = {
   follower_count: number;
   following_count: number;
   trust_score: number | null;
+  is_admin: boolean;
+  banned_at: string | null;
   created_at: string;
   updated_at: string;
 };

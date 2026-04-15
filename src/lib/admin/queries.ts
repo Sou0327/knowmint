@@ -1,17 +1,45 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import type { ReportStatus, KnowledgeStatus, ContentType, TransactionStatus, Chain, Token } from "@/types/database.types";
+import type { PaginatedResult } from "@/types/knowledge.types";
+
+/** Build a PaginatedResult from raw Supabase row data + count. */
+function toPaginated<T>(
+  data: T[],
+  total: number,
+  page: number,
+  perPage: number,
+): PaginatedResult<T> {
+  return {
+    data,
+    total,
+    page,
+    per_page: perPage,
+    total_pages: perPage > 0 ? Math.ceil(total / perPage) : 0,
+  };
+}
 
 /**
  * Sanitize user input for safe use in PostgREST .or() ilike patterns.
- * Strips everything except alphanumeric, spaces, hyphens, and underscores,
- * then escapes remaining LIKE wildcards. This avoids DSL injection entirely.
+ *
+ * RP1 (L-4):
+ * - Unicode プロパティエスケープ `\p{L}` (Letter) + `\p{N}` (Number) で
+ *   全スクリプトの文字・数字を許可。従来の CJK Unified 範囲 (U+3000-U+9FFF /
+ *   U+AC00-U+D7AF) では欠落していた Cyrillic / Greek / Arabic / 絵文字外の
+ *   拡張 Hangul などを包括的にサポートしつつ、サロゲート・制御文字・絵文字
+ *   (`\p{So}`) は除去される。
+ * - `.trim()` で前後空白を落とす。空白のみ入力は空文字になる (呼び出し側で
+ *   `safe.length >= 2` によりスキップされる)。
+ * - 残った安全文字に対して LIKE ワイルドカード `%_\\` をエスケープして
+ *   DSL injection を根絶する。
  */
 function sanitizeSearchInput(input: string): string {
-  // Allow only safe characters: alphanumeric (any script), spaces, hyphens
-  const stripped = input.replace(/[^a-zA-Z0-9\u3000-\u9FFF\uAC00-\uD7AF\s-]/g, "");
+  // Allow only letters, numbers, whitespace, underscore, hyphen across all scripts
+  const stripped = input.replace(/[^\p{L}\p{N}\s_-]/gu, "").trim();
   // Escape LIKE wildcards in the remaining safe string
   return stripped.replace(/[%_\\]/g, (ch) => `\\${ch}`);
 }
+
+export { sanitizeSearchInput };
 
 // --- Dashboard Stats ---
 
@@ -91,7 +119,7 @@ export async function getAdminUsers(params: {
   search?: string;
   page?: number;
   per_page?: number;
-}) {
+}): Promise<PaginatedResult<AdminUserRow>> {
   const admin = getAdminClient();
   const page = params.page ?? 1;
   const per_page = params.per_page ?? 20;
@@ -108,7 +136,8 @@ export async function getAdminUsers(params: {
 
   if (params.search) {
     const safe = sanitizeSearchInput(params.search);
-    if (safe.length > 0) {
+    // RP1 (L-4): 1 文字以下の検索はノイズが多いためスキップ (空クエリ扱い)
+    if (safe.length >= 2) {
       query = query.or(
         `display_name.ilike.%${safe}%,wallet_address.ilike.%${safe}%`
       );
@@ -119,12 +148,12 @@ export async function getAdminUsers(params: {
   if (error) {
     console.error("[admin/users] fetch failed:", error);
   }
-  return {
-    data: (data ?? []) as AdminUserRow[],
-    total: count ?? 0,
+  return toPaginated<AdminUserRow>(
+    (data ?? []) as AdminUserRow[],
+    count ?? 0,
     page,
     per_page,
-  };
+  );
 }
 
 // --- Reports ---
@@ -152,7 +181,7 @@ export async function getAdminReports(params: {
   status?: ReportStatus;
   page?: number;
   per_page?: number;
-}) {
+}): Promise<PaginatedResult<AdminReportRow>> {
   const admin = getAdminClient();
   const page = params.page ?? 1;
   const per_page = params.per_page ?? 20;
@@ -186,12 +215,12 @@ export async function getAdminReports(params: {
       : row.knowledge_item,
   }));
 
-  return {
-    data: normalized as AdminReportRow[],
-    total: count ?? 0,
+  return toPaginated<AdminReportRow>(
+    normalized as AdminReportRow[],
+    count ?? 0,
     page,
     per_page,
-  };
+  );
 }
 
 // --- Listings ---
@@ -216,7 +245,7 @@ export async function getAdminListings(params: {
   content_type?: string;
   page?: number;
   per_page?: number;
-}) {
+}): Promise<PaginatedResult<AdminListingRow>> {
   const admin = getAdminClient();
   const page = params.page ?? 1;
   const per_page = params.per_page ?? 20;
@@ -234,7 +263,11 @@ export async function getAdminListings(params: {
     .range(from, from + per_page - 1);
 
   if (params.search) {
-    query = query.ilike("title", `%${sanitizeSearchInput(params.search)}%`);
+    const safe = sanitizeSearchInput(params.search);
+    // RP1 (L-4): 1 文字以下の検索はノイズが多いためスキップ (空クエリ扱い)
+    if (safe.length >= 2) {
+      query = query.ilike("title", `%${safe}%`);
+    }
   }
   if (params.status) {
     query = query.eq("status", params.status as KnowledgeStatus);
@@ -253,12 +286,12 @@ export async function getAdminListings(params: {
     seller: Array.isArray(row.seller) ? row.seller[0] ?? null : row.seller,
   }));
 
-  return {
-    data: normalized as AdminListingRow[],
-    total: count ?? 0,
+  return toPaginated<AdminListingRow>(
+    normalized as AdminListingRow[],
+    count ?? 0,
     page,
     per_page,
-  };
+  );
 }
 
 // --- Transactions ---
@@ -282,7 +315,7 @@ export async function getAdminTransactions(params: {
   token?: string;
   page?: number;
   per_page?: number;
-}) {
+}): Promise<PaginatedResult<AdminTransactionRow>> {
   const admin = getAdminClient();
   const page = params.page ?? 1;
   const per_page = params.per_page ?? 20;
@@ -324,12 +357,12 @@ export async function getAdminTransactions(params: {
       : row.knowledge_item,
   }));
 
-  return {
-    data: normalized as AdminTransactionRow[],
-    total: count ?? 0,
+  return toPaginated<AdminTransactionRow>(
+    normalized as AdminTransactionRow[],
+    count ?? 0,
     page,
     per_page,
-  };
+  );
 }
 
 // --- API Keys ---

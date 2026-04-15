@@ -4,13 +4,19 @@ import { validateExpiresAt } from "@/lib/api/validation";
 const NOW = new Date("2026-02-22T12:00:00Z");
 
 describe("validateExpiresAt()", () => {
-  describe("undefined / null → { valid: true }", () => {
+  describe("undefined / null → { valid: true, normalizedIso: null }", () => {
     it("undefined", () => {
-      expect(validateExpiresAt(undefined, NOW)).toEqual({ valid: true });
+      expect(validateExpiresAt(undefined, NOW)).toEqual({
+        valid: true,
+        normalizedIso: null,
+      });
     });
 
     it("null", () => {
-      expect(validateExpiresAt(null, NOW)).toEqual({ valid: true });
+      expect(validateExpiresAt(null, NOW)).toEqual({
+        valid: true,
+        normalizedIso: null,
+      });
     });
   });
 
@@ -70,26 +76,34 @@ describe("validateExpiresAt()", () => {
     });
   });
 
-  describe("当日（日付のみ形式）→ { valid: true }（23:59:59.999Z まで有効）", () => {
-    it('"2026-02-22" (NOW と同じ日・日付のみ) → valid: true', () => {
-      expect(validateExpiresAt("2026-02-22", NOW)).toEqual({ valid: true });
+  describe("当日（日付のみ形式）→ { valid: true, normalizedIso: '...T23:59:59.999Z' }", () => {
+    it('"2026-02-22" (NOW と同じ日・日付のみ) → 当日終端に正規化', () => {
+      expect(validateExpiresAt("2026-02-22", NOW)).toEqual({
+        valid: true,
+        normalizedIso: "2026-02-22T23:59:59.999Z",
+      });
     });
   });
 
-  describe("有効な未来日 → { valid: true }", () => {
-    it('"2026-12-31"', () => {
-      expect(validateExpiresAt("2026-12-31", NOW)).toEqual({ valid: true });
-    });
-
-    it('"2027-01-01T00:00:00Z"', () => {
-      expect(validateExpiresAt("2027-01-01T00:00:00Z", NOW)).toEqual({
+  describe("有効な未来日 → { valid: true, normalizedIso: <string> }", () => {
+    it('"2026-12-31" (日付のみ → 当日終端)', () => {
+      expect(validateExpiresAt("2026-12-31", NOW)).toEqual({
         valid: true,
+        normalizedIso: "2026-12-31T23:59:59.999Z",
       });
     });
 
-    it('"2026-03-01T12:00:00+09:00"', () => {
+    it('"2027-01-01T00:00:00Z" (ISO はそのまま)', () => {
+      expect(validateExpiresAt("2027-01-01T00:00:00Z", NOW)).toEqual({
+        valid: true,
+        normalizedIso: "2027-01-01T00:00:00Z",
+      });
+    });
+
+    it('"2026-03-01T12:00:00+09:00" (TZ 付き ISO はそのまま)', () => {
       expect(validateExpiresAt("2026-03-01T12:00:00+09:00", NOW)).toEqual({
         valid: true,
+        normalizedIso: "2026-03-01T12:00:00+09:00",
       });
     });
   });

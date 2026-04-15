@@ -9,9 +9,7 @@ import {
   getUnreadNotificationCount,
 } from "@/lib/notifications/service";
 import type { Notification } from "@/types/database.types";
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { UUID_RE } from "@/lib/api/validation";
 
 // --- Favorites ---
 

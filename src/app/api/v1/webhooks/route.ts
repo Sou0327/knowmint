@@ -5,8 +5,7 @@ import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { encryptSecret } from "@/lib/webhooks/crypto";
 import { checkPublicUrl } from "@/lib/webhooks/ssrf";
 import { logAuditEvent } from "@/lib/audit/log";
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { UUID_RE } from "@/lib/api/validation";
 
 const VALID_EVENTS = [
   "purchase.completed",

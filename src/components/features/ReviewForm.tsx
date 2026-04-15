@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import Textarea from "@/components/ui/Textarea";
+import Alert from "@/components/ui/Alert";
 import { submitReview } from "@/app/[locale]/(main)/knowledge/[id]/actions";
 
 interface Props {
@@ -150,7 +151,7 @@ export default function ReviewForm({ knowledgeItemId, onReviewSubmitted }: Props
       />
 
       {error && (
-        <p className="text-sm text-dq-red">{error}</p>
+        <Alert variant="error">{error}</Alert>
       )}
 
       <Button type="submit" variant="primary" loading={submitting}>

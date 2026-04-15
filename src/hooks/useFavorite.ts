@@ -16,30 +16,36 @@ export function useFavorite(itemId: string, initialFavorited: boolean) {
   }, []);
 
   const toggle = useCallback(() => {
-    const prev = favorited;
-    // Optimistic update
-    setFavorited(!prev);
-    if (!prev) {
-      setAnimating(true);
-      timerRef.current = setTimeout(() => setAnimating(false), 400);
-    }
+    // Guard against parallel calls while a transition is already in-flight
+    if (isPending) return;
+
+    // Functional update: always reads the latest state, not a stale closure
+    setFavorited((current) => {
+      const next = !current;
+      if (next) {
+        setAnimating(true);
+        timerRef.current = setTimeout(() => setAnimating(false), 400);
+      }
+      return next;
+    });
 
     startTransition(async () => {
       try {
         const result = await toggleFavoriteAction(itemId);
         if (result.error) {
-          setFavorited(prev);
+          // Rollback with functional update so we don't rely on stale closure
+          setFavorited((c) => !c);
           setAnimating(false);
         } else {
           setFavorited(result.favorited);
         }
       } catch {
         // requireAuth redirect or network error — rollback
-        setFavorited(prev);
+        setFavorited((c) => !c);
         setAnimating(false);
       }
     });
-  }, [favorited, itemId]);
+  }, [isPending, itemId]);
 
   return { favorited, animating, isPending, toggle };
 }

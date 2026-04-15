@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { requestWalletChallenge, verifyWalletSignature } from "@/app/actions/wallet";
 import { useTranslations } from "next-intl";
@@ -101,7 +102,7 @@ export default function WalletButton() {
           </Button>
         </div>
         {siwsError && (
-          <p className="text-xs text-dq-red">{siwsError}</p>
+          <Alert variant="error" className="text-xs">{siwsError}</Alert>
         )}
       </div>
     );

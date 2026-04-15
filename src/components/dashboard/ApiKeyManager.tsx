@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import Alert from "@/components/ui/Alert";
 import type { ApiKey } from "@/types/database.types";
 import { PERMISSION_OPTIONS } from "@/lib/api/permissions";
 import { formatDate } from "@/lib/i18n/date";
@@ -161,11 +162,9 @@ export default function ApiKeyManager() {
   return (
     <div>
       {errorMessage && (
-        <Card padding="md" className="mb-6 !border-dq-red">
-          <p className="text-sm text-dq-red">
-            {errorMessage}
-          </p>
-        </Card>
+        <Alert variant="error" className="mb-6">
+          {errorMessage}
+        </Alert>
       )}
 
       {/* Created Key Display */}

@@ -6,6 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 import { buildSolTransfer } from "@/lib/solana/payment";
 import { isSmartContractEnabled } from "@/lib/solana/program";
 
@@ -104,9 +105,7 @@ export default function PurchaseModal({
         </div>
 
         {error && (
-          <div className="rounded-sm border-2 border-dq-red/40 bg-dq-red/10 p-3 text-sm text-dq-red">
-            {error}
-          </div>
+          <Alert variant="error">{error}</Alert>
         )}
 
         {/* Terms */}

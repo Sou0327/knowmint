@@ -36,7 +36,7 @@ export default function FollowButton({
         {following ? t("following") : t("follow")}
       </Button>
       {count > 0 && (
-        <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs tabular-nums text-dq-text-muted">
           {t("followerCount", { count: count.toLocaleString() })}
         </span>
       )}

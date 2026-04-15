@@ -22,7 +22,7 @@ export default function PricingStep({
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="text-sm text-dq-text-sub">
         {isRequest ? t("rewardNote") : t("priceNote")}
       </p>
 
@@ -39,7 +39,7 @@ export default function PricingStep({
       />
 
       {!priceSol && (
-        <p className="text-sm text-yellow-600 dark:text-yellow-400">
+        <p className="text-sm text-dq-gold">
           {isRequest ? t("rewardSetRequired") : t("priceSetRequired")}
         </p>
       )}

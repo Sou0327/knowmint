@@ -22,12 +22,12 @@ export default function LanguageToggle({ compact = false }: LanguageToggleProps)
   };
 
   const buttonBase =
-    "rounded-md px-2.5 py-1 text-xs font-semibold transition-colors";
+    "rounded-sm px-2.5 py-1 text-xs font-semibold transition-colors";
 
   return (
     <div
       role="group"
-      className={`inline-flex items-center rounded-lg border border-zinc-200 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-800 ${
+      className={`inline-flex items-center rounded-sm border border-dq-border bg-dq-surface p-1 ${
         compact ? "" : "shadow-sm"
       }`}
       aria-label={t("languageSwitcher")}
@@ -37,8 +37,8 @@ export default function LanguageToggle({ compact = false }: LanguageToggleProps)
         onClick={() => switchLocale("ja")}
         className={`${buttonBase} ${
           locale === "ja"
-            ? "bg-blue-600 text-white"
-            : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            ? "bg-dq-gold text-dq-bg"
+            : "text-dq-text-sub hover:bg-dq-hover hover:text-dq-text"
         }`}
         aria-pressed={locale === "ja"}
       >
@@ -49,8 +49,8 @@ export default function LanguageToggle({ compact = false }: LanguageToggleProps)
         onClick={() => switchLocale("en")}
         className={`${buttonBase} ${
           locale === "en"
-            ? "bg-blue-600 text-white"
-            : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            ? "bg-dq-gold text-dq-bg"
+            : "text-dq-text-sub hover:bg-dq-hover hover:text-dq-text"
         }`}
         aria-pressed={locale === "en"}
       >

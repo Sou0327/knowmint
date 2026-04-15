@@ -9,6 +9,7 @@ import type { ContentType, ListingType } from "@/types/database.types";
 import { CONTENT_TYPES, getContentDisplayLabel } from "@/types/knowledge.types";
 import type { KnowledgeMetadataForm } from "@/types/knowledge.types";
 import { getCategoryDisplayName } from "@/lib/i18n/category";
+import { ChevronDown } from "lucide-react";
 
 interface Category {
   id: string;
@@ -156,27 +157,22 @@ export default function BasicInfoStep({
       />
 
       {/* Detailed metadata (collapsible) */}
-      <div className="rounded-lg border border-zinc-200 dark:border-zinc-700">
+      <div className="rounded-sm border border-dq-border bg-dq-window-bg">
         <button
           type="button"
-          className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-dq-text-sub hover:bg-dq-surface transition-colors"
           onClick={() => setMetadataOpen((prev) => !prev)}
         >
           <span>{t("detailedMetadata")}</span>
-          <svg
+          <ChevronDown
             className={`h-4 w-4 transition-transform ${metadataOpen ? "rotate-180" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+            aria-hidden="true"
+          />
         </button>
 
         {metadataOpen && (
-          <div className="space-y-4 border-t border-zinc-200 px-4 py-4 dark:border-zinc-700">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="space-y-4 border-t border-dq-border px-4 py-4">
+            <p className="text-xs text-dq-text-muted">
               {t("metadataHint")}
             </p>
 
@@ -202,15 +198,15 @@ export default function BasicInfoStep({
             />
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label className="mb-1.5 block text-sm font-medium text-dq-text-sub">
                 {t("applicableAI")}
               </label>
               <div className="flex flex-wrap gap-3">
                 {APPLICABLE_TO_OPTIONS.map((opt) => (
-                  <label key={opt.value} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                  <label key={opt.value} className="flex items-center gap-2 text-sm text-dq-text-sub">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded-sm border-dq-border accent-dq-gold"
                       checked={data.metadata.applicable_to.includes(opt.value)}
                       onChange={(e) => handleApplicableToChange(opt.value, e.target.checked)}
                     />
@@ -223,20 +219,20 @@ export default function BasicInfoStep({
             <div>
               <label
                 htmlFor="seller-disclosure"
-                className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                className="mb-1.5 block text-sm font-medium text-dq-text-sub"
               >
                 {t("sellerDisclosure")}
               </label>
               <textarea
                 id="seller-disclosure"
-                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                className="w-full rounded-sm border border-dq-border bg-dq-surface px-3 py-2 text-sm text-dq-text placeholder-dq-text-muted focus:border-dq-gold focus:outline-none focus:ring-1 focus:ring-dq-gold transition-colors"
                 rows={2}
                 maxLength={500}
                 value={data.seller_disclosure ?? ""}
                 onChange={(e) => onChange({ seller_disclosure: e.target.value })}
                 placeholder={t("sellerDisclosurePlaceholder")}
               />
-              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-1 text-xs text-dq-text-muted">
                 {t("sellerDisclosureHint")}
               </p>
             </div>

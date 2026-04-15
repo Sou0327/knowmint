@@ -76,7 +76,13 @@ export default function PurchaseModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t("confirmTitle")} size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("confirmTitle")}
+      size="md"
+      disableClose={processing}
+    >
       <div className="space-y-4">
         <div>
           <p className="text-sm text-dq-text-muted">{t("item")}</p>
@@ -130,7 +136,12 @@ export default function PurchaseModal({
         </label>
 
         <div className="flex gap-3 pt-2">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+            disabled={processing}
+          >
             {tCommon("cancel")}
           </Button>
           <Button

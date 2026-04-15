@@ -1,7 +1,7 @@
 'use client';
 
 import { Link } from "@/i18n/navigation";
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
@@ -12,31 +12,40 @@ const WalletButton = dynamic(() => import('@/components/features/WalletButton'),
 import { ThemeToggle } from '@/components/features/ThemeToggle';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePopover } from '@/hooks/usePopover';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const router = useRouter();
-  const userMenuRef = useRef<HTMLDivElement>(null);
+  const {
+    open: userMenuOpen,
+    close: closeUserMenu,
+    toggle: toggleUserMenu,
+    triggerRef: userMenuTriggerRef,
+    panelRef: userMenuPanelRef,
+  } = usePopover();
   const { user, profile, signOut, loading } = useAuth();
   const t = useTranslations('Nav');
 
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   const handleSignOut = async () => {
     await signOut();
-    setUserMenuOpen(false);
+    closeUserMenu();
     setMobileMenuOpen(false);
     router.push('/');
     router.refresh();
+  };
+
+  const handleSearchSubmit = (
+    event: React.FormEvent<HTMLFormElement>,
+    onAfter?: () => void,
+  ) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const query = String(formData.get('q') ?? '').trim();
+    if (query) {
+      router.push(`/search?q=${encodeURIComponent(query)}`);
+      onAfter?.();
+    }
   };
 
   return (
@@ -88,21 +97,20 @@ export function Header() {
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-6">
             <form
+              role="search"
               className="w-full"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const query = String(formData.get('q') ?? '').trim();
-                if (query) {
-                  router.push(`/search?q=${encodeURIComponent(query)}`);
-                }
-              }}
+              onSubmit={(e) => handleSearchSubmit(e)}
             >
+              <label htmlFor="site-search-desktop" className="sr-only">
+                {t('search')}
+              </label>
               <div className="relative">
                 <input
-                  type="text"
+                  id="site-search-desktop"
+                  type="search"
                   name="q"
                   placeholder={t('search')}
+                  aria-label={t('search')}
                   className="w-full px-4 py-2 pl-10 text-sm border-2 border-dq-border rounded-sm bg-dq-surface text-dq-text placeholder:text-dq-text-muted focus:outline-none focus:ring-2 focus:ring-dq-gold focus:border-dq-gold transition-colors"
                 />
                 <svg
@@ -131,12 +139,15 @@ export function Header() {
             <NotificationBell />
 
             {/* User Menu */}
-            <div ref={userMenuRef} className="relative">
+            <div className="relative">
               <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 text-dq-text-sub hover:text-dq-gold transition-colors"
+                ref={userMenuTriggerRef}
+                type="button"
+                onClick={toggleUserMenu}
+                className="flex items-center gap-2 text-dq-text-sub hover:text-dq-gold transition-colors focus:outline-none focus:ring-2 focus:ring-dq-gold rounded-sm"
                 aria-label={t('userMenu')}
                 aria-expanded={userMenuOpen}
+                aria-haspopup="menu"
               >
                 {profile?.avatar_url ? (
                   <UserAvatar userId={profile.id} displayName={profile.display_name} avatarUrl={profile.avatar_url} size="sm" />
@@ -158,7 +169,12 @@ export function Header() {
                 )}
               </button>
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 dq-window-sm">
+                <div
+                  ref={userMenuPanelRef}
+                  role="menu"
+                  aria-label={t('userMenu')}
+                  className="absolute right-0 mt-2 w-48 dq-window-sm"
+                >
                   {loading ? (
                     <div className="px-4 py-2 text-sm text-dq-text-muted">
                       Loading...
@@ -176,15 +192,17 @@ export function Header() {
                         )}
                       </div>
                       <Link
+                        role="menuitem"
                         href="/profile"
                         className="group flex items-center px-4 py-2.5 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={closeUserMenu}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
                         {t('profile')}
                       </Link>
                       <button
                         type="button"
+                        role="menuitem"
                         className="group flex w-full items-center px-4 py-2.5 text-left text-sm text-dq-red hover:bg-dq-surface"
                         onClick={handleSignOut}
                       >
@@ -195,17 +213,19 @@ export function Header() {
                   ) : (
                     <>
                       <Link
+                        role="menuitem"
                         href="/login"
                         className="group flex items-center px-4 py-2.5 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={closeUserMenu}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
                         {t('login')}
                       </Link>
                       <Link
+                        role="menuitem"
                         href="/signup"
                         className="group flex items-center px-4 py-2.5 text-sm text-dq-text-sub hover:text-dq-gold hover:bg-dq-surface"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={closeUserMenu}
                       >
                         <span className="opacity-0 group-hover:opacity-100 mr-1 dq-cursor">▶</span>
                         {t('signup')}
@@ -257,20 +277,18 @@ export function Header() {
             {/* Mobile Search */}
             <div className="mb-4">
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  const query = String(formData.get('q') ?? '').trim();
-                  if (query) {
-                    router.push(`/search?q=${encodeURIComponent(query)}`);
-                    setMobileMenuOpen(false);
-                  }
-                }}
+                role="search"
+                onSubmit={(e) => handleSearchSubmit(e, () => setMobileMenuOpen(false))}
               >
+                <label htmlFor="site-search-mobile" className="sr-only">
+                  {t('search')}
+                </label>
                 <input
-                  type="text"
+                  id="site-search-mobile"
+                  type="search"
                   name="q"
                   placeholder={t('search')}
+                  aria-label={t('search')}
                   className="w-full px-4 py-2 text-sm border-2 border-dq-border rounded-sm bg-dq-surface text-dq-text placeholder:text-dq-text-muted focus:outline-none focus:ring-2 focus:ring-dq-gold focus:border-dq-gold transition-colors"
                 />
               </form>

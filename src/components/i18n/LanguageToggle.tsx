@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useRouter, usePathname } from "@/i18n/navigation";
 
@@ -13,6 +13,7 @@ export default function LanguageToggle({ compact = false }: LanguageToggleProps)
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("Nav");
 
   const switchLocale = (newLocale: "en" | "ja") => {
     const qs = searchParams.toString();
@@ -25,10 +26,11 @@ export default function LanguageToggle({ compact = false }: LanguageToggleProps)
 
   return (
     <div
+      role="group"
       className={`inline-flex items-center rounded-lg border border-zinc-200 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-800 ${
         compact ? "" : "shadow-sm"
       }`}
-      aria-label="Language switcher"
+      aria-label={t("languageSwitcher")}
     >
       <button
         type="button"

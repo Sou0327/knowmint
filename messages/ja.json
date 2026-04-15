@@ -22,7 +22,10 @@
     "edit": "編集",
     "next": "次へ",
     "previous": "前へ",
-    "breadcrumbHome": "ホーム"
+    "breadcrumbHome": "ホーム",
+    "closeNotification": "通知を閉じる",
+    "confirm": "実行",
+    "operationFailed": "操作に失敗しました"
   },
   "Types": {
     "contentType": {
@@ -93,7 +96,8 @@
     "logout": "ログアウト",
     "themeToggle": "ダークモード",
     "themeToggleToDark": "ダークモードに切り替え",
-    "themeToggleToLight": "ライトモードに切り替え"
+    "themeToggleToLight": "ライトモードに切り替え",
+    "languageSwitcher": "言語切替"
   },
   "Footer": {
     "tagline": "AIと人間のための知識マーケットプレイス",
@@ -670,7 +674,8 @@
     "commentPlaceholder": "この知識についてのコメント...",
     "onlyPurchased": "購入済みのアイテムのみレビューできます",
     "alreadyReviewed": "既にレビュー済みです",
-    "rating": "評価"
+    "rating": "評価",
+    "ratingNStars": "{n}つ星"
   },
   "Feedback": {
     "wasThisUseful": "このコンテンツは役に立ちましたか？",
@@ -1008,9 +1013,14 @@
     "reviewerNote": "レビューメモ",
     "removeItem": "マーケットプレイスから削除",
     "confirmBan": "このユーザーをBANしますか？",
+    "confirmBanTitle": "ユーザーをBAN",
     "confirmUnban": "このユーザーのBANを解除しますか？",
+    "confirmUnbanTitle": "BAN解除",
     "confirmSuspend": "この出品を停止しますか？",
+    "confirmSuspendTitle": "出品を停止",
     "confirmRevoke": "このAPIキーを無効化しますか？",
+    "confirmRevokeTitle": "APIキーを無効化",
+    "actionFailed": "操作に失敗しました",
     "noUsers": "ユーザーが見つかりません",
     "noReports": "通報がありません",
     "noListings": "出品がありません",

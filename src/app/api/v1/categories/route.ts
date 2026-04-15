@@ -15,7 +15,7 @@ export const GET = withApiAuth(async () => {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error("Failed to fetch categories:", error);
+    console.error("[categories] fetch failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 

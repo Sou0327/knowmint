@@ -27,7 +27,7 @@ export const GET = withApiAuth(async (request, user) => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Failed to fetch favorites:", error);
+    console.error("[favorites] fetch failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -90,7 +90,7 @@ export const POST = withApiAuth(async (request, user) => {
     .single();
 
   if (error || !data) {
-    console.error("Failed to add favorite:", error);
+    console.error("[favorites] add failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -127,7 +127,7 @@ export const DELETE = withApiAuth(async (request, user) => {
     .eq("knowledge_item_id", body.knowledge_item_id);
 
   if (error) {
-    console.error("Failed to delete favorite:", error);
+    console.error("[favorites] delete failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 

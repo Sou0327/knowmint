@@ -142,8 +142,10 @@ export async function getAdminUsers(params: {
   }
 
   const { data, count, error } = await query;
+  // L-16: エラーを握りつぶさず throw で上位に伝播
   if (error) {
     console.error("[admin/users] fetch failed:", error);
+    throw new Error(`[admin/users] ${error.message}`);
   }
   return toPaginated<AdminUserRow>(
     (data ?? []) as AdminUserRow[],
@@ -200,8 +202,10 @@ export async function getAdminReports(params: {
   }
 
   const { data, count, error } = await query;
+  // L-16: エラーを握りつぶさず throw で上位に伝播
   if (error) {
     console.error("[admin/reports] fetch failed:", error);
+    throw new Error(`[admin/reports] ${error.message}`);
   }
 
   // Normalize Supabase array join to single object
@@ -274,8 +278,10 @@ export async function getAdminListings(params: {
   }
 
   const { data, count, error } = await query;
+  // L-16: エラーを握りつぶさず throw で上位に伝播
   if (error) {
     console.error("[admin/listings] fetch failed:", error);
+    throw new Error(`[admin/listings] ${error.message}`);
   }
 
   const normalized = (data ?? []).map((row) => ({
@@ -341,8 +347,10 @@ export async function getAdminTransactions(params: {
   }
 
   const { data, count, error } = await query;
+  // L-16: エラーを握りつぶさず throw で上位に伝播
   if (error) {
     console.error("[admin/transactions] fetch failed:", error);
+    throw new Error(`[admin/transactions] ${error.message}`);
   }
 
   const normalized = (data ?? []).map((row) => ({
@@ -393,8 +401,10 @@ export async function getAdminApiKeys(params: {
     .order("created_at", { ascending: false })
     .range(from, from + per_page - 1);
 
+  // L-16: エラーを握りつぶさず throw で上位に伝播
   if (error) {
     console.error("[admin/api-keys] fetch failed:", error);
+    throw new Error(`[admin/api-keys] ${error.message}`);
   }
 
   const normalized = (data ?? []).map((row) => ({

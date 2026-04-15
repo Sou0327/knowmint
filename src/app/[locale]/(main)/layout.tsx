@@ -1,6 +1,13 @@
+import dynamic from "next/dynamic";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { SolanaWalletProvider } from "@/contexts/WalletContext";
+
+// F-10: Solana ウォレット adapter (~300KB) を initial bundle から分離
+// ssr: false で SSR 時に不要な Phantom/Solflare SDK を除外
+const SolanaWalletProvider = dynamic(
+  () => import("@/contexts/WalletContext").then((m) => m.SolanaWalletProvider),
+  { ssr: false }
+);
 
 export default function MainLayout({
   children,

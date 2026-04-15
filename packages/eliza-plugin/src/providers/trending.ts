@@ -60,7 +60,8 @@ export const trendingKnowledgeProvider: Provider = {
         const text = formatTrending(result.data);
         cacheByKey.set(key, { text, at: Date.now() });
         return { text };
-      } catch {
+      } catch (err) {
+        console.warn("[trending-knowledge] failed to fetch trending items:", err);
         return { text: cached?.text ?? "" };
       } finally {
         inflightByKey.delete(key);

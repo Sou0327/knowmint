@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { KnowledgeSearchParams, PaginatedResult } from "@/types/knowledge.types";
 import type { ContentType, ListingType, KnowledgeStatus, UserType, Database } from "@/types/database.types";
+import { z } from "zod";
 
 // ── 戻り値型定義 ──────────────────────────────────
 
@@ -50,6 +51,58 @@ export interface KnowledgeDetailRow extends Omit<KnowledgeCardRow, "seller"> {
 }
 
 import { toSingle } from "@/lib/supabase/utils";
+
+// ── L-11: CARD_SELECT 共通定数 ──────────────────────
+/** カード表示に必要なフィールドを1箇所で定義 (queries + recommendations で共用) */
+export const CARD_SELECT =
+  "id, seller_id, listing_type, title, description, content_type, price_sol, price_usdc, preview_content, category_id, tags, status, view_count, purchase_count, average_rating, created_at, updated_at, seller:profiles!seller_id(id, display_name, avatar_url, trust_score), category:categories(id, name, slug)" as const;
+
+// ── L-3: getKnowledgeById 戻り値検証スキーマ ─────────
+const SellerSchema = z.object({
+  id: z.string(),
+  display_name: z.string().nullable(),
+  avatar_url: z.string().nullable(),
+  trust_score: z.number().nullable(),
+  bio: z.string().nullable(),
+  user_type: z.string(),
+  wallet_address: z.string().nullable(),
+}).nullable();
+
+const ReviewSchema = z.object({
+  id: z.string(),
+  rating: z.number(),
+  comment: z.string().nullable(),
+  created_at: z.string(),
+  reviewer: z.object({
+    id: z.string(),
+    display_name: z.string().nullable(),
+    avatar_url: z.string().nullable(),
+  }).nullable(),
+});
+
+const KnowledgeDetailSchema = z.object({
+  id: z.string(),
+  seller_id: z.string(),
+  listing_type: z.string(),
+  title: z.string(),
+  description: z.string(),
+  content_type: z.string(),
+  price_sol: z.number().nullable(),
+  price_usdc: z.number().nullable(),
+  preview_content: z.string().nullable(),
+  category_id: z.string().nullable(),
+  tags: z.array(z.string()),
+  status: z.string(),
+  view_count: z.number(),
+  purchase_count: z.number(),
+  average_rating: z.number().nullable(),
+  usefulness_score: z.number().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  seller: SellerSchema,
+  category: z.object({ id: z.string(), name: z.string(), slug: z.string() }).nullable(),
+  reviews: z.array(ReviewSchema),
+});
 
 // ── クエリ関数 ─────────────────────────────────────
 
@@ -221,7 +274,7 @@ export async function getKnowledgeById(id: string): Promise<KnowledgeDetailRow |
   })().catch((e: unknown) => console.error("[knowledge] increment_view_count failed:", e));
 
   // nested join を正規化
-  return {
+  const normalized = {
     ...data,
     seller: toSingle(data.seller),
     category: toSingle(data.category),
@@ -229,7 +282,15 @@ export async function getKnowledgeById(id: string): Promise<KnowledgeDetailRow |
       ...r,
       reviewer: toSingle(r.reviewer),
     })),
-  } as KnowledgeDetailRow;
+  };
+
+  // L-3: Zod parse で実行時型安全を確保 (as キャスト除去)
+  const parsed = KnowledgeDetailSchema.safeParse(normalized);
+  if (!parsed.success) {
+    console.error("[knowledge-queries] getKnowledgeById parse failed:", parsed.error.issues);
+    return null;
+  }
+  return parsed.data as KnowledgeDetailRow;
 }
 
 export async function getCategories(client?: SupabaseClient<Database>) {
@@ -251,26 +312,35 @@ export async function getKnowledgeByCategory(slug: string, page = 1, perPage = 1
 }> {
   const supabase = await createClient();
 
-  // Get category
-  const { data: category } = await supabase
-    .from("categories")
-    .select("id, name, slug")
-    .eq("slug", slug)
-    .single();
-
-  if (!category) return { category: null, items: [], total: 0, page, total_pages: 0 };
-
+  // L-21: 2ラウンドトリップ → 1クエリに統合
+  // categories テーブルを JOIN し slug でフィルタリング (category_id 先引き不要)
   const from = (page - 1) * perPage;
   const { data, count } = await supabase
     .from("knowledge_items")
     .select(
-      "id, seller_id, listing_type, title, description, content_type, price_sol, price_usdc, preview_content, category_id, tags, status, view_count, purchase_count, average_rating, created_at, updated_at, seller:profiles!seller_id(id, display_name, avatar_url, trust_score), category:categories(id, name, slug)",
+      "id, seller_id, listing_type, title, description, content_type, price_sol, price_usdc, preview_content, category_id, tags, status, view_count, purchase_count, average_rating, created_at, updated_at, seller:profiles!seller_id(id, display_name, avatar_url, trust_score), category:categories!inner(id, name, slug)",
       { count: "exact" }
     )
     .eq("status", "published")
-    .eq("category_id", category.id)
+    .eq("categories.slug", slug)
     .order("created_at", { ascending: false })
     .range(from, from + perPage - 1);
+
+  // カテゴリ情報を結果から取得
+  const firstRow = data?.[0];
+  const category = firstRow ? toSingle((firstRow as { category: unknown }).category) as { id: string; name: string; slug: string } | null : null;
+
+  // slug に一致するアイテムが 0 件の場合は categories テーブルから取得
+  const resolvedCategory = category ?? await (async () => {
+    const { data: cat } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .eq("slug", slug)
+      .maybeSingle();
+    return cat;
+  })();
+
+  if (!resolvedCategory) return { category: null, items: [], total: 0, page, total_pages: 0 };
 
   const items: KnowledgeCardRow[] = (data ?? []).map((row) => ({
     ...row,
@@ -280,7 +350,7 @@ export async function getKnowledgeByCategory(slug: string, page = 1, perPage = 1
 
   const total = count ?? 0;
   return {
-    category,
+    category: resolvedCategory,
     items,
     total,
     page,

@@ -1,7 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
 import { Link } from "@/i18n/navigation";
-import KnowledgeCard from "@/components/features/KnowledgeCard";
 import PersonalRecommendationsClient from "@/components/features/PersonalRecommendationsClient";
 import { getPublishedKnowledge, getCategories } from "@/lib/knowledge/queries";
 import { getTopSellers } from "@/lib/rankings/queries";
@@ -13,11 +12,12 @@ import StatsBanner from "@/components/features/StatsBanner";
 import ValuePropsSection from "@/components/features/ValuePropsSection";
 import FinalCtaSection from "@/components/features/FinalCtaSection";
 import EmailCaptureSection from "@/components/features/EmailCaptureSection";
-import SearchBar from "@/components/features/SearchBar";
-import LucideIcon from "@/components/ui/LucideIcon";
+// F-9: sections に抽出
+import { HomeHeroSection } from "@/components/features/HomeHeroSection";
+import { HomeCategoriesSection } from "@/components/features/HomeCategoriesSection";
+import { HomeKnowledgeGrid } from "@/components/features/HomeKnowledgeGrid";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { getCategoryDisplayName } from "@/lib/i18n/category";
 import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
 
 export async function generateMetadata({
@@ -38,19 +38,6 @@ export async function generateMetadata({
     },
   };
 }
-
-const CATEGORY_ICONS: Record<string, string> = {
-  business: "Briefcase",
-  "technology-it": "Laptop",
-  "design-creative": "Palette",
-  "education-learning": "GraduationCap",
-  lifestyle: "Leaf",
-  prompt: "MessageSquare",
-  tool_def: "Settings",
-  dataset: "BarChart3",
-  api: "Plug",
-  general: "BookOpen",
-};
 
 // 公開データのみキャッシュ (cookies() 不使用の Admin クライアントを使用)
 // dynamic rendering のままでも DB クエリを 60 秒間キャッシュし TTFB を削減
@@ -154,83 +141,7 @@ export default async function HomePage() {
       <JsonLd data={organizationJsonLd} />
 
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-sm py-20 text-center sm:py-24">
-        {/* Atmospheric background */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,197,66,0.08),transparent_60%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(64,192,224,0.05),transparent_50%)]" />
-
-        <div className="relative">
-          {/* Eco badges */}
-          <div className="mb-6 flex flex-wrap justify-center gap-2 sm:gap-3">
-            <span className="dq-window-sm px-3 py-1 text-xs font-medium text-dq-cyan">
-              x402 Protocol
-            </span>
-            <span className="self-center text-dq-text-muted" aria-hidden="true">·</span>
-            <span className="dq-window-sm px-3 py-1 text-xs font-medium text-dq-gold">
-              Solana
-            </span>
-            <span className="self-center text-dq-text-muted" aria-hidden="true">·</span>
-            <span className="dq-window-sm px-3 py-1 text-xs font-medium text-dq-text-sub">
-              MCP
-            </span>
-          </div>
-
-          <h1 className="font-display text-5xl font-bold leading-tight tracking-wide text-dq-gold text-glow-gold sm:text-7xl">
-            Know<span className="tracking-normal">Mint</span>
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-dq-text-sub sm:text-xl">
-            {tHome("heroCatchphrase")}
-          </p>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-dq-text-muted">
-            {tHome("heroTagline")}
-          </p>
-
-          {/* CTAs */}
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/search"
-              className="rounded-sm bg-dq-gold px-9 py-4 text-sm font-bold text-dq-bg shadow-[0_0_30px_rgba(245,197,66,0.3)] motion-safe:transition-all hover:brightness-110 hover:shadow-[0_0_40px_rgba(245,197,66,0.4)]"
-            >
-              {tHome("exploreMarket")}
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="rounded-sm border-2 border-dq-cyan/50 px-9 py-4 text-sm font-semibold text-dq-cyan motion-safe:transition-all hover:border-dq-cyan hover:bg-dq-cyan/5"
-            >
-              {tHome("heroSubCtaLabel")}
-            </Link>
-          </div>
-
-          {/* Hero Search */}
-          <div className="mx-auto mt-10 max-w-lg">
-            <SearchBar className="w-full" />
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              {["MCP", "prompt", "Claude Code", "dataset", "Solana"].map((tag) => (
-                <Link
-                  key={tag}
-                  href={`/search?q=${encodeURIComponent(tag)}`}
-                  className="rounded-sm border border-dq-border bg-dq-surface/50 px-3 py-1 text-xs text-dq-text-muted transition-colors hover:border-dq-gold/40 hover:text-dq-gold"
-                >
-                  {tag}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Seller CTA */}
-          <p className="mt-4 text-center text-sm text-dq-text-muted">
-            {tHome("heroSellerCta")}{" "}
-            <Link
-              href="/list"
-              className="font-semibold text-dq-cyan transition-colors hover:text-dq-gold"
-            >
-              {tHome("heroSellerCtaLink")}
-            </Link>
-          </p>
-
-        </div>
-      </section>
+      <HomeHeroSection tHome={tHome} />
 
       {/* AI-citable definition */}
       <section className="mx-auto max-w-3xl rounded-sm dq-window p-6 text-center sm:p-8">
@@ -267,130 +178,31 @@ export default async function HomePage() {
       </Suspense>
 
       {/* Categories */}
-      <section>
-        <div className="mb-4 flex items-center gap-4">
-          <h2 className="shrink-0 font-display text-xl font-bold text-dq-gold">
-            {tHome("categories")}
-          </h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-dq-border to-transparent" />
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/category/${cat.slug}`}
-              className="group rounded-sm dq-window-sm dq-window-hover p-4 text-center"
-            >
-              <LucideIcon name={CATEGORY_ICONS[cat.slug] ?? "BookOpen"} className="mx-auto mb-2 text-dq-gold" size={28} />
-              <span className="text-sm font-medium text-dq-text-sub transition-colors group-hover:text-dq-gold">
-                {getCategoryDisplayName(tTypes, cat.slug, cat.name)}
-              </span>
-              {(categoryCounts[cat.id] ?? 0) > 0 && (
-                <span className="text-xs text-dq-text-muted">
-                  ({categoryCounts[cat.id]})
-                </span>
-              )}
-            </Link>
-          ))}
-        </div>
-      </section>
+      <HomeCategoriesSection
+        tHome={tHome}
+        tTypes={tTypes}
+        categories={categories}
+        categoryCounts={categoryCounts}
+      />
 
       {/* Newest */}
-      <section>
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex flex-1 items-center gap-4">
-            <h2 className="shrink-0 font-display text-xl font-bold text-dq-gold">
-              {tHome("new")}
-            </h2>
-            <div className="h-px flex-1 bg-gradient-to-r from-dq-border to-transparent" />
-          </div>
-          <Link
-            href="/search?sort=newest"
-            className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
-          >
-            {tCommon("viewAll")}{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-0.5">
-              →
-            </span>
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {newest.data.map((item) => (
-            <KnowledgeCard
-              key={item.id}
-              id={item.id}
-              listing_type={item.listing_type}
-              title={item.title}
-              description={item.description}
-              content_type={item.content_type}
-              price_sol={item.price_sol}
-              seller={item.seller ?? { display_name: null }}
-              category={item.category}
-              tags={item.tags}
-              average_rating={item.average_rating}
-              purchase_count={item.purchase_count}
-            />
-          ))}
-        </div>
-        {newest.data.length === 0 && (
-          <div className="py-12 text-center">
-            <svg
-              aria-hidden="true"
-              className="mx-auto mb-3 h-10 w-10 text-dq-text-muted"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25-2.25M12 13.875V7.5M3.75 7.5h16.5"
-              />
-            </svg>
-            <p className="text-dq-text-muted">{tHome("noItemsYet")}</p>
-          </div>
-        )}
-      </section>
+      <HomeKnowledgeGrid
+        tHome={tHome}
+        tCommon={tCommon}
+        items={newest.data}
+        title={tHome("new")}
+        viewAllHref="/search?sort=newest"
+        showEmpty
+      />
 
       {/* Popular */}
-      <section>
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex flex-1 items-center gap-4">
-            <h2 className="shrink-0 font-display text-xl font-bold text-dq-gold">
-              {tHome("popular")}
-            </h2>
-            <div className="h-px flex-1 bg-gradient-to-r from-dq-border to-transparent" />
-          </div>
-          <Link
-            href="/search?sort=popular"
-            className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
-          >
-            {tCommon("viewAll")}{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-0.5">
-              →
-            </span>
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {popular.data.map((item) => (
-            <KnowledgeCard
-              key={item.id}
-              id={item.id}
-              listing_type={item.listing_type}
-              title={item.title}
-              description={item.description}
-              content_type={item.content_type}
-              price_sol={item.price_sol}
-              seller={item.seller ?? { display_name: null }}
-              category={item.category}
-              tags={item.tags}
-              average_rating={item.average_rating}
-              purchase_count={item.purchase_count}
-            />
-          ))}
-        </div>
-      </section>
+      <HomeKnowledgeGrid
+        tHome={tHome}
+        tCommon={tCommon}
+        items={popular.data}
+        title={tHome("popular")}
+        viewAllHref="/search?sort=popular"
+      />
 
       {/* Final CTA */}
       <FinalCtaSection />

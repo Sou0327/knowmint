@@ -52,7 +52,11 @@ export async function GET(request: NextRequest) {
     }
 
     const cleaned = count ?? 0;
-    console.log(`[cron/cleanup-pending-tx] cleaned ${cleaned} pending transactions`);
+    if (cleaned === 0) {
+      console.log("[cron/cleanup-pending-tx] no pending transactions to clean");
+    } else {
+      console.log(`[cron/cleanup-pending-tx] cleaned ${cleaned} pending transactions`);
+    }
 
     return apiSuccess({ cleaned });
   } catch (error) {

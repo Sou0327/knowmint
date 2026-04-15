@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useTransition } from "react";
+import { useCallback, useEffect, useReducer, useRef, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { fetchVersionHistory } from "@/app/[locale]/(main)/knowledge/actions";
 import { formatDate, formatDateTime } from "@/lib/i18n/date";
@@ -63,7 +63,9 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
   const [, startTransition] = useTransition();
 
   const { versions, loading, error, page, totalPages } = state;
+  // F-12: 翻訳文字列は毎レンダーで変わらないため useRef でキャプチャし deps から除外
   const unknownErrorMsg = t("unknownError");
+  const unknownErrorMsgRef = useRef(unknownErrorMsg);
 
   const setPage = useCallback((updater: (prev: number) => number) => {
     dispatch({ type: "SET_PAGE", page: updater(page) });
@@ -87,12 +89,13 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
         }
       } catch (err) {
         if (cancelled) return;
-        dispatch({ type: "FETCH_ERROR", error: err instanceof Error ? err.message : unknownErrorMsg });
+        dispatch({ type: "FETCH_ERROR", error: err instanceof Error ? err.message : unknownErrorMsgRef.current });
       }
     });
 
     return () => { cancelled = true; };
-  }, [knowledgeItemId, page, unknownErrorMsg]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [knowledgeItemId, page]);
 
   if (loading) {
     return (

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from 'next-intl/server';
 
@@ -41,11 +42,12 @@ export async function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <img
+                <Image
                   src="https://orynth.dev/api/badge/knowmint?theme=light&style=minimal"
                   alt="Featured on Orynth"
                   width={152}
                   height={48}
+                  unoptimized
                 />
               </a>
             </div>

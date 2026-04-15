@@ -922,6 +922,13 @@ export type Database = {
         }
         Returns: Json
       }
+      get_revenue_by_token: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          token: string
+          total: number
+        }[]
+      }
       get_top_sellers: {
         Args: { p_limit?: number }
         Returns: {

@@ -2,6 +2,7 @@ import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getAllowedOrigins, resolveAllowedOrigin } from "@/lib/http/cors";
 
 const handleI18nRouting = createIntlMiddleware(routing);
 
@@ -44,9 +45,11 @@ export async function middleware(request: NextRequest) {
 
   // 1. API routes — CORS only, skip i18n and auth
   if (rawPathname.startsWith("/api/")) {
-    const allowedOrigin = process.env.ALLOWED_ORIGIN || (
-      process.env.NODE_ENV === "production" ? undefined : "*"
-    );
+    // RP1 (B-4): production で ALLOWED_ORIGINS 未設定なら getAllowedOrigins() が throw。
+    // Worker 初回リクエストで即死するので deploy 直後に検知される。
+    const allowedOrigins = getAllowedOrigins();
+    const requestOrigin = request.headers.get("Origin");
+    const allowedOrigin = resolveAllowedOrigin(requestOrigin, allowedOrigins);
 
     // Preflight
     if (request.method === "OPTIONS") {
@@ -55,6 +58,8 @@ export async function middleware(request: NextRequest) {
         "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT, X-API-Key",
         "Access-Control-Expose-Headers": "WWW-Authenticate, Payment-Receipt",
         "Access-Control-Max-Age": "86400",
+        // RP1 (B-4): Origin-based レスポンスには Vary: Origin 必須 (CDN/Worker キャッシュ汚染防止)
+        Vary: "Origin",
       };
       if (allowedOrigin) {
         headers["Access-Control-Allow-Origin"] = allowedOrigin;
@@ -68,6 +73,8 @@ export async function middleware(request: NextRequest) {
     apiResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     apiResponse.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
     apiResponse.headers.set("Access-Control-Expose-Headers", "WWW-Authenticate, Payment-Receipt");
+    // RP1 (B-4): 非 preflight でも Origin echo の有無に関わらず必ず Vary: Origin を付与
+    apiResponse.headers.set("Vary", "Origin");
     apiResponse.headers.set("Content-Security-Policy", "default-src 'none'; script-src 'none'; frame-ancestors 'none'");
     return apiResponse;
   }

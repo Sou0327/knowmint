@@ -4,6 +4,8 @@ import {
   Settings, Zap, Shield, Search, BookOpen,
   Bot, Terminal, Plug, BarChart3, MessageSquare,
   Coins, Star, UserPlus, Package, Bell,
+  Home, Users, Flag, List, CreditCard, Key,
+  BarChart2, Heart, Trophy, ArrowLeft, ChevronDown,
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -11,6 +13,8 @@ const ICON_MAP = {
   Settings, Zap, Shield, Search, BookOpen,
   Bot, Terminal, Plug, BarChart3, MessageSquare,
   Coins, Star, UserPlus, Package, Bell,
+  Home, Users, Flag, List, CreditCard, Key,
+  BarChart2, Heart, Trophy, ArrowLeft, ChevronDown,
 } satisfies Record<string, LucideIconType>;
 
 export type IconName = keyof typeof ICON_MAP;

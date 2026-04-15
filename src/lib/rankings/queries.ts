@@ -34,8 +34,7 @@ export async function hasAnySellers(): Promise<boolean> {
 export async function getTopSellers(limit = 10): Promise<TopSeller[]> {
   const supabase = getAdminClient();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase typed RPC: custom function not in generated Database.Functions
-  const { data, error } = await (supabase.rpc as any)("get_top_sellers", {
+  const { data, error } = await supabase.rpc("get_top_sellers", {
     p_limit: limit,
   });
 
@@ -45,15 +44,7 @@ export async function getTopSellers(limit = 10): Promise<TopSeller[]> {
   }
   if (!data || !Array.isArray(data) || data.length === 0) return [];
 
-  return (data as Array<{
-    id: string;
-    display_name: string | null;
-    avatar_url: string | null;
-    follower_count: number;
-    total_sales: number;
-    total_items: number;
-    trust_score: number | null;
-  }>).map((row) => ({
+  return data.map((row) => ({
     id: row.id,
     display_name: row.display_name,
     avatar_url: row.avatar_url,

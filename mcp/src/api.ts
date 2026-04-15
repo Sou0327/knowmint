@@ -2,12 +2,23 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import {
+  apiRequest as sdkApiRequest,
+  apiRequestPaginated as sdkApiRequestPaginated,
+  apiRequestPublic as sdkApiRequestPublic,
+  apiRequestWithPayment as sdkApiRequestWithPayment,
+  type PaginationMeta as SdkPaginationMeta,
+  type PaymentRequiredResponse as SdkPaymentRequiredResponse,
+} from "@knowledge-market/sdk/internal";
+import {
+  validateBaseUrl as sdkValidateBaseUrl,
+  validateApiKey as sdkValidateApiKey,
+} from "@knowledge-market/sdk/validate";
+import { KmApiError } from "@knowledge-market/sdk";
+
 const CONFIG_DIR = path.join(os.homedir(), ".km");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 const DEFAULT_BASE_URL = "https://knowmint.shop";
-
-/** フェッチタイムアウト (ms) */
-const FETCH_TIMEOUT_MS = 30_000;
 
 export interface KmConfig {
   apiKey: string | null;
@@ -20,50 +31,28 @@ function fatal(msg: string): never {
 }
 
 /**
- * baseUrl を検証・正規化する。
- * - userinfo (credentials) を持つ URL を拒否
- * - localhost/127.0.0.1/::1 以外では HTTPS を強制
- * - origin のみ返す (path/query/fragment を除去)
+ * baseUrl を検証・正規化する。SDK の validateBaseUrl を MCP の fatal 挙動で
+ * ラップする。SDK 側で credentials/HTTPS チェック・origin 化を実施。
  */
 function validateBaseUrl(raw: unknown): string {
-  const cleaned =
-    typeof raw === "string" && raw.trim() ? raw.trim() : DEFAULT_BASE_URL;
-
-  let parsed: URL;
+  const cleaned = typeof raw === "string" ? raw : DEFAULT_BASE_URL;
   try {
-    parsed = new URL(cleaned);
-  } catch {
-    fatal(`Invalid base URL: "${cleaned}"`);
+    return sdkValidateBaseUrl(cleaned, { defaultBaseUrl: DEFAULT_BASE_URL });
+  } catch (e) {
+    fatal((e as Error).message);
   }
-
-  if (parsed.username || parsed.password) {
-    fatal("Base URL must not contain credentials (user:pass@...).");
-  }
-
-  const isLocal =
-    parsed.hostname === "localhost" ||
-    parsed.hostname === "127.0.0.1" ||
-    parsed.hostname === "::1" ||
-    parsed.hostname === "[::1]";
-
-  if (!isLocal && parsed.protocol !== "https:") {
-    fatal(`Base URL must use HTTPS for non-localhost hosts. Got: "${parsed.protocol}//..."`);
-  }
-
-  return parsed.origin; // scheme + host + port のみ
 }
 
 /**
- * apiKey を検証する。km_<64 hex> 形式のみ許可。
+ * apiKey を検証する。km_<64 hex> 形式のみ許可。MCP はユーザーに即時中断を示すため
+ * fatal する。
  */
 function validateApiKey(raw: unknown): string {
-  if (typeof raw !== "string") {
-    fatal("API key must be a string. Set KM_API_KEY env or run `km login`.");
+  try {
+    return sdkValidateApiKey(raw);
+  } catch (e) {
+    fatal((e as Error).message);
   }
-  if (!/^km_[a-f0-9]{64}$/i.test(raw)) {
-    fatal("API key format is invalid (expected km_<64 hex chars>).");
-  }
-  return raw;
 }
 
 export async function loadConfig(): Promise<KmConfig> {
@@ -98,41 +87,8 @@ export async function loadConfig(): Promise<KmConfig> {
   return { apiKey, baseUrl };
 }
 
-export class KmApiError extends Error {
-  readonly status: number | null;
-  readonly code: string | null;
-
-  constructor(message: string, status: number | null = null, code: string | null = null) {
-    super(message);
-    this.name = "KmApiError";
-    this.status = status;
-    this.code = code;
-  }
-}
-
-/**
- * サーバーエラーメッセージをサニタイズする。
- * JSON 応答内の error.message / message フィールドのみ使用し、
- * 生テキスト（HTMLスタックトレース等）は返さない。
- */
-function sanitizeServerError(status: number, json: unknown): string {
-  const obj = json as Record<string, unknown> | null;
-  const errObj = obj?.["error"] as Record<string, unknown> | undefined;
-
-  const serverMsg =
-    (typeof errObj?.["message"] === "string" ? errObj["message"] : null) ??
-    (typeof obj?.["message"] === "string" ? obj["message"] : null);
-
-  return serverMsg ?? `Request failed with status ${status}`;
-}
-
-function buildHeaders(config: KmConfig): Record<string, string> {
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (config.apiKey) {
-    headers["Authorization"] = `Bearer ${config.apiKey}`;
-  }
-  return headers;
-}
+// SDK の KmApiError を唯一の実装として再エクスポート (P-5 重複解消)。
+export { KmApiError };
 
 /**
  * config を ~/.km/config.json に永続化する。
@@ -149,59 +105,22 @@ export async function saveConfig(config: KmConfig): Promise<void> {
   await fs.chmod(CONFIG_PATH, 0o600);
 }
 
-function withTimeout(signal?: AbortSignal): { signal: AbortSignal; cleanup: () => void } {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  // 親シグナルが既に aborted なら即時中断
-  if (signal?.aborted) {
-    controller.abort(signal.reason);
+function requireApiKey(config: KmConfig): string {
+  if (!config.apiKey) {
+    throw new KmApiError(
+      "No API key configured. Run km_register or km_wallet_login first.",
+      null,
+      "no_api_key"
+    );
   }
-  // 親シグナルがあれば連鎖 (cleanup でリスナー解除してメモリリーク防止)
-  const onAbort = () => controller.abort();
-  if (signal && !signal.aborted) {
-    signal.addEventListener("abort", onAbort);
-  }
-  return {
-    signal: controller.signal,
-    cleanup: () => {
-      clearTimeout(timer);
-      signal?.removeEventListener("abort", onAbort);
-    },
-  };
+  return config.apiKey;
 }
 
-async function parseResponse<T>(response: Response): Promise<T> {
-  const text = await response.text();
-  let json: unknown = null;
-  try {
-    json = text ? JSON.parse(text) : null;
-  } catch {
-    json = null;
-  }
+/** SDK の PaymentRequiredResponse を MCP が再エクスポート。 */
+export type PaymentRequiredResponse = SdkPaymentRequiredResponse;
 
-  if (!response.ok) {
-    const code =
-      ((json as Record<string, unknown> | null)?.["error"] as Record<string, unknown> | undefined)
-        ?.["code"] as string | undefined ?? null;
-    throw new KmApiError(sanitizeServerError(response.status, json), response.status, code);
-  }
-
-  const result = json as { success: boolean; data: T } | null;
-  if (!result || result.success !== true) {
-    throw new KmApiError("Unexpected API response shape");
-  }
-  return result.data;
-}
-
-/** x402 / MPP HTTP 402 Payment Required レスポンスの型 */
-export interface PaymentRequiredResponse {
-  payment_required: true;
-  x402Version?: number;
-  accepts?: unknown[];
-  error?: string;
-  /** MPP WWW-Authenticate challenge header (if MPP is enabled on server) */
-  mpp_challenge?: string;
-}
+/** SDK の PaginationMeta を MCP が再エクスポート。 */
+export type PaginationMeta = SdkPaginationMeta;
 
 /**
  * X-PAYMENT ヘッダーを付けてリクエストし、HTTP 402 を特別処理する。
@@ -212,59 +131,11 @@ export async function apiRequestWithPayment<T>(
   apiPath: string,
   extraHeaders?: Record<string, string>
 ): Promise<T | PaymentRequiredResponse> {
-  requireApiKey(config);
-  const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
-  const baseHeaders = buildHeaders(config);
-  // If extraHeaders overrides Authorization (e.g., MPP Payment credential),
-  // move the API key to X-API-Key so server auth still works
-  if (extraHeaders?.["Authorization"] && baseHeaders["Authorization"] && config.apiKey) {
-    delete baseHeaders["Authorization"];
-    baseHeaders["X-API-Key"] = config.apiKey;
-  }
-  const headers: Record<string, string> = { ...baseHeaders, ...extraHeaders };
-  const { signal, cleanup } = withTimeout();
-
-  try {
-    const response = await fetch(url, { method: "GET", headers, signal });
-
-    if (response.status === 402) {
-      const text = await response.text();
-      let json: unknown = null;
-      try { json = text ? JSON.parse(text) : null; } catch { json = null; }
-      const body = (json ?? {}) as Record<string, unknown>;
-
-      // Extract MPP challenge from WWW-Authenticate header (if present)
-      const wwwAuth = response.headers.get("WWW-Authenticate");
-      const mppChallenge = wwwAuth?.startsWith("Payment ") ? wwwAuth : undefined;
-
-      return {
-        payment_required: true,
-        x402Version: typeof body["x402Version"] === "number" ? body["x402Version"] : undefined,
-        accepts: Array.isArray(body["accepts"]) ? body["accepts"] : [],
-        error: typeof body["error"] === "string" ? body["error"] : undefined,
-        mpp_challenge: mppChallenge,
-      } satisfies PaymentRequiredResponse;
-    }
-
-    return await parseResponse<T>(response);
-  } catch (e) {
-    if ((e as { name?: string }).name === "AbortError") {
-      throw new KmApiError(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s`, null);
-    }
-    throw e;
-  } finally {
-    cleanup();
-  }
-}
-
-function requireApiKey(config: KmConfig): void {
-  if (!config.apiKey) {
-    throw new KmApiError(
-      "No API key configured. Run km_register or km_wallet_login first.",
-      null,
-      "no_api_key"
-    );
-  }
+  const apiKey = requireApiKey(config);
+  return sdkApiRequestWithPayment<T>(config.baseUrl, apiKey, apiPath, {
+    extraHeaders,
+    moveApiKeyOnAuthOverride: true,
+  });
 }
 
 /**
@@ -277,94 +148,27 @@ export async function apiRequestPublic<T>(
   method: string = "POST",
   body?: unknown
 ): Promise<T> {
-  const url = `${baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
-  const headers: Record<string, string> = { Accept: "application/json" };
-  const { signal, cleanup } = withTimeout();
-
-  try {
-    const init: RequestInit = { method, headers, signal };
-    if (body !== undefined) {
-      headers["Content-Type"] = "application/json";
-      init.body = JSON.stringify(body);
-    }
-    const response = await fetch(url, init);
-    return await parseResponse<T>(response);
-  } catch (e) {
-    if ((e as { name?: string }).name === "AbortError") {
-      throw new KmApiError(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s`, null);
-    }
-    throw e;
-  } finally {
-    cleanup();
-  }
+  return sdkApiRequestPublic<T>(baseUrl, apiPath, method, body);
 }
 
+/** 認証付きの単一レスポンス API リクエスト。 */
 export async function apiRequest<T>(
   config: KmConfig,
   apiPath: string,
   method: string = "GET",
   body?: unknown
 ): Promise<T> {
-  requireApiKey(config);
-  const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
-  const headers = buildHeaders(config);
-  const { signal, cleanup } = withTimeout();
-
-  try {
-    const init: RequestInit = { method, headers, signal };
-    if (body !== undefined) {
-      (headers as Record<string, string>)["Content-Type"] = "application/json";
-      init.body = JSON.stringify(body);
-    }
-    const response = await fetch(url, init);
-    return await parseResponse<T>(response);
-  } catch (e) {
-    if ((e as { name?: string }).name === "AbortError") {
-      throw new KmApiError(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s`, null);
-    }
-    throw e;
-  } finally {
-    cleanup();
-  }
+  const apiKey = requireApiKey(config);
+  return sdkApiRequest<T>(config.baseUrl, apiKey, apiPath, method, body);
 }
 
+/** 認証付きのページネーション API リクエスト。 */
 export async function apiRequestPaginated<T>(
   config: KmConfig,
   apiPath: string
-): Promise<{ data: T[]; pagination: unknown }> {
-  requireApiKey(config);
-  const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
-  const headers = buildHeaders(config);
-  const { signal, cleanup } = withTimeout();
-
-  try {
-    const response = await fetch(url, { method: "GET", headers, signal });
-
-    const text = await response.text();
-    let json: unknown = null;
-    try {
-      json = text ? JSON.parse(text) : null;
-    } catch {
-      json = null;
-    }
-
-    if (!response.ok) {
-      throw new KmApiError(sanitizeServerError(response.status, json), response.status);
-    }
-
-    const result = json as { success: boolean; data: T[]; pagination: unknown } | null;
-    if (!result || result.success !== true) {
-      throw new KmApiError("Unexpected API response shape");
-    }
-    return { data: result.data, pagination: result.pagination };
-  } catch (e) {
-    if ((e as { name?: string }).name === "AbortError") {
-      throw new KmApiError(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s`, null);
-    }
-    throw e;
-  } finally {
-    cleanup();
-  }
+): Promise<{ data: T[]; pagination: PaginationMeta }> {
+  const apiKey = requireApiKey(config);
+  return sdkApiRequestPaginated<T>(config.baseUrl, apiKey, apiPath);
 }
 
 export interface PublishInput {

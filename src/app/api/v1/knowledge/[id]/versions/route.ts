@@ -1,6 +1,7 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiError, apiPaginated, API_ERRORS } from "@/lib/api/response";
+import { parsePagination } from "@/lib/api/validation";
 
 /**
  * GET /api/v1/knowledge/[id]/versions
@@ -51,11 +52,7 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
 
   // ページネーションパラメータ
   const url = new URL(request.url);
-  const page = Math.min(1000, Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10) || 1));
-  const perPage = Math.min(
-    100,
-    Math.max(1, parseInt(url.searchParams.get("per_page") ?? "20", 10) || 20)
-  );
+  const { page, perPage } = parsePagination(url.searchParams);
   const offset = (page - 1) * perPage;
 
   // 総件数

@@ -1,12 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireAdmin } from "@/lib/auth/session";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { logAuditEvent } from "@/lib/audit/log";
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { UUID_RE } from "@/lib/api/validation";
 
 /** Revalidate admin pages for all locales */
 function revalidateAdmin() {
@@ -41,12 +40,12 @@ export async function banUser(
   if (error) return { success: false, error: error.message };
   if (!updated) return { success: false, error: "User not found or is an admin" };
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: admin.id,
     action: "admin.user_banned",
     resourceType: "profile",
     resourceId: userId,
-  }).then(() => {}, () => {});
+  }));
 
   revalidateAdmin();
   return { success: true };
@@ -70,12 +69,12 @@ export async function unbanUser(
   if (error) return { success: false, error: error.message };
   if (!updated) return { success: false, error: "User not found" };
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: admin.id,
     action: "admin.user_unbanned",
     resourceType: "profile",
     resourceId: userId,
-  }).then(() => {}, () => {});
+  }));
 
   revalidateAdmin();
   return { success: true };
@@ -111,7 +110,7 @@ export async function reviewReport(
 
   if (error) return { success: false, error: error.message };
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: admin.id,
     action: "report.reviewed",
     resourceType: "knowledge_item_report",
@@ -120,7 +119,7 @@ export async function reviewReport(
       action,
       remove_item: options?.remove_item ?? false,
     },
-  }).then(() => {}, () => {});
+  }));
 
   revalidateAdmin();
   return { success: true };
@@ -147,12 +146,12 @@ export async function suspendListing(
   if (error) return { success: false, error: error.message };
   if (!updated) return { success: false, error: "Listing not found" };
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: admin.id,
     action: "admin.listing_suspended",
     resourceType: "knowledge_item",
     resourceId: itemId,
-  }).then(() => {}, () => {});
+  }));
 
   revalidateAdmin();
   return { success: true };
@@ -179,12 +178,12 @@ export async function revokeApiKey(
   if (error) return { success: false, error: error.message };
   if (!deleted) return { success: false, error: "API key not found" };
 
-  logAuditEvent({
+  after(() => logAuditEvent({
     userId: admin.id,
     action: "admin.apikey_revoked",
     resourceType: "api_key",
     resourceId: keyId,
-  }).then(() => {}, () => {});
+  }));
 
   revalidateAdmin();
   return { success: true };

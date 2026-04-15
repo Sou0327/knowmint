@@ -1,4 +1,5 @@
 import { apiRequest, apiRequestPaginated } from "./internal/api.js";
+import { validateBaseUrl } from "./validate.js";
 import type {
   KmClientOptions,
   KnowledgeItem,
@@ -27,19 +28,12 @@ export class KnowledgeMarketClient {
 
   constructor(options: KmClientOptions) {
     this.apiKey = options.apiKey;
-    const raw = (options.baseUrl ?? "http://127.0.0.1:3000").replace(/\/+$/, "");
-    // 非 localhost は HTTPS を必須にして API キーの平文送信を防止
-    try {
-      const parsed = new URL(raw);
-      const isLocalhost = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1" || parsed.hostname === "::1" || parsed.hostname === "[::1]";
-      if (!isLocalhost && parsed.protocol !== "https:") {
-        throw new Error(`Non-localhost base URL must use HTTPS: ${raw}`);
-      }
-    } catch (e) {
-      if (e instanceof Error && e.message.includes("HTTPS")) throw e;
-      throw new Error(`Invalid base URL: ${raw}`);
-    }
-    this.baseUrl = raw;
+    // validateBaseUrl() returns the canonical origin and rejects credential
+    // embedded URLs (user:pass@...) — the SDK previously accepted those,
+    // which was a latent security issue (P-7).
+    this.baseUrl = validateBaseUrl(options.baseUrl, {
+      defaultBaseUrl: "http://127.0.0.1:3000",
+    });
     this.timeoutMs = options.timeoutMs ?? 30_000;
   }
 

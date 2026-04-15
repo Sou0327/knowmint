@@ -1,8 +1,7 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { UUID_RE } from "@/lib/api/validation";
 
 /**
  * GET /api/v1/favorites
@@ -28,7 +27,7 @@ export const GET = withApiAuth(async (request, user) => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Failed to fetch favorites:", error);
+    console.error("[favorites] fetch failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -91,7 +90,7 @@ export const POST = withApiAuth(async (request, user) => {
     .single();
 
   if (error || !data) {
-    console.error("Failed to add favorite:", error);
+    console.error("[favorites] add failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
@@ -128,7 +127,7 @@ export const DELETE = withApiAuth(async (request, user) => {
     .eq("knowledge_item_id", body.knowledge_item_id);
 
   if (error) {
-    console.error("Failed to delete favorite:", error);
+    console.error("[favorites] delete failed:", error);
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 

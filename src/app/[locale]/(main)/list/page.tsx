@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 import BasicInfoStep from "@/components/features/ListingForm/BasicInfoStep";
 import ContentEditor from "@/components/features/ListingForm/ContentEditor";
 import PricingStep from "@/components/features/ListingForm/PricingStep";
@@ -257,9 +258,9 @@ export default function ListPage() {
       </div>
 
       {errors.submit && (
-        <div className="mb-4 rounded-sm border-l-4 border-l-dq-red bg-dq-red/10 p-3 text-sm text-dq-red">
+        <Alert variant="error" className="mb-4">
           {errors.submit}
-        </div>
+        </Alert>
       )}
 
       {/* Step content */}

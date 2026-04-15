@@ -15,60 +15,26 @@ import {
   KmGetContentSchema,
   KmPublishSchema,
 } from "./schemas.js";
+import {
+  formatSearchResults as sdkFormatSearchResults,
+  type SearchResultsPayload,
+} from "@knowledge-market/sdk/formatters";
 
-type SearchItem = {
-  id?: string;
-  title?: string;
-  usefulness_score?: number | null;
-  tags?: string[];
-  metadata?: {
-    domain?: string;
-    experience_type?: string;
-    source_type?: string;
-    applicable_to?: string[];
-  } | null;
-  seller?: {
-    trust_score?: number | null;
-  };
-  [key: string]: unknown;
-};
-
+/**
+ * AgentKit は英語ラベル + sanitize を有効化して表示する
+ * (ログインジェクション対策)。SDK 実装に委譲。
+ */
 function formatSearchResults(result: { data: unknown[]; pagination: unknown }): string {
-  const lines: string[] = [];
-  for (const item of result.data as SearchItem[]) {
-    const score =
-      typeof item.usefulness_score === "number"
-        ? `[Quality: ${item.usefulness_score.toFixed(2)}] `
-        : "";
-    const trustScore =
-      typeof item.seller?.trust_score === "number"
-        ? `[Trust: ${item.seller.trust_score.toFixed(2)}] `
-        : "";
-    const title = sanitizeField(item.title ?? "(no title)");
-    const id = sanitizeField(item.id ?? "?");
-    lines.push(`${score}${trustScore}${title} (id: ${id})`);
-    if (Array.isArray(item.tags) && item.tags.length > 0) {
-      lines.push(`  Tags: ${item.tags.map((t: unknown) => `#${sanitizeField(t)}`).join(" ")}`);
-    }
-    if (item.metadata && typeof item.metadata === "object") {
-      const m = item.metadata;
-      const parts: string[] = [];
-      if (m.domain) parts.push(`domain=${sanitizeField(m.domain)}`);
-      if (m.experience_type) parts.push(`type=${sanitizeField(m.experience_type)}`);
-      if (m.source_type) parts.push(`source=${sanitizeField(m.source_type)}`);
-      if (Array.isArray(m.applicable_to) && m.applicable_to.length > 0) {
-        parts.push(`ai=${m.applicable_to.map((v: unknown) => sanitizeField(v)).join(",")}`);
-      }
-      if (parts.length > 0) lines.push(`  Metadata: ${parts.join(", ")}`);
-    }
-  }
-  return `${result.data.length} results\n${lines.join("\n")}`;
+  return sdkFormatSearchResults(result as SearchResultsPayload, {
+    locale: "en",
+    sanitize: true,
+  });
 }
 
-/** Strip control characters and newlines from untrusted values */
+/** Strip control characters and newlines from untrusted values (AgentKit 固有の追加防御) */
 function sanitizeField(raw: unknown): string {
   const str = typeof raw === "string" ? raw : String(raw ?? "");
-   
+  // eslint-disable-next-line no-control-regex
   return str.replace(/[\x00-\x1f\x7f]/g, "").slice(0, 256);
 }
 

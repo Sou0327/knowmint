@@ -1,6 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { SolanaWalletProvider } from "@/contexts/WalletContext";
+import { SolanaWalletBoundary } from "./SolanaWalletBoundary";
 
 export default function MainLayout({
   children,
@@ -8,7 +8,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SolanaWalletProvider>
+    <SolanaWalletBoundary>
       <div className="flex min-h-screen flex-col">
         <Header />
         <main className="flex-1">
@@ -18,6 +18,6 @@ export default function MainLayout({
         </main>
         <Footer />
       </div>
-    </SolanaWalletProvider>
+    </SolanaWalletBoundary>
   );
 }

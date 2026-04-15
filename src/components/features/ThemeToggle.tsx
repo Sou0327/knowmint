@@ -67,13 +67,13 @@ function subscribe(callback: () => void): () => void {
   window.addEventListener('storage', handleStorage);
 
   // MediaQueryList.addEventListener は Safari 14+ / Chrome 79+ から対応。
-  // 旧環境では deprecated の addListener にフォールバック。
+  // 旧環境 (Safari <14) では deprecated の addListener にフォールバック。
   if (mq) {
-    if (typeof mq.addEventListener === 'function') {
+    if ('addEventListener' in mq) {
       mq.addEventListener('change', handleMqChange);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mq as any).addListener(handleMqChange);
+      // Legacy Safari (<14): addListener は deprecated だが型定義から削除済みのため unknown 経由
+      (mq as unknown as { addListener: (fn: () => void) => void }).addListener(handleMqChange);
     }
   }
 
@@ -81,11 +81,11 @@ function subscribe(callback: () => void): () => void {
     window.removeEventListener('km-theme-change', callback);
     window.removeEventListener('storage', handleStorage);
     if (mq) {
-      if (typeof mq.removeEventListener === 'function') {
+      if ('removeEventListener' in mq) {
         mq.removeEventListener('change', handleMqChange);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (mq as any).removeListener(handleMqChange);
+        // Legacy Safari (<14)
+        (mq as unknown as { removeListener: (fn: () => void) => void }).removeListener(handleMqChange);
       }
     }
   };

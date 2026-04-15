@@ -331,4 +331,119 @@ describe("getPublishedKnowledge()", () => {
   });
 });
 
+// -----------------------------------------------------------------------
+// L-3: getKnowledgeById Zod parse
+// -----------------------------------------------------------------------
+describe("getKnowledgeById() — L-3 Zod parse", () => {
+  beforeEach(() => {
+    state.calls.length = 0;
+    state.rpcCalled = false;
+    state.rpcArgs = null;
+    state.mockQueryResult = { data: [], count: 0, error: null };
+    state.mockSingleResult = { data: null, error: null };
+  });
+
+  it("returns null on DB error", async () => {
+    state.mockSingleResult = { data: null, error: { message: "not found" } };
+    const result = await getKnowledgeById("test-id");
+    expect(result).toBeNull();
+  });
+
+  it("returns null when Zod parse fails (invalid shape)", async () => {
+    // Zod parse は required フィールドが欠けていると失敗する
+    state.mockSingleResult = { data: { id: "x" /* missing fields */ }, error: null };
+    const result = await getKnowledgeById("test-id");
+    expect(result).toBeNull();
+  });
+
+  it("returns parsed KnowledgeDetailRow when shape is valid", async () => {
+    const validRow = {
+      id: "abc",
+      seller_id: "s1",
+      listing_type: "offer",
+      title: "Test",
+      description: "desc",
+      content_type: "prompt",
+      price_sol: 1.5,
+      price_usdc: null,
+      preview_content: null,
+      category_id: null,
+      tags: ["ai"],
+      status: "published",
+      view_count: 0,
+      purchase_count: 0,
+      average_rating: null,
+      usefulness_score: null,
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      seller: { id: "s1", display_name: "Alice", avatar_url: null, trust_score: null, bio: null, user_type: "human", wallet_address: null },
+      category: null,
+      reviews: [],
+    };
+    state.mockSingleResult = { data: validRow, error: null };
+    const result = await getKnowledgeById("abc");
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("abc");
+    expect(result?.tags).toEqual(["ai"]);
+  });
+});
+
+// -----------------------------------------------------------------------
+// L-11: CARD_SELECT 共通定数
+// -----------------------------------------------------------------------
+describe("CARD_SELECT constant — L-11", () => {
+  it("CARD_SELECT includes seller join and category join", async () => {
+    const { CARD_SELECT } = await import("@/lib/knowledge/queries");
+    expect(CARD_SELECT).toContain("seller:profiles!seller_id");
+    expect(CARD_SELECT).toContain("category:categories");
+    expect(CARD_SELECT).toContain("purchase_count");
+    expect(CARD_SELECT).toContain("average_rating");
+  });
+});
+
+// -----------------------------------------------------------------------
+// L-12: normalizeRows from recommendations
+// -----------------------------------------------------------------------
+describe("normalizeRows — L-12", () => {
+  it("unwraps array-wrapped seller/category to single object", async () => {
+    const { normalizeRows } = await import("@/lib/recommendations/queries");
+    const input = [{
+      id: "x",
+      listing_type: "offer",
+      title: "T",
+      description: "D",
+      content_type: "prompt",
+      price_sol: null,
+      tags: [],
+      average_rating: null,
+      purchase_count: 0,
+      seller: [{ id: "s1", display_name: "Alice", avatar_url: null }],
+      category: [{ id: "c1", name: "AI", slug: "ai" }],
+    }];
+    const result = normalizeRows(input);
+    expect(result[0].seller).toEqual({ id: "s1", display_name: "Alice", avatar_url: null });
+    expect(result[0].category).toEqual({ id: "c1", name: "AI", slug: "ai" });
+  });
+
+  it("handles null seller/category", async () => {
+    const { normalizeRows } = await import("@/lib/recommendations/queries");
+    const input = [{
+      id: "y",
+      listing_type: "offer",
+      title: "T",
+      description: "D",
+      content_type: "general",
+      price_sol: null,
+      tags: [],
+      average_rating: null,
+      purchase_count: 0,
+      seller: null,
+      category: null,
+    }];
+    const result = normalizeRows(input);
+    expect(result[0].seller).toBeNull();
+    expect(result[0].category).toBeNull();
+  });
+});
+
 }); // end describe("knowledge queries tests")

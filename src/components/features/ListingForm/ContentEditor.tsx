@@ -60,7 +60,7 @@ export default function ContentEditor({
   if (isRequest) {
     return (
       <div className="space-y-5">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-dq-text-sub">
           {t("requestContentDesc")}
         </p>
 
@@ -110,10 +110,10 @@ export default function ContentEditor({
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="mb-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <h3 className="mb-1 text-sm font-medium text-dq-text-sub">
           {t("previewContent")}
         </h3>
-        <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mb-2 text-xs text-dq-text-muted">
           {t("previewContentDesc")}
         </p>
         <Textarea
@@ -127,10 +127,10 @@ export default function ContentEditor({
       </div>
 
       <div>
-        <h3 className="mb-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <h3 className="mb-1 text-sm font-medium text-dq-text-sub">
           {t("fullContent")}
         </h3>
-        <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mb-2 text-xs text-dq-text-muted">
           {t("fullContentDesc")}
         </p>
         <Textarea

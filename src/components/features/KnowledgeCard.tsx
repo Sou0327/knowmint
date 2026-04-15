@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Link } from "@/i18n/navigation";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -31,7 +32,8 @@ interface KnowledgeCardProps {
   purchase_count: number;
 }
 
-export default function KnowledgeCard({
+// F-13: React.memo でリスト再レンダリング時の props 比較コストを削減
+const KnowledgeCard = memo(function KnowledgeCard({
   id,
   listing_type,
   title,
@@ -121,4 +123,6 @@ export default function KnowledgeCard({
       </Card>
     </Link>
   );
-}
+});
+
+export default KnowledgeCard;

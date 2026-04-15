@@ -176,14 +176,8 @@ describe("recordPurchase() tests", () => {
       expect(result.error).toBe("Invalid input");
     });
 
-    it("chain=solana + token=ETH → invalid combination → { success: false, error: 'Invalid input' }", async () => {
-      const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "solana", "ETH", true);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Invalid input");
-    });
-
-    it("chain=base + token=SOL → invalid combination → { success: false, error: 'Invalid input' }", async () => {
-      const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "base", "SOL", true);
+    it("chain=solana + token=ETH → invalid token → { success: false, error: 'Invalid input' }", async () => {
+      const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "solana", "ETH" as unknown as "SOL", true);
       expect(result.success).toBe(false);
       expect(result.error).toBe("Invalid input");
     });
@@ -264,27 +258,6 @@ describe("recordPurchase() tests", () => {
       const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "solana", "SOL", true);
       expect(result.success).toBe(false);
       expect(result.error).toBe("Transaction hash already used");
-    });
-  });
-
-  // -----------------------------------------------------------------------
-  // EVM rejection
-  // -----------------------------------------------------------------------
-  describe("recordPurchase() — EVM rejection", () => {
-    beforeEach(() => { setupHappyPath(); });
-
-    it("chain=base → { success: false, error: 'Only Solana purchases are supported in this phase' }", async () => {
-      state.adminCallResults = [{ data: null, error: null }, { data: null, error: null }];
-      const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "base", "ETH", true);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Only Solana purchases are supported in this phase");
-    });
-
-    it("chain=ethereum → { success: false, error: 'Only Solana purchases are supported in this phase' }", async () => {
-      state.adminCallResults = [{ data: null, error: null }, { data: null, error: null }];
-      const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "ethereum", "ETH", true);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Only Solana purchases are supported in this phase");
     });
   });
 
@@ -561,6 +534,50 @@ describe("recordPurchase() tests", () => {
       state.sendEmailThrows = true;
       const result = await recordPurchase(KNOWLEDGE_ID, VALID_TX_HASH, "solana", "SOL", true);
       expect(result.success).toBe(true);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // T-9: MPP / Tempo chain reject (Zod schema gates non-solana chains)
+  // -----------------------------------------------------------------------
+  describe("recordPurchase() — chain=tempo / EVM reject (B-31 regression guard)", () => {
+    beforeEach(() => { setupHappyPath(); });
+
+    it("chain='tempo' → Zod parse failure → { success: false, error: 'Invalid input' }", async () => {
+      // "tempo" is not in the Zod enum so it is rejected before any DB call
+      const result = await recordPurchase(
+        KNOWLEDGE_ID,
+        VALID_TX_HASH,
+        "tempo" as unknown as "solana",
+        "SOL",
+        true
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Invalid input");
+    });
+
+    it("chain='base' → Zod parse failure → { success: false, error: 'Invalid input' }", async () => {
+      const result = await recordPurchase(
+        KNOWLEDGE_ID,
+        VALID_TX_HASH,
+        "base" as unknown as "solana",
+        "SOL",
+        true
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Invalid input");
+    });
+
+    it("chain='ethereum' → Zod parse failure → { success: false, error: 'Invalid input' }", async () => {
+      const result = await recordPurchase(
+        KNOWLEDGE_ID,
+        VALID_TX_HASH,
+        "ethereum" as unknown as "solana",
+        "SOL",
+        true
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Invalid input");
     });
   });
 });

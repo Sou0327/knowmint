@@ -2,7 +2,8 @@ import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { createVersionSnapshot } from "@/lib/knowledge/versions";
-import { sanitizeMetadata } from "@/lib/knowledge/metadata";
+import { sanitizeMetadata, type SanitizedMetadata } from "@/lib/knowledge/metadata";
+import type { KnowledgeStatus } from "@/types/database.types";
 
 /**
  * GET /api/v1/knowledge/[id]
@@ -223,7 +224,17 @@ export const PATCH = withApiAuth(async (request, user, _rateLimit, context) => {
 
   // アイテム更新フィールドの組み立て（undefined は除外）
   const isPublishing = body.status === "published" && existing.status === "draft";
-  const itemUpdate: Record<string, unknown> = {};
+  interface ItemUpdate {
+    title?: string;
+    description?: string;
+    preview_content?: string;
+    price_sol?: number | null;
+    price_usdc?: number | null;
+    tags?: string[];
+    metadata?: SanitizedMetadata;
+    status?: KnowledgeStatus;
+  }
+  const itemUpdate: ItemUpdate = {};
   if (body.title !== undefined) itemUpdate.title = body.title;
   if (body.description !== undefined) itemUpdate.description = body.description;
   if (body.preview_content !== undefined) itemUpdate.preview_content = body.preview_content;

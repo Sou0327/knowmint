@@ -13,30 +13,31 @@ export function useFollow(
   const [isPending, startTransition] = useTransition();
 
   const toggle = useCallback(() => {
-    const prevFollowing = following;
-    const prevCount = count;
-    // Optimistic update
-    setFollowing(!prevFollowing);
-    setCount(
-      prevFollowing ? Math.max(0, prevCount - 1) : prevCount + 1
-    );
+    // Guard against parallel calls while a transition is already in-flight
+    if (isPending) return;
+
+    // Functional updates: always reads the latest state, not a stale closure
+    setFollowing((prev) => !prev);
+    setCount((prev) => (following ? Math.max(0, prev - 1) : prev + 1));
 
     startTransition(async () => {
       try {
         const result = await toggleFollowAction(targetUserId);
         if (result.error) {
-          setFollowing(prevFollowing);
-          setCount(prevCount);
+          // Rollback: reverse the optimistic changes
+          setFollowing((prev) => !prev);
+          setCount((prev) => (following ? prev + 1 : Math.max(0, prev - 1)));
         } else {
+          // Accept server truth
           setFollowing(result.following);
         }
       } catch {
         // requireAuth redirect or network error — rollback
-        setFollowing(prevFollowing);
-        setCount(prevCount);
+        setFollowing((prev) => !prev);
+        setCount((prev) => (following ? prev + 1 : Math.max(0, prev - 1)));
       }
     });
-  }, [following, count, targetUserId]);
+  }, [isPending, following, targetUserId]);
 
   return { following, count, isPending, toggle };
 }

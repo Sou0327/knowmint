@@ -1,6 +1,6 @@
 {
   "name": "@knowledge-market/sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript SDK for KnowMint API",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,6 +9,22 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./internal": {
+      "import": "./dist/internal/index.js",
+      "types": "./dist/internal/index.d.ts"
+    },
+    "./formatters": {
+      "import": "./dist/formatters.js",
+      "types": "./dist/formatters.d.ts"
+    },
+    "./validate": {
+      "import": "./dist/validate.js",
+      "types": "./dist/validate.d.ts"
+    },
+    "./siws": {
+      "import": "./dist/siws.js",
+      "types": "./dist/siws.d.ts"
     }
   },
   "files": ["dist"],

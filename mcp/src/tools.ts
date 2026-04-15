@@ -13,6 +13,12 @@ import {
   KmApiError,
 } from "./api.ts";
 import type { KmConfig } from "./api.ts";
+import {
+  formatSearchResults as sdkFormatSearchResults,
+  type SearchResultsPayload,
+} from "@knowledge-market/sdk/formatters";
+import { validateChallengeMessage as sdkValidateChallengeMessage } from "@knowledge-market/sdk/siws";
+import { validateBaseUrl as sdkValidateBaseUrl } from "@knowledge-market/sdk/validate";
 import { PublicKey } from "@solana/web3.js";
 
 type ToolResult = {
@@ -40,50 +46,12 @@ function err(e: unknown): ToolResult {
   return { content: [{ type: "text", text: msg }], isError: true };
 }
 
-type SearchItem = {
-  id?: string;
-  title?: string;
-  usefulness_score?: number | null;
-  tags?: string[];
-  metadata?: {
-    domain?: string;
-    experience_type?: string;
-    source_type?: string;
-    applicable_to?: string[];
-  } | null;
-  seller?: {
-    trust_score?: number | null;
-  };
-  [key: string]: unknown;
-};
-
+/**
+ * MCP は日本語ラベルで検索結果を表示する (既存ユーザーとの互換性維持)。
+ * SDK の formatSearchResults に locale="ja" を指定するだけの薄いラッパ。
+ */
 function formatSearchResults(result: { data: unknown[]; pagination: unknown }): string {
-  const lines: string[] = [];
-  for (const item of result.data as SearchItem[]) {
-    const score = item.usefulness_score != null
-      ? `[品質スコア: ${item.usefulness_score.toFixed(2)}] `
-      : "";
-    const trustScore = item.seller?.trust_score != null
-      ? `[信頼度: ${item.seller.trust_score.toFixed(2)}] `
-      : "";
-    lines.push(`${score}${trustScore}${item.title ?? "(no title)"} (id: ${item.id ?? "?"})`);
-    if (item.tags && item.tags.length > 0) {
-      lines.push(`  タグ: ${item.tags.map((t) => `#${t}`).join(" ")}`);
-    }
-    if (item.metadata) {
-      const m = item.metadata;
-      const parts: string[] = [];
-      if (m.domain) parts.push(`ドメイン=${m.domain}`);
-      if (m.experience_type) parts.push(`経験タイプ=${m.experience_type}`);
-      if (m.source_type) parts.push(`ソース=${m.source_type}`);
-      if (m.applicable_to && m.applicable_to.length > 0) {
-        parts.push(`対応AI=${m.applicable_to.join(",")}`);
-      }
-      if (parts.length > 0) lines.push(`  メタデータ: ${parts.join(", ")}`);
-    }
-  }
-  const summary = `${result.data.length}件の結果\n${lines.join("\n")}`;
-  return summary;
+  return sdkFormatSearchResults(result as SearchResultsPayload, { locale: "ja" });
 }
 
 export function registerTools(server: McpServer, config: KmConfig): void {
@@ -283,11 +251,13 @@ export function registerTools(server: McpServer, config: KmConfig): void {
       price_sol: z
         .number()
         .positive()
+        .finite()
         .optional()
         .describe("Price in SOL (specify price_sol or price_usdc)"),
       price_usdc: z
         .number()
         .positive()
+        .finite()
         .optional()
         .describe("Price in USDC (specify price_sol or price_usdc)"),
       tags: z
@@ -438,60 +408,18 @@ export function registerTools(server: McpServer, config: KmConfig): void {
 // ── Message validation (署名オラクル防止) ───────────────────────────────────
 
 /**
- * サーバーから返されたチャレンジメッセージが期待するフォーマットと完全一致するか検証。
- * buildAuthMessage (サーバー側 src/lib/siws/auth-message.ts) と同一テンプレートを
- * クライアント側で再構築し、完全一致で検証することで署名オラクル攻撃を防止する。
- *
- * IMPORTANT: テンプレート変更時は src/lib/siws/auth-message.ts と cli/bin/km.mjs も同期すること。
+ * SDK の validateChallengeMessage をそのまま使う。テンプレートは
+ * sdk/src/siws.ts で SSOT 管理されており、サーバー側
+ * (src/lib/siws/auth-message.ts) / CLI (cli/lib/siws.mjs) と drift しないよう
+ * unit test で文字列比較する。
  */
-function validateChallengeMessage(
-  message: string,
-  wallet: string,
-  nonce: string,
-  purpose: "register" | "login"
-): void {
-  const action = purpose === "register"
-    ? "register a new account with"
-    : "log in with";
-  const expected = [
-    `KnowMint wants you to ${action} your Solana wallet.`,
-    "",
-    `Wallet: ${wallet}`,
-    `Nonce: ${nonce}`,
-    "",
-    "By signing this message you confirm that you own this wallet.",
-    "This request does not involve any transaction or transfer of funds.",
-  ].join("\n");
-
-  if (message !== expected) {
-    throw new Error(
-      "Challenge message does not match expected format. " +
-      "Server may be compromised or incompatible."
-    );
-  }
-}
+const validateChallengeMessage = sdkValidateChallengeMessage;
 
 // ── Base URL validation (SSRF 防止) ─────────────────────────────────────────
 
+/** Thin wrapper keeping existing callers ergonomic. */
 function validateToolBaseUrl(raw: string): string {
-  let parsed: URL;
-  try {
-    parsed = new URL(raw.trim());
-  } catch {
-    throw new Error(`Invalid base URL: "${raw}"`);
-  }
-  if (parsed.username || parsed.password) {
-    throw new Error("Base URL must not contain credentials");
-  }
-  const isLocal =
-    parsed.hostname === "localhost" ||
-    parsed.hostname === "127.0.0.1" ||
-    parsed.hostname === "::1" ||
-    parsed.hostname === "[::1]";
-  if (!isLocal && parsed.protocol !== "https:") {
-    throw new Error("Base URL must use HTTPS for non-localhost hosts");
-  }
-  return parsed.origin;
+  return sdkValidateBaseUrl(raw);
 }
 
 // ── Keypair helper ──────────────────────────────────────────────────────────

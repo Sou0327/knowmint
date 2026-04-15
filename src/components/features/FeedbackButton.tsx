@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import Button from "@/components/ui/Button";
 import { submitFeedback } from "@/app/[locale]/(main)/library/[id]/actions";
 
 interface Props {
@@ -44,22 +45,26 @@ export default function FeedbackButton({ knowledgeItemId, existingFeedback }: Pr
     <div>
       <p className="mb-3 text-sm text-dq-text-sub">{t("wasThisUseful")}</p>
       <div className="flex gap-3">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="md"
           disabled={submitting}
           onClick={() => handleFeedback(true)}
-          className="rounded-sm border border-dq-border px-4 py-2 text-sm text-dq-green transition-colors hover:bg-dq-green/10 disabled:opacity-50"
+          className="border-dq-green text-dq-green hover:bg-dq-green/10"
         >
-          👍 {t("useful")}
-        </button>
-        <button
+          <span aria-hidden="true">👍</span> {t("useful")}
+        </Button>
+        <Button
           type="button"
+          variant="outline"
+          size="md"
           disabled={submitting}
           onClick={() => handleFeedback(false)}
-          className="rounded-sm border border-dq-border px-4 py-2 text-sm text-dq-red transition-colors hover:bg-dq-red/10 disabled:opacity-50"
+          className="border-dq-red text-dq-red hover:bg-dq-red/10"
         >
-          👎 {t("notUseful")}
-        </button>
+          <span aria-hidden="true">👎</span> {t("notUseful")}
+        </Button>
       </div>
       {error && <p className="mt-2 text-sm text-dq-red">{error}</p>}
     </div>

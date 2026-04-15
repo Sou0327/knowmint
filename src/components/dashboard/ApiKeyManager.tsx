@@ -7,8 +7,10 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import Alert from "@/components/ui/Alert";
 import type { ApiKey } from "@/types/database.types";
 import { PERMISSION_OPTIONS } from "@/lib/api/permissions";
+import { formatDate } from "@/lib/i18n/date";
 
 type ApiKeyListItem = Omit<ApiKey, "key_hash" | "user_id">;
 
@@ -34,8 +36,6 @@ export default function ApiKeyManager() {
   const [deleteTarget, setDeleteTarget] = useState<ApiKeyListItem | null>(null);
   const [copied, setCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const dateLocale = locale === "ja" ? "ja-JP" : "en-US";
 
   const fetchKeys = useCallback(async () => {
     try {
@@ -162,11 +162,9 @@ export default function ApiKeyManager() {
   return (
     <div>
       {errorMessage && (
-        <Card padding="md" className="mb-6 !border-dq-red">
-          <p className="text-sm text-dq-red">
-            {errorMessage}
-          </p>
-        </Card>
+        <Alert variant="error" className="mb-6">
+          {errorMessage}
+        </Alert>
       )}
 
       {/* Created Key Display */}
@@ -292,16 +290,16 @@ export default function ApiKeyManager() {
                   </div>
                   <div className="mt-1 flex items-center gap-4 text-xs text-dq-text-muted">
                     <span>
-                      {t("created")} {new Date(key.created_at).toLocaleDateString(dateLocale)}
+                      {t("created")} {formatDate(key.created_at, locale)}
                     </span>
                     {key.last_used_at && (
                       <span>
-                        {t("lastUsed")} {new Date(key.last_used_at).toLocaleDateString(dateLocale)}
+                        {t("lastUsed")} {formatDate(key.last_used_at, locale)}
                       </span>
                     )}
                     {key.expires_at && (
                       <span>
-                        {t("expires")} {new Date(key.expires_at).toLocaleDateString(dateLocale)}
+                        {t("expires")} {formatDate(key.expires_at, locale)}
                       </span>
                     )}
                   </div>

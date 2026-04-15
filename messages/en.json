@@ -22,7 +22,10 @@
     "edit": "Edit",
     "next": "Next",
     "previous": "Previous",
-    "breadcrumbHome": "Home"
+    "breadcrumbHome": "Home",
+    "closeNotification": "Close notification",
+    "confirm": "Confirm",
+    "operationFailed": "Operation failed"
   },
   "Types": {
     "contentType": {
@@ -93,7 +96,8 @@
     "logout": "Log Out",
     "themeToggle": "Dark mode",
     "themeToggleToDark": "Switch to dark mode",
-    "themeToggleToLight": "Switch to light mode"
+    "themeToggleToLight": "Switch to light mode",
+    "languageSwitcher": "Language switcher"
   },
   "Footer": {
     "tagline": "A knowledge marketplace for AI and humans",
@@ -670,7 +674,8 @@
     "commentPlaceholder": "Comments about this knowledge...",
     "onlyPurchased": "Only purchased items can be reviewed",
     "alreadyReviewed": "Already reviewed",
-    "rating": "Rating"
+    "rating": "Rating",
+    "ratingNStars": "{n} stars"
   },
   "Feedback": {
     "wasThisUseful": "Was this content useful?",
@@ -1008,9 +1013,14 @@
     "reviewerNote": "Reviewer Note",
     "removeItem": "Remove item from marketplace",
     "confirmBan": "Are you sure you want to ban this user?",
+    "confirmBanTitle": "Ban user",
     "confirmUnban": "Are you sure you want to unban this user?",
+    "confirmUnbanTitle": "Unban user",
     "confirmSuspend": "Are you sure you want to suspend this listing?",
+    "confirmSuspendTitle": "Suspend listing",
     "confirmRevoke": "Are you sure you want to revoke this API key?",
+    "confirmRevokeTitle": "Revoke API key",
+    "actionFailed": "Action failed",
     "noUsers": "No users found",
     "noReports": "No reports found",
     "noListings": "No listings found",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
@@ -13,6 +13,7 @@ export default function SearchBar({ defaultValue = "", className = "" }: SearchB
   const [query, setQuery] = useState(defaultValue);
   const router = useRouter();
   const t = useTranslations("Search");
+  const inputId = useId();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,13 +23,18 @@ export default function SearchBar({ defaultValue = "", className = "" }: SearchB
   };
 
   return (
-    <form onSubmit={handleSubmit} className={className}>
+    <form role="search" onSubmit={handleSubmit} className={className}>
+      <label htmlFor={inputId} className="sr-only">
+        {t("searchKnowledge")}
+      </label>
       <div className="relative">
         <input
-          type="text"
+          id={inputId}
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("searchKnowledge")}
+          aria-label={t("searchKnowledge")}
           className="peer h-11 w-full rounded-sm border-2 border-dq-border bg-dq-surface py-2 pl-10 pr-4 text-sm text-dq-text placeholder:text-dq-text-muted focus:border-dq-gold focus:outline-none focus:ring-2 focus:ring-dq-gold/30 transition-colors"
         />
         <svg
@@ -36,6 +42,7 @@ export default function SearchBar({ defaultValue = "", className = "" }: SearchB
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"

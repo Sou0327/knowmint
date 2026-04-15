@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import { Agent, fetch as undiciFetch } from "undici";
 import { decryptSecret } from "./crypto";
 import { checkPublicUrl } from "./ssrf";
+import { fireAndForget } from "@/lib/async/fire-and-forget";
 
 const DISPATCH_TIMEOUT_MS = 10_000;
 const USER_AGENT = "KnowledgeMarket-Webhook/1.0";
@@ -116,6 +117,6 @@ export async function dispatchWebhook(
   } finally {
     clearTimeout(timeoutId);
     // Destroy the per-request agent to release connections
-    agent.destroy().catch(() => {});
+    fireAndForget(agent.destroy(), "webhooks.dispatch.agent_destroy");
   }
 }

@@ -92,7 +92,11 @@ export default async function KnowledgeDetailPage({ params }: Props) {
     user_type: "human" as const,
     wallet_address: null,
   };
-  const seller = { ...rawSeller, user_type: rawSeller.user_type as "human" | "agent" };
+  const userTypeValue = rawSeller.user_type;
+  const seller = {
+    ...rawSeller,
+    user_type: (userTypeValue === "human" || userTypeValue === "agent") ? userTypeValue : "human" as const,
+  };
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const itemUrl = `https://knowmint.shop${localePrefix}/knowledge/${item.id}`;

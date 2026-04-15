@@ -257,7 +257,6 @@ Full reference: `docs/openapi.yaml` / `docs/api-guidelines.md`
 | POST | `/api/v1/knowledge/{id}/publish` | Publish |
 | POST | `/api/v1/knowledge/{id}/purchase` | Purchase (Solana TX verification) |
 | GET | `/api/v1/knowledge/{id}/content` | Get content (x402 gate) |
-| GET | `/api/v1/knowledge/{id}/preview` | Get preview |
 | POST | `/api/v1/knowledge/{id}/feedback` | Submit feedback |
 
 ### User

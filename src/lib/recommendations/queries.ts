@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ContentType, ListingType } from "@/types/database.types";
+import { toSingle } from "@/lib/supabase/utils";
+// L-11: CARD_SELECT 共通定数を利用
+import { CARD_SELECT } from "@/lib/knowledge/queries";
 
 /** レコメンド結果の型 (KnowledgeCardRow と同等のサブセット) */
 export interface RecommendationRow {
@@ -16,18 +19,20 @@ export interface RecommendationRow {
   category: { id: string; name: string; slug: string } | null;
 }
 
-const RECOMMENDATION_SELECT =
-  "id, listing_type, title, description, content_type, price_sol, tags, average_rating, purchase_count, seller:profiles!seller_id(id, display_name, avatar_url), category:categories(id, name, slug)" as const;
+// L-11: CARD_SELECT から recommendations に必要なサブセットを利用
+// (CARD_SELECT は price_usdc や view_count など追加フィールドも含むが、互換性あり)
+const RECOMMENDATION_SELECT = CARD_SELECT;
 
-import { toSingle } from "@/lib/supabase/utils";
-
-/** Supabase レスポンスを RecommendationRow[] に正規化 */
-function normalizeRows(rows: Array<Record<string, unknown>>): RecommendationRow[] {
+// L-12: normalizeRows をエクスポートして favorites でも再利用可能に
+/** Supabase レスポンスを seller/category ネスト join を正規化 */
+export function normalizeRows<T extends { seller?: unknown; category?: unknown }>(
+  rows: T[]
+): T[] {
   return rows.map((row) => ({
     ...row,
     seller: toSingle(row.seller as RecommendationRow["seller"]),
     category: toSingle(row.category as RecommendationRow["category"]),
-  })) as RecommendationRow[];
+  }));
 }
 
 /**
@@ -85,12 +90,12 @@ export async function getRecommendations(itemId: string, limit = 6): Promise<Rec
             existing.add(tb.id);
           }
         }
-        return normalizeRows(combined as Array<Record<string, unknown>>);
+        return normalizeRows(combined as RecommendationRow[]);
       }
     }
   }
 
-  return normalizeRows((data ?? []) as Array<Record<string, unknown>>);
+  return normalizeRows((data ?? []) as RecommendationRow[]);
 }
 
 /**
@@ -100,10 +105,11 @@ export async function getRecommendations(itemId: string, limit = 6): Promise<Rec
 export async function getPersonalRecommendations(userId: string, limit = 6): Promise<RecommendationRow[]> {
   const supabase = await createClient();
 
-  // ユーザーの購入履歴からカテゴリとタグを集計
+  // L-5: 2回クエリ → 1回に統合
+  // 購入履歴からカテゴリ/タグ集計と購入済みID除外を1クエリで取得
   const { data: purchases } = await supabase
     .from("transactions")
-    .select("knowledge_item:knowledge_items(category_id, tags)")
+    .select("knowledge_item_id, knowledge_item:knowledge_items(category_id, tags)")
     .eq("buyer_id", userId)
     .eq("status", "confirmed")
     .order("created_at", { ascending: false })
@@ -117,12 +123,14 @@ export async function getPersonalRecommendations(userId: string, limit = 6): Pro
       .eq("status", "published")
       .order("purchase_count", { ascending: false })
       .limit(limit);
-    return normalizeRows((data ?? []) as Array<Record<string, unknown>>);
+    return normalizeRows((data ?? []) as RecommendationRow[]);
   }
 
-  // 購入したアイテムのカテゴリIDを収集
+  // 購入したアイテムのカテゴリIDを収集 (knowledge_item_id も同時に取得済み)
   const categoryIds = new Set<string>();
   const allTags = new Set<string>();
+  // L-5: 2回目の SELECT 不要 — knowledge_item_id は既に purchases に含まれている
+  const purchasedIds = new Set<string>(purchases.map((p) => p.knowledge_item_id));
 
   for (const p of purchases) {
     const itemRef = toSingle(p.knowledge_item);
@@ -133,15 +141,6 @@ export async function getPersonalRecommendations(userId: string, limit = 6): Pro
       }
     }
   }
-
-  // 購入済みアイテムIDを取得（除外用）
-  const { data: purchasedItems } = await supabase
-    .from("transactions")
-    .select("knowledge_item_id")
-    .eq("buyer_id", userId)
-    .eq("status", "confirmed");
-
-  const purchasedIds = new Set((purchasedItems ?? []).map((p) => p.knowledge_item_id));
 
   // カテゴリベースのレコメンド
   let results: RecommendationRow[] = [];
@@ -157,7 +156,7 @@ export async function getPersonalRecommendations(userId: string, limit = 6): Pro
 
     if (data) {
       results = normalizeRows(
-        (data as Array<Record<string, unknown>>).filter((d) => !purchasedIds.has((d as { id: string }).id))
+        (data as RecommendationRow[]).filter((d) => !purchasedIds.has(d.id))
       ).slice(0, limit);
     }
   }
@@ -174,10 +173,10 @@ export async function getPersonalRecommendations(userId: string, limit = 6): Pro
       .limit(limit);
 
     if (tagBased) {
-      const normalized = normalizeRows(tagBased as Array<Record<string, unknown>>);
+      const normalized = normalizeRows(tagBased as RecommendationRow[]);
       for (const tb of normalized) {
         if (!existing.has(tb.id) && !purchasedIds.has(tb.id) && results.length < limit) {
-          results.push(tb);
+          results.push(tb as RecommendationRow);
           existing.add(tb.id);
         }
       }

@@ -228,11 +228,3 @@ export async function checkPublicUrl(urlStr: string): Promise<SsrfCheckResult> {
   };
 }
 
-/**
- * Convenience wrapper for backward compatibility.
- * @deprecated `checkPublicUrl` を直接使用してください。このラッパーは将来削除されます。
- */
-export async function isPublicUrl(urlStr: string): Promise<boolean> {
-  const result = await checkPublicUrl(urlStr);
-  return result.safe;
-}

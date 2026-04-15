@@ -12,7 +12,6 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
 
   // Fetch unread count on mount
   useEffect(() => {
@@ -34,17 +33,6 @@ export function useNotifications() {
       setLoading(false);
     }
   }, []);
-
-  const handleOpen = useCallback(() => {
-    setOpen((prev) => {
-      if (!prev) {
-        // Schedule fetch outside setState updater to avoid
-        // "Cannot update a component while rendering" error
-        queueMicrotask(() => fetchNotifications());
-      }
-      return !prev;
-    });
-  }, [fetchNotifications]);
 
   const markAsRead = useCallback(async (id: string) => {
     // Only decrement if notification is currently unread
@@ -80,9 +68,7 @@ export function useNotifications() {
     notifications,
     unreadCount,
     loading,
-    open,
-    setOpen,
-    handleOpen,
+    fetchNotifications,
     markAsRead,
   };
 }

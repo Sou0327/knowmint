@@ -6,6 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 import { buildSolTransfer } from "@/lib/solana/payment";
 import { isSmartContractEnabled } from "@/lib/solana/program";
 
@@ -76,7 +77,13 @@ export default function PurchaseModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t("confirmTitle")} size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("confirmTitle")}
+      size="md"
+      disableClose={processing}
+    >
       <div className="space-y-4">
         <div>
           <p className="text-sm text-dq-text-muted">{t("item")}</p>
@@ -98,9 +105,7 @@ export default function PurchaseModal({
         </div>
 
         {error && (
-          <div className="rounded-sm border-2 border-dq-red/40 bg-dq-red/10 p-3 text-sm text-dq-red">
-            {error}
-          </div>
+          <Alert variant="error">{error}</Alert>
         )}
 
         {/* Terms */}
@@ -130,7 +135,12 @@ export default function PurchaseModal({
         </label>
 
         <div className="flex gap-3 pt-2">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+            disabled={processing}
+          >
             {tCommon("cancel")}
           </Button>
           <Button

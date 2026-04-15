@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { reviewReport } from "@/app/actions/admin";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
 
 interface ReportReviewActionsProps {
   reportId: string;
@@ -16,6 +17,7 @@ export default function ReportReviewActions({
   currentStatus,
 }: ReportReviewActionsProps) {
   const t = useTranslations("Admin");
+  const toast = useToast();
   const [isPending, startTransition] = useTransition();
   const [showForm, setShowForm] = useState(false);
   const [reviewerNote, setReviewerNote] = useState("");
@@ -49,7 +51,7 @@ export default function ReportReviewActions({
         setReviewerNote("");
         setRemoveItem(false);
       } else {
-        alert(result.error ?? "Failed");
+        toast.show(result.error ?? t("actionFailed"), { variant: "error" });
       }
     });
   }

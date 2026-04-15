@@ -275,16 +275,29 @@ function printTable(columns, rows) {
   }
 }
 
-function makeUniquePath(targetDir, targetName) {
+/**
+ * P-13: TOCTOU 防止版 makeUniquePath
+ * existsSync ループ (check-then-act 競合) の代わりに O_CREAT|O_EXCL で
+ * アトミックにファイルを作成し、成功したパスを返す。
+ * 作成した空ファイルは呼び出し側が copyFile で上書きするため内容は不問。
+ */
+async function makeUniquePath(targetDir, targetName) {
   const ext = path.extname(targetName);
   const base = targetName.slice(0, targetName.length - ext.length);
   let candidate = path.join(targetDir, targetName);
   let counter = 1;
-  while (fsSync.existsSync(candidate)) {
-    candidate = path.join(targetDir, `${base}-${counter}${ext}`);
-    counter += 1;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const fh = await fs.open(candidate, fsSync.constants.O_CREAT | fsSync.constants.O_EXCL | fsSync.constants.O_WRONLY);
+      await fh.close();
+      return candidate;
+    } catch (err) {
+      if (err.code !== "EEXIST") throw err;
+      candidate = path.join(targetDir, `${base}-${counter}${ext}`);
+      counter += 1;
+    }
   }
-  return candidate;
 }
 
 async function deployArtifact(sourceFilePath, knowledgeId, title, target) {

@@ -51,6 +51,10 @@ export interface AdminDashboardStats {
   pendingReports: number;
 }
 
+// B-34 Performance: accepted — ban check は withApiAuth で全 API route に profiles SELECT が走る。
+// キャッシュ戦略 (Redis / in-memory + TTL) は RP6 スコープの middleware.ts で実装すべき改善点。
+// 現状はリクエストごと 1 クエリで安全性を確保している (acceptable for current scale)。
+
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   const admin = getAdminClient();
 

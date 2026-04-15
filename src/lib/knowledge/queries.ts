@@ -181,6 +181,9 @@ export async function getPublishedKnowledge(
   }
 
   const isTrustScoreSort = sort_by === "trust_score";
+  // B-24 Performance: accepted — trust_score は profiles JOIN の関係で DB ORDER BY 不可。
+  // 200件上限取得+アプリソートは現状の実用的な妥協策。
+  // 改善案: DB の seller trust_score を knowledge_items にキャッシュするカラム追加 (schema 変更必要)。
   const TRUST_SCORE_FETCH_LIMIT = 200;
 
   // trust_score ソート時は DB ページングせず上限件数を取得

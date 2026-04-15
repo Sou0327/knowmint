@@ -536,4 +536,48 @@ describe("recordPurchase() tests", () => {
       expect(result.success).toBe(true);
     });
   });
+
+  // -----------------------------------------------------------------------
+  // T-9: MPP / Tempo chain reject (Zod schema gates non-solana chains)
+  // -----------------------------------------------------------------------
+  describe("recordPurchase() — chain=tempo / EVM reject (B-31 regression guard)", () => {
+    beforeEach(() => { setupHappyPath(); });
+
+    it("chain='tempo' → Zod parse failure → { success: false, error: 'Invalid input' }", async () => {
+      // "tempo" is not in the Zod enum so it is rejected before any DB call
+      const result = await recordPurchase(
+        KNOWLEDGE_ID,
+        VALID_TX_HASH,
+        "tempo" as unknown as "solana",
+        "SOL",
+        true
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Invalid input");
+    });
+
+    it("chain='base' → Zod parse failure → { success: false, error: 'Invalid input' }", async () => {
+      const result = await recordPurchase(
+        KNOWLEDGE_ID,
+        VALID_TX_HASH,
+        "base" as unknown as "solana",
+        "SOL",
+        true
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Invalid input");
+    });
+
+    it("chain='ethereum' → Zod parse failure → { success: false, error: 'Invalid input' }", async () => {
+      const result = await recordPurchase(
+        KNOWLEDGE_ID,
+        VALID_TX_HASH,
+        "ethereum" as unknown as "solana",
+        "SOL",
+        true
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Invalid input");
+    });
+  });
 });

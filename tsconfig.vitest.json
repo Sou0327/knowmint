@@ -9,6 +9,9 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "tests/components/**/*.ts",
-    "tests/components/**/*.tsx"
+    "tests/components/**/*.tsx",
+    "tests/unit/**/*.ts",
+    "tests/integration/**/*.ts",
+    "tests/staging/**/*.ts"
   ]
 }

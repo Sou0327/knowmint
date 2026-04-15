@@ -18,7 +18,7 @@
     "test:e2e:x402-flow": "node scripts/e2e/x402-flow-check.mjs",
     "test:staging": "vitest run --config vitest.node.config.ts tests/staging",
     "test:e2e:devnet": "node scripts/e2e/devnet-purchase-flow.mjs",
-    "test:e2e:prod-devnet": "node scripts/e2e/prod-devnet-test.mjs",
+    "manual:test:prod-devnet": "node scripts/manual/prod-devnet-test.mjs",
     "test:e2e:cli-purchase": "node scripts/e2e/cli-purchase-flow.mjs",
     "test:e2e:cli-autopay": "node scripts/e2e/cli-autopay-flow.mjs",
     "build:cf": "opennextjs-cloudflare build && node scripts/patch-og-stub.mjs",

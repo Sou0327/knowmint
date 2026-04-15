@@ -42,7 +42,11 @@ export type AuditAction =
   | "admin.user_banned"
   | "admin.user_unbanned"
   | "admin.listing_suspended"
-  | "admin.apikey_revoked";
+  | "admin.apikey_revoked"
+  // RP6 (B-8): wallet verification audit events (SIWS flow).
+  | "wallet.verified"
+  | "wallet.conflict_attempt"
+  | "wallet.profile_missing";
 
 // Report reason
 export type ReportReason = "spam" | "illegal" | "misleading" | "inappropriate" | "copyright" | "other";

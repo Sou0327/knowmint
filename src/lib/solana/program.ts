@@ -6,6 +6,7 @@ import {
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import { getConnection } from "./connection";
+import { getServerAddress } from "./env";
 import type { AccountMeta } from "@solana/web3.js";
 
 export const PROTOCOL_FEE_BPS = 500;
@@ -14,8 +15,14 @@ export const PROTOCOL_FEE_BPS = 500;
 // execute_purchase: sha256("global:execute_purchase")[0..8]
 const EXECUTE_PURCHASE_DISCRIMINATOR = new Uint8Array([193, 193, 250, 92, 23, 221, 96, 102]);
 
+/**
+ * Server preferred: KM_PROGRAM_ID (rotatable runtime secret).
+ * Fallback: NEXT_PUBLIC_KM_PROGRAM_ID (legacy; needed on the client bundle
+ * because Next.js inlines NEXT_PUBLIC_* at build time — the client reads
+ * the static literal, the server reads the runtime secret first).
+ */
 export function getProgramId(): PublicKey | null {
-  const id = process.env.NEXT_PUBLIC_KM_PROGRAM_ID;
+  const id = getServerAddress("KM_PROGRAM_ID", "NEXT_PUBLIC_KM_PROGRAM_ID");
   if (!id) return null;
   try {
     return new PublicKey(id);
@@ -24,8 +31,12 @@ export function getProgramId(): PublicKey | null {
   }
 }
 
+/** See getProgramId() for the precedence rationale. */
 export function getFeeVault(): PublicKey | null {
-  const addr = process.env.NEXT_PUBLIC_FEE_VAULT_ADDRESS;
+  const addr = getServerAddress(
+    "KM_FEE_VAULT_ADDRESS",
+    "NEXT_PUBLIC_FEE_VAULT_ADDRESS",
+  );
   if (!addr) return null;
   try {
     return new PublicKey(addr);

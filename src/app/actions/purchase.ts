@@ -3,18 +3,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { z } from "zod";
-import { PublicKey } from "@solana/web3.js";
-import {
-  isValidSolanaTxHash,
-  verifySolanaPurchaseTransaction,
-} from "@/lib/solana/verify-transaction";
 import { sendEmail } from "@/lib/email/send";
 import { purchaseCompletedEmailHtml } from "@/lib/email/templates";
 import { fireAndForget } from "@/lib/async/fire-and-forget";
-
-function isValidSolanaPublicKey(addr: string): boolean {
-  try { new PublicKey(addr); return true; } catch { return false; }
-}
+import {
+  recordPurchaseCore,
+  type PurchaseCoreFailure,
+  type PurchaseCoreSuccess,
+} from "@/lib/api/payments/purchase-core";
 
 const schema = z.object({
   knowledgeId: z.string().uuid(),
@@ -26,12 +22,99 @@ const schema = z.object({
   }),
 });
 
+/**
+ * Map purchase-core failure reasons to Japanese UI messages.
+ *
+ * The core layer returns stable string keys (e.g. "invalid_tx_hash_format")
+ * so that the API route can keep its existing English messages while this
+ * Server Action surfaces localized Japanese text for the web UI. Keeping the
+ * translation here — instead of inside the core — avoids leaking locale
+ * concerns into shared business logic.
+ */
+function mapFailure(failure: PurchaseCoreFailure): { success: false; error: string } {
+  switch (failure.reason) {
+    case "tx_hash_required":
+    case "chain_not_supported":
+    case "token_not_supported":
+      return { success: false, error: "Invalid input" };
+    case "invalid_tx_hash_format":
+      return { success: false, error: "Invalid Solana transaction hash format" };
+    case "item_not_found":
+    case "item_not_published":
+      return { success: false, error: "Item not found or not available" };
+    case "request_listing_not_purchasable":
+      return { success: false, error: "Request listings cannot be purchased" };
+    case "self_purchase_forbidden":
+      return { success: false, error: "Cannot purchase your own item" };
+    case "price_not_set_for_token":
+      return { success: false, error: "Item has no price set for the selected token" };
+    case "wallet_lookup_failed":
+      return { success: false, error: "Failed to resolve wallet addresses" };
+    case "wallet_not_configured":
+      return { success: false, error: "Buyer and seller wallet addresses must be configured" };
+    case "invalid_wallet_format":
+      return { success: false, error: "Invalid wallet address format" };
+    case "verification_failed":
+      return { success: false, error: "トランザクション検証に失敗しました" };
+    case "confirm_failed":
+      return { success: false, error: "Transaction confirmation failed" };
+    case "confirm_retry_failed":
+      return { success: false, error: "Transaction confirmation retry failed" };
+    case "insert_failed":
+      return { success: false, error: "Failed to record purchase" };
+    case "tx_hash_already_used":
+      return { success: false, error: "Transaction hash already used" };
+    default:
+      return { success: false, error: "Database error" };
+  }
+}
+
+function queueSellerEmail(
+  userId: string,
+  knowledgeId: string,
+  success: PurchaseCoreSuccess,
+  token: "SOL" | "USDC",
+): void {
+  // Only newly created rows carry hydrated item/profile data; defensive
+  // guard satisfies the optional discriminated union.
+  const { item, sellerProfile, transaction } = success;
+  if (!item || !sellerProfile) return;
+  const admin = getAdminClient();
+  const sellerId = item.seller_id;
+  const itemTitle = item.title ?? knowledgeId;
+  const amount = transaction.amount;
+  fireAndForget(
+    admin.auth.admin
+      .getUserById(sellerId)
+      .then(({ data: sellerAuth }) => {
+        const sellerEmail = sellerAuth?.user?.email;
+        if (!sellerEmail) return;
+        const content = purchaseCompletedEmailHtml({
+          sellerName: sellerProfile.display_name ?? "seller",
+          itemTitle,
+          amount,
+          token,
+          siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://knowmint.shop",
+        });
+        return sendEmail({ to: sellerEmail, ...content });
+      }),
+    "purchase.seller_email",
+  );
+  // Log the completing actor for traceability without surfacing PII.
+  console.info("[recordPurchase] completed", {
+    userId,
+    knowledgeId,
+    sellerId,
+    txId: transaction.id,
+  });
+}
+
 export async function recordPurchase(
   knowledgeId: string,
   txHash: string,
   chain: "solana",
   token: "SOL" | "USDC",
-  termsAgreed: true
+  termsAgreed: true,
 ): Promise<{ success: boolean; error?: string }> {
   const parsed = schema.safeParse({ knowledgeId, txHash, chain, token, termsAgreed });
   if (!parsed.success) return { success: false, error: "Invalid input" };
@@ -43,233 +126,23 @@ export async function recordPurchase(
   if (!user) return { success: false, error: "Unauthorized" };
 
   const admin = getAdminClient();
-
-  // 冪等性: confirmed 済み購入を先に確認 (不要なオンチェーン検証を回避)
-  const { data: confirmedTx } = await admin
-    .from("transactions")
-    .select("id")
-    .eq("buyer_id", user.id)
-    .eq("knowledge_item_id", knowledgeId)
-    .eq("status", "confirmed")
-    .limit(1)
-    .maybeSingle();
-
-  if (confirmedTx) return { success: true };
-
-  // 同一 tx_hash の既存レコードを確認 (pending/failed 含む)
-  const { data: existing, error: existingError } = await admin
-    .from("transactions")
-    .select("id, buyer_id, knowledge_item_id, status")
-    .eq("tx_hash", txHash)
-    .maybeSingle();
-
-  if (existingError) {
-    console.error("[recordPurchase] idempotency check error", existingError);
-    return { success: false, error: "Database error" };
-  }
-
-  if (existing) {
-    if (
-      existing.buyer_id === user.id &&
-      existing.knowledge_item_id === knowledgeId
-    ) {
-      if (existing.status === "confirmed") {
-        return { success: true };
-      }
-      // pending: 再 confirm を試行
-      if (existing.status === "pending") {
-        const { data: retryCount, error: retryError } = await admin.rpc("confirm_transaction", {
-          tx_id: existing.id,
-        });
-        if (retryError) {
-          console.error("[recordPurchase] retry confirm failed", { txId: existing.id, error: retryError });
-          return { success: false, error: "Transaction confirmation retry failed" };
-        }
-        // RPC が 1 を返した場合のみ実際に確認済みになった (0 = 別リクエストが先行)
-        // purchase_count インクリメントは RPC 内部で原子的に完了している
-        if (retryCount === 1) {
-          return { success: true };
-        }
-        // 0 の場合: 別の並行リクエストが先に confirm した可能性 → 再読込で確認
-        const { data: recheckTx, error: recheckError } = await admin
-          .from("transactions")
-          .select("status")
-          .eq("id", existing.id)
-          .single();
-        if (recheckError) {
-          console.error("[recordPurchase] retry recheck failed", { txId: existing.id, error: recheckError });
-          return { success: false, error: "Database error" };
-        }
-        if (recheckTx?.status === "confirmed") {
-          // 別リクエストが confirm+increment 済み → 重複カウントしない
-          return { success: true };
-        }
-        return { success: false, error: "Transaction confirmation retry failed" };
-      }
-    }
-    return { success: false, error: "Transaction hash already used" };
-  }
-
-  // tx_hash フォーマット検証 (base58, 87-88 文字)
-  if (!isValidSolanaTxHash(txHash)) {
-    return { success: false, error: "Invalid Solana transaction hash format" };
-  }
-
-  // アイテムの存在・ステータス・seller_id・価格チェック
-  const { data: item, error: itemError } = await admin
-    .from("knowledge_items")
-    .select("id, seller_id, status, listing_type, price_sol, price_usdc, title")
-    .eq("id", knowledgeId)
-    .single();
-
-  if (itemError || !item || item.status !== "published") {
-    return { success: false, error: "Item not found or not available" };
-  }
-  if (item.listing_type === "request") {
-    return { success: false, error: "Request listings cannot be purchased" };
-  }
-  if (item.seller_id === user.id) {
-    return { success: false, error: "Cannot purchase your own item" };
-  }
-
-  // DB 価格から amount を導出 (クライアント入力値は使用しない)
-  const amount = token === "USDC" ? item.price_usdc : item.price_sol;
-  if (amount === null || amount === undefined || amount <= 0) {
-    return { success: false, error: "Item has no price set for the selected token" };
-  }
-
-  // オンチェーン検証: buyer/seller ウォレットアドレスを取得
-  const { data: walletProfiles, error: walletError } = await admin
-    .from("profiles")
-    .select("id, wallet_address, display_name")
-    .in("id", [item.seller_id, user.id]);
-
-  if (walletError || !walletProfiles || walletProfiles.length < 2) {
-    console.error("[recordPurchase] fetch wallet profiles failed", walletError);
-    return { success: false, error: "Failed to resolve wallet addresses" };
-  }
-
-  const rawSellerWallet = walletProfiles.find((p) => p.id === item.seller_id)?.wallet_address;
-  const rawBuyerWallet = walletProfiles.find((p) => p.id === user.id)?.wallet_address;
-
-  if (!rawSellerWallet || !rawBuyerWallet) {
-    return { success: false, error: "Buyer and seller wallet addresses must be configured" };
-  }
-
-  let sellerWallet: string;
-  let buyerWallet: string;
-  try {
-    sellerWallet = new PublicKey(rawSellerWallet).toBase58();
-    buyerWallet = new PublicKey(rawBuyerWallet).toBase58();
-  } catch {
-    return { success: false, error: "Invalid wallet address format" };
-  }
-
-  // スマートコントラクトが有効な場合のみ split 検証
-  const rawProgramId = process.env.NEXT_PUBLIC_KM_PROGRAM_ID?.trim() || "";
-  const rawFeeVault = process.env.NEXT_PUBLIC_FEE_VAULT_ADDRESS?.trim() || "";
-  const smartContractEnabled =
-    isValidSolanaPublicKey(rawProgramId) && isValidSolanaPublicKey(rawFeeVault);
-  const feeVaultAddress = smartContractEnabled ? rawFeeVault : undefined;
-  const programId = smartContractEnabled ? rawProgramId : undefined;
-
-  const verification = await verifySolanaPurchaseTransaction({
+  const result = await recordPurchaseCore({
+    admin,
+    userId: user.id,
+    knowledgeId,
     txHash,
     token,
-    expectedRecipient: sellerWallet,
-    expectedAmount: amount,
-    expectedSender: buyerWallet,
-    feeVaultAddress,
-    programId,
-  });
-
-  if (!verification.valid) {
-    console.error("[recordPurchase] tx verification failed", { userId: user.id, knowledgeId, error: verification.error });
-    return { success: false, error: "トランザクション検証に失敗しました" };
-  }
-
-  // 購入レコード挿入 (DB unique 制約が race condition を防ぐ)
-  const { data: transaction, error: insertError } = await admin.from("transactions").insert({
-    buyer_id: user.id,
-    seller_id: item.seller_id,
-    knowledge_item_id: knowledgeId,
-    amount,
-    token,
     chain,
-    tx_hash: txHash,
-    status: "pending",
-    protocol_fee: feeVaultAddress ? (() => {
-      const decimals = token === "USDC" ? 6 : 9;
-      const atomicTotal = Math.round(amount * 10 ** decimals);
-      const sellerAtomic = Math.floor(atomicTotal * 9500 / 10000);
-      return (atomicTotal - sellerAtomic) / 10 ** decimals;
-    })() : null,
-    fee_vault_address: feeVaultAddress || null,
-  }).select("id").single();
-
-  if (insertError || !transaction) {
-    // 23505: unique violation — race condition で別リクエストが先に挿入した可能性
-    if (insertError?.code === "23505") {
-      const { data: recheck } = await admin
-        .from("transactions")
-        .select("id, buyer_id, knowledge_item_id, status")
-        .eq("tx_hash", txHash)
-        .maybeSingle();
-      if (
-        recheck &&
-        recheck.buyer_id === user.id &&
-        recheck.knowledge_item_id === knowledgeId &&
-        recheck.status === "confirmed"
-      ) {
-        return { success: true };
-      }
-      return { success: false, error: "Transaction hash already used" };
-    }
-    console.error("[recordPurchase] insert error", insertError);
-    return { success: false, error: "Failed to record purchase" };
-  }
-
-  // confirm_transaction RPC で pending → confirmed に昇格 + purchase_count を原子的インクリメント
-  // RPC は実際に遷移した件数 (0 or 1) を返す
-  const { data: confirmCount, error: confirmError } = await admin.rpc("confirm_transaction", {
-    tx_id: transaction.id,
   });
 
-  if (confirmError) {
-    console.error("[recordPurchase] confirm_transaction rpc failed", { userId: user.id, knowledgeId, error: confirmError });
-    return { success: false, error: "Transaction confirmation failed" };
+  if (!result.ok) {
+    return mapFailure(result);
   }
 
-  if (confirmCount !== 1) {
-    // 0: pending でなかった (別の並行リクエストが先行した可能性) → 再読込で確認
-    const { data: recheckTx } = await admin
-      .from("transactions")
-      .select("status")
-      .eq("id", transaction.id)
-      .single();
-    if (recheckTx?.status !== "confirmed") {
-      console.error("[recordPurchase] confirm_transaction updated 0 rows and status not confirmed", { userId: user.id, knowledgeId, txId: transaction.id });
-      return { success: false, error: "Transaction confirmation failed" };
-    }
+  // Fire email on newly created rows only; idempotent replays skip email to
+  // avoid duplicate notifications.
+  if (result.created) {
+    queueSellerEmail(user.id, knowledgeId, result, token);
   }
-
-  // 売り手へ購入完了メール送信 (fire-and-forget)
-  const sellerProfile = walletProfiles.find((p) => p.id === item.seller_id);
-  fireAndForget(
-    admin.auth.admin.getUserById(item.seller_id).then(({ data: sellerAuth }) => {
-      const sellerEmail = sellerAuth?.user?.email;
-      if (!sellerEmail) return;
-      const content = purchaseCompletedEmailHtml({
-        sellerName: (sellerProfile as { display_name?: string | null } | undefined)?.display_name ?? "seller",
-        itemTitle: (item as { title?: string | null }).title ?? knowledgeId,
-        amount,
-        token,
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://knowmint.shop",
-      });
-      return sendEmail({ to: sellerEmail, ...content });
-    }),
-    "purchase.seller_email"
-  );
-
   return { success: true };
 }

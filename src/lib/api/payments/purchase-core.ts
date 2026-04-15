@@ -63,21 +63,36 @@ export type PurchaseCoreWalletProfile = {
   display_name: string | null;
 };
 
-export type PurchaseCoreSuccess = {
-  ok: true;
-  /** Fully-hydrated confirmed transaction row. */
-  transaction: Transaction;
-  /**
-   * `true` when this call inserted the row, `false` on idempotent replay.
-   * Idempotent replays skip downstream side effects (email, audit) so they
-   * return only `transaction` and omit the ancillary item/profile data.
-   */
-  created: boolean;
-  /** Present only when `created === true` (newly inserted row). */
-  item?: PurchaseCoreItem;
-  buyerProfile?: PurchaseCoreWalletProfile;
-  sellerProfile?: PurchaseCoreWalletProfile;
-};
+/**
+ * Successful core result (discriminated union on `created`).
+ *
+ * On the `created: true` branch the core has performed the full "insert →
+ * RPC confirm" pipeline and already owns fresh copies of the item / wallet
+ * profiles, so it returns them to callers that need to send emails,
+ * notifications, or audit logs without an extra round-trip.
+ *
+ * On the `created: false` branch the caller hit an idempotent replay
+ * (confirmed already, or retry of a pending row). Downstream side effects
+ * like email are gated on `created === true`, so we intentionally skip the
+ * ancillary fetch on that path — it would cost a DB round-trip that none
+ * of the current callers actually read.
+ */
+export type PurchaseCoreSuccess =
+  | {
+      ok: true;
+      created: true;
+      /** Fully-hydrated confirmed transaction row. */
+      transaction: Transaction;
+      item: PurchaseCoreItem;
+      buyerProfile: PurchaseCoreWalletProfile;
+      sellerProfile: PurchaseCoreWalletProfile;
+    }
+  | {
+      ok: true;
+      created: false;
+      /** Fully-hydrated confirmed transaction row. */
+      transaction: Transaction;
+    };
 
 export type PurchaseCoreFailure = {
   ok: false;
@@ -326,13 +341,12 @@ export async function recordPurchaseCore(
         race.knowledge_item_id === knowledgeId &&
         race.status === "confirmed"
       ) {
+        // Concurrent request owned the insert; our call is an idempotent
+        // replay from this moment on, so skip email/audit side effects.
         return {
           ok: true,
           created: false,
           transaction: race as Transaction,
-          item,
-          buyerProfile,
-          sellerProfile,
         };
       }
       return fail("conflict", "tx_hash_already_used");
@@ -388,13 +402,11 @@ export async function recordPurchaseCore(
   if (recheckTx.status !== "confirmed") {
     return fail("verification_failed", "confirm_failed");
   }
+  // Concurrent request confirmed before us; this is an idempotent replay.
   return {
     ok: true,
     created: false,
     transaction: recheckTx as Transaction,
-    item,
-    buyerProfile,
-    sellerProfile,
   };
 }
 

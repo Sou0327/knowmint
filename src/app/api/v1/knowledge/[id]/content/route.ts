@@ -111,16 +111,27 @@ export const GET = withApiAuth(async (request, user, _rateLimit, context) => {
         }
 
         if (existingMppTx) {
-          if (
+          // RP6 B-5: make the idempotent match an explicit state transition
+          // rather than an implicit fall-through. A mismatched buyer/item/
+          // status is a hard conflict; an exact match means this MPP charge
+          // has already been recorded and we can short-circuit to serving
+          // content without another insert.
+          const idempotentMatch =
             existingMppTx.buyer_id === user.userId &&
             existingMppTx.knowledge_item_id === id &&
-            existingMppTx.status === "confirmed"
-          ) {
-            // Idempotent match → fall through to serve content
-          } else {
+            existingMppTx.status === "confirmed";
+          if (!idempotentMatch) {
+            console.warn("[content] mpp existing tx mismatch:", {
+              userId: user.userId,
+              itemId: id,
+              existingBuyerId: existingMppTx.buyer_id,
+              existingItemId: existingMppTx.knowledge_item_id,
+              existingStatus: existingMppTx.status,
+            });
             return apiError(API_ERRORS.CONFLICT, "Transaction hash already used");
           }
-          // Skip insert, serve content below
+          // Idempotent match → skip insert; `mppPaymentVerified = true` below
+          // gates the fall-through to serve content.
         } else {
           // Insert new transaction
           const { error: mppInsertErr } = await admin.from("transactions").insert({

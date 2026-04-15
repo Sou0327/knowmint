@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
@@ -5,6 +6,16 @@ import { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 import { buildSiwsMessage } from "@/lib/siws/message";
 import { verifyWalletSignature } from "@/lib/auth/verify-wallet-signature";
+import { logAuditEvent } from "@/lib/audit/log";
+
+/**
+ * Mask a wallet address for audit metadata so we keep evidence without
+ * logging the full base58 public key (privacy-preserving).
+ */
+function maskWallet(wallet: string): string {
+  if (wallet.length <= 8) return wallet;
+  return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
+}
 
 const BodySchema = z.object({
   wallet: z.string().min(32).max(44),
@@ -96,8 +107,23 @@ export const POST = withApiAuth(async (request, user) => {
     return apiError(API_ERRORS.INTERNAL_ERROR);
   }
 
+  // Emit audit events after the response is sent so the client is not blocked
+  // on the write. `wallet.conflict_attempt` is a fraud signal worth surfacing
+  // to SIEM; `wallet.profile_missing` flags a data-integrity regression
+  // (challenge consumed but no matching profile). RP6 B-8.
+  const walletMasked = maskWallet(wallet);
+
   switch (rpcResult) {
     case "ok":
+      after(() =>
+        logAuditEvent({
+          userId: user.userId,
+          action: "wallet.verified",
+          resourceType: "wallet",
+          resourceId: wallet,
+          metadata: { wallet_masked: walletMasked },
+        }),
+      );
       return apiSuccess({ verified: true, wallet });
 
     case "not_found":
@@ -107,6 +133,15 @@ export const POST = withApiAuth(async (request, user) => {
       );
 
     case "conflict_wallet":
+      after(() =>
+        logAuditEvent({
+          userId: user.userId,
+          action: "wallet.conflict_attempt",
+          resourceType: "wallet",
+          resourceId: wallet,
+          metadata: { wallet_masked: walletMasked },
+        }),
+      );
       return apiError(
         API_ERRORS.CONFLICT,
         "This wallet address is already registered to another account"
@@ -114,6 +149,15 @@ export const POST = withApiAuth(async (request, user) => {
 
     case "user_not_found":
       console.error("wallet/verify: profile not found for user:", user.userId);
+      after(() =>
+        logAuditEvent({
+          userId: user.userId,
+          action: "wallet.profile_missing",
+          resourceType: "user",
+          resourceId: user.userId,
+          metadata: { wallet_masked: walletMasked },
+        }),
+      );
       return apiError(API_ERRORS.INTERNAL_ERROR, "Profile not found");
 
     default:

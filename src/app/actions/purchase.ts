@@ -69,16 +69,19 @@ function mapFailure(failure: PurchaseCoreFailure): { success: false; error: stri
   }
 }
 
+/**
+ * Narrowed success variant for the created-row branch only. Idempotent
+ * replays do not carry item/profile data and do not send email.
+ */
+type PurchaseCreated = Extract<PurchaseCoreSuccess, { created: true }>;
+
 function queueSellerEmail(
   userId: string,
   knowledgeId: string,
-  success: PurchaseCoreSuccess,
+  success: PurchaseCreated,
   token: "SOL" | "USDC",
 ): void {
-  // Only newly created rows carry hydrated item/profile data; defensive
-  // guard satisfies the optional discriminated union.
   const { item, sellerProfile, transaction } = success;
-  if (!item || !sellerProfile) return;
   const admin = getAdminClient();
   const sellerId = item.seller_id;
   const itemTitle = item.title ?? knowledgeId;

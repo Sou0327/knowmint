@@ -69,6 +69,8 @@ packages/*/node_modules/
 
 # Nested dist (npm publish includes dist via "files" in package.json)
 packages/*/dist/
+mcp/dist/
+sdk/dist/
 
 # Cloudflare / OpenNext build output
 .open-next/

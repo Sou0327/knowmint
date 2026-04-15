@@ -1,6 +1,6 @@
 {
   "name": "@knowmint/eliza-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ElizaOS plugin for KnowMint — lets AI agents discover and purchase human tacit knowledge",
   "keywords": [
     "elizaos",
@@ -43,6 +43,9 @@
   },
   "peerDependencies": {
     "@elizaos/core": ">=1.0.0"
+  },
+  "dependencies": {
+    "@knowledge-market/sdk": "^0.2.0"
   },
   "devDependencies": {
     "@elizaos/core": "^1.0.0",

@@ -1,6 +1,6 @@
 {
   "name": "@knowmint/agentkit-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Coinbase AgentKit ActionProvider for KnowMint — lets AgentKit agents discover and purchase human tacit knowledge",
   "keywords": [
     "agentkit",
@@ -34,6 +34,9 @@
   "peerDependencies": {
     "@coinbase/agentkit": ">=0.1.0",
     "zod": "^3.22.0"
+  },
+  "dependencies": {
+    "@knowledge-market/sdk": "^0.2.0"
   },
   "devDependencies": {
     "@coinbase/agentkit": "^0.2.0",

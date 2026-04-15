@@ -9,40 +9,22 @@ import type {
 } from "@elizaos/core";
 import { apiRequestPaginated, KmApiError, loadConfigFromRuntime } from "../api.js";
 import type { SearchItem } from "../types.js";
+import { formatSearchResults as sdkFormatSearchResults } from "@knowledge-market/sdk/formatters";
 
 const MAX_QUERY_LEN = 200;
 const VALID_CONTENT_TYPES = new Set(["prompt", "tool_def", "dataset", "api", "general"]);
 const VALID_SORT_BY = new Set(["newest", "popular", "price_low", "price_high", "rating", "trust_score"]);
 
+/**
+ * Eliza は英語ラベル + 価格表示 + サニタイズで表示する。
+ * SDK の formatSearchResults に委譲。
+ */
 function formatSearchResults(items: SearchItem[]): string {
   if (items.length === 0) return "No results found.";
-
-  const lines: string[] = [`${items.length} result(s) found:\n`];
-  for (const item of items) {
-    const score = item.usefulness_score != null
-      ? `[Quality: ${item.usefulness_score.toFixed(2)}] `
-      : "";
-    const trust = item.seller?.trust_score != null
-      ? `[Trust: ${item.seller.trust_score.toFixed(2)}] `
-      : "";
-    const price = item.price_sol != null
-      ? `${item.price_sol} SOL`
-      : item.price_usdc != null
-        ? `${item.price_usdc} USDC`
-        : "N/A";
-
-    lines.push(`- ${score}${trust}"${item.title}" (${price}) — id: ${item.id}`);
-    if (item.tags && item.tags.length > 0) {
-      lines.push(`  Tags: ${item.tags.map((t) => `#${t}`).join(" ")}`);
-    }
-    if (item.metadata) {
-      const parts: string[] = [];
-      if (item.metadata.domain) parts.push(`domain=${item.metadata.domain}`);
-      if (item.metadata.experience_type) parts.push(`type=${item.metadata.experience_type}`);
-      if (parts.length > 0) lines.push(`  Metadata: ${parts.join(", ")}`);
-    }
-  }
-  return lines.join("\n");
+  return sdkFormatSearchResults(
+    { data: items },
+    { locale: "en", sanitize: true, showPrice: true }
+  );
 }
 
 export const searchKnowledgeAction: Action = {

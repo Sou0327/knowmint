@@ -43,6 +43,52 @@ Phase 1-14, 15, 15.6, 16-25, 27-32, 34, 36-46, 38.R, 45, R, A, B.1, 26, UI-1, PR
 
 ---
 
+## Phase FRONTIER: Solana Frontier Hackathon 参加 [**最優先** — 時限 2026-05-10 提出]
+
+> **背景**: 2026-04-06 〜 2026-05-11 開催の Solana Frontier Hackathon に KnowMint で参加。
+> 賞金: Grand $30k / Top20 × $10k / Public Good $10k / Accelerator $250k (7% equity) × 最大10枠。
+> 参加者 12,500+、Top20 入賞確率 3-8%、Accelerator 1-2%。期待値 $2-5k (30-75万円)。
+> **主目的**: 露出 + Solana ecosystem 接続 + pitch 材料作成。賞金は宝くじ扱い。
+> 詳細分析: `docs/frontier-hackathon-analysis.md`
+
+| Task | 内容 | DoD | Depends | Status |
+|------|------|-----|---------|--------|
+| FRN.1 | Colosseum アカウント登録 + プロフィール完成 | arena.colosseum.org で登録完了、Display Name/Headline/About You/Skills 入力済み | - | cc:完了 |
+| FRN.2 | プロジェクト作成 (basic info) | KnowMint プロジェクト作成、AI Platforms/Agents カテゴリ選択、Brief Description 入力済み | FRN.1 | cc:完了 |
+| FRN.3 | Submission form 本文入力 (What you're building / Why now / Technologies 等) | 全必須フィールド入力完了、save 済み | FRN.2 | cc:WIP |
+| FRN.4 | Telegram アカウント作成 + フォーム入力 | Telegram username を form に登録済み (受賞連絡必須) | FRN.2 | cc:TODO |
+| FRN.5 | Repo context + Access instructions + Live product link 入力 | knowmint.shop + アクセス手順入力、judges が試せる状態 | FRN.2 | cc:TODO |
+| FRN.6 | Discord 参加 + 既存プロジェクト提出可否質問 | Colosseum Discord 参加、FAQ チャンネルで質問投下、運営の回答受領 | - | cc:TODO |
+| FRN.7 | Eternal プログラム調査 (Frontier と並行応募可否確認) | Eternal 応募条件・採択率・Frontier との差異を整理、並行応募判断 | - | cc:TODO |
+| FRN.8 | 追加機能選定 (Agent Hub / Reputation / Cross-Protocol / Creator Revenue から1つ) | 選定機能の設計メモを `docs/frontier-feature-{name}.md` に記録 | - | cc:TODO |
+| FRN.9 | 選定機能の実装 + テスト | 機能動作確認 + 新規テスト追加、main ブランチに merge | FRN.8 | cc:TODO |
+| FRN.10 | Demo video 撮影 (3分以内・live product) | YouTube/Loom/Vimeo にアップロード、live product 映像、英語ナレーション | FRN.9 | cc:TODO |
+| FRN.11 | Pitch video 撮影 (2分以内・founder 自己紹介) | YouTube/Loom にアップロード、顔出し・英語、自己紹介+なぜ作るか+why now | FRN.9 | cc:TODO |
+| FRN.12 | Pitch deck 作成 (5-10 slides、英語) | PDF/Figma で pitch deck 完成、Problem/Solution/Market/Traction/Team/Ask 構成 | FRN.9 | cc:TODO |
+| FRN.13 | Submission form 最終仕上げ (動画 URL・deck URL・GitHub URL) | 全フィールド完了、「Submit」押下前状態 | FRN.3, FRN.10, FRN.11, FRN.12 | cc:TODO |
+| FRN.14 | 最終提出 + Twitter 告知 (#SolanaFrontier + @colosseum タグ) | 5/10 23:59 PDT までに submit、X で告知投稿完了 | FRN.13 | cc:TODO |
+| FRN.15 | 副業並行: Upwork + Contra プロフィール作成 | Senior Next.js + Solana + AI Agent Engineer として登録完了、初動 5 案件応募 | - | cc:TODO |
+
+**戦略メモ**:
+- **Pitch は Public Good Award 狙い** (確率 4-8%、Top20 3-8% より高い)
+- 「first marketplace for AI agents」は既出フレーズ (MCPay/Latinum が過去受賞)。「**Tacit knowledge layer for Solana agents**」「**OSS counterweight to proprietary x402 plays**」に reframe
+- KnowMint 初コミット 2026-02-16 (ハッカソン開始 2ヶ月前ギリギリ) → 既存プロジェクト懸念があるため FRN.9 で「during hackathon」として追加したものを明確に切り分けて見せる
+- Accelerator 採択されても Week 2-3 の SF 渡航必須 (ESTA 無ビザ可、旅費 $4-7k)
+- 副業 (FRN.15) は Frontier に全振りせず平行で生活費確保。時給 $50-100 想定
+
+**工数見積もり (残り 27日)**:
+- FRN.3-7: 2-3日 (Discord 回答待ち含む)
+- FRN.8-9: 2-3週間 (機能実装)
+- FRN.10-12: 5-7日 (動画 + deck)
+- FRN.13-14: 1日
+- FRN.15: 0.5日 + 継続応募
+
+**撤退条件**:
+- FRN.6 の Discord 回答で「既存プロジェクト disqualify」と明確に言われた場合 → Eternal 応募に切り替え
+- FRN.8 実装開始後 1週間で機能実装が 50% 未満 → 機能なし magazineで提出に降格 (Public Good Award 狙い)
+
+---
+
 ## Phase MKT-CS: コールドスタート解消 [**最優先** — マーケティング以前の前提条件]
 
 > **2026-03-15 パネル合意**: マーケットプレイスの鶏卵問題を解決しない限り、全マーケティング施策の変換率はゼロ。

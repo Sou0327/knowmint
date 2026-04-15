@@ -93,6 +93,7 @@ KnowMint の UI はドラゴンクエスト等の**レトロRPGゲーム風**デ
   1. `mcp__codex__codex` — Security/Performance/Quality レビュー
   2. `coderabbit review --plain -t committed` — AI コードレビュー (committed diff 対象)
 - **レビュー反復**: 最大4ラウンド。diff スコープ外（既存コード）の指摘はスキップ。動作確認済みのコードを レビュー指摘だけで revert しない — ユーザーに確認してから判断
+  - Codex 2ラウンド目以降は `mcp__codex__codex-reply` を使い、前回のレビュー結果に対して修正箇所を返信する（新規レビューを立てない）
 - **UI 実装は frontend-design スキル必須**: `document-skills:frontend-design` スキル経由で実装
 - **API route では Admin クライアント + 手動認可**: RLS に頼らず明示的にチェック
 - **API キーは SHA-256 ハッシュで保存**: 平文保存禁止

@@ -44,6 +44,8 @@ Add KnowMint settings to your agent's character file:
 | `PURCHASE_KNOWLEDGE` | Record a purchase after on-chain payment | `knowledge_id`, `tx_hash` |
 | `GET_CONTENT` | Retrieve full content of a purchased item | `knowledge_id` |
 
+> **Note:** A `GET_DETAIL` action (equivalent to `km_get_detail` in the MCP server) is **not implemented** in this plugin. The intended flow is `SEARCH_KNOWLEDGE` → use the `knowledge_item_id` from results → `PURCHASE_KNOWLEDGE` directly. If you need to inspect item details before purchasing, use `SEARCH_KNOWLEDGE` which returns title, description, price, and preview content.
+
 ### SEARCH_KNOWLEDGE
 
 Searches the KnowMint marketplace. The search query is extracted from the message text.

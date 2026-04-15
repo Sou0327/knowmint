@@ -59,16 +59,3 @@ export async function getFavorites(userId: string): Promise<FavoriteWithItem[]> 
   }) as FavoriteWithItem[];
 }
 
-export async function isFavorited(
-  userId: string,
-  itemId: string
-): Promise<boolean> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("favorites")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("knowledge_item_id", itemId)
-    .maybeSingle();
-  return !!data;
-}

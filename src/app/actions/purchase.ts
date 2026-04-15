@@ -15,29 +15,21 @@ function isValidSolanaPublicKey(addr: string): boolean {
   try { new PublicKey(addr); return true; } catch { return false; }
 }
 
-const schema = z
-  .object({
-    knowledgeId: z.string().uuid(),
-    txHash: z.string().min(1).max(256),
-    chain: z.enum(["solana", "base", "ethereum"]),
-    token: z.enum(["SOL", "USDC", "ETH"]),
-    termsAgreed: z.literal(true, {
-      errorMap: () => ({ message: "利用規約への同意が必要です" }),
-    }),
-  })
-  .refine(
-    (d) =>
-      d.chain === "solana"
-        ? d.token === "SOL" || d.token === "USDC"
-        : d.token === "ETH",
-    { message: "Invalid chain/token combination" }
-  );
+const schema = z.object({
+  knowledgeId: z.string().uuid(),
+  txHash: z.string().min(1).max(256),
+  chain: z.enum(["solana"]),
+  token: z.enum(["SOL", "USDC"]),
+  termsAgreed: z.literal(true, {
+    errorMap: () => ({ message: "利用規約への同意が必要です" }),
+  }),
+});
 
 export async function recordPurchase(
   knowledgeId: string,
   txHash: string,
-  chain: "solana" | "base" | "ethereum",
-  token: "SOL" | "USDC" | "ETH",
+  chain: "solana",
+  token: "SOL" | "USDC",
   termsAgreed: true
 ): Promise<{ success: boolean; error?: string }> {
   const parsed = schema.safeParse({ knowledgeId, txHash, chain, token, termsAgreed });
@@ -115,11 +107,6 @@ export async function recordPurchase(
       }
     }
     return { success: false, error: "Transaction hash already used" };
-  }
-
-  // EVM購入は price_eth 実装まで非対応 (既存 /api/v1 purchase route と同様)
-  if (chain !== "solana") {
-    return { success: false, error: "Only Solana purchases are supported in this phase" };
   }
 
   // tx_hash フォーマット検証 (base58, 87-88 文字)

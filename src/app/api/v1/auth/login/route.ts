@@ -112,11 +112,17 @@ export async function POST(request: Request) {
   // fail-closed: countError 時もキー発行を拒否
   // 注: count チェックと insert は非原子的だが、rate limit (20/min per IP) により
   //     並行ログインでの超過は最大 1-2 件に抑制される
+  //
+  // RP1 (B-1): NULL expires_at バイパス塞ぎ。
+  // Postgres 3値論理で `NULL > <timestamp>` は NULL (falsy) → 上限判定から除外されていた。
+  // `/api/v1/keys` の POST は明示的に no-expiration キーを許可するため、NULL キーも
+  // "アクティブ" として上限にカウントする (未期限キーは常に使えるため)。
+  const nowIso = new Date().toISOString();
   const { count, error: countError } = await admin
     .from("api_keys")
     .select("id", { count: "exact", head: true })
     .eq("user_id", profile.id)
-    .gt("expires_at", new Date().toISOString());
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
 
   if (countError) {
     console.error("[auth/login] API key count check failed:", countError);

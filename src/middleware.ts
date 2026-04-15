@@ -16,6 +16,55 @@ function canonicalizePath(raw: string): string {
     .replace(/\/{2,}/g, "/");
 }
 
+/**
+ * Resolve allowed CORS origins with strict production guard.
+ *
+ * RP1 (B-4):
+ * - `ALLOWED_ORIGINS` (CSV) は新 SSOT。後方互換で `ALLOWED_ORIGIN` 単一値も解釈。
+ * - production で未設定の場合は即 throw (Worker 初回リクエストで fail-fast)。
+ * - development は `*` フォールバックで DX を維持。
+ *
+ * 本関数の返り値は list (allowlist)。Origin ヘッダと照合して echo する。
+ */
+function getAllowedOrigins(): string[] {
+  const raw = process.env.ALLOWED_ORIGINS ?? process.env.ALLOWED_ORIGIN ?? "";
+  const list = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (process.env.NODE_ENV === "production" && list.length === 0) {
+    throw new Error(
+      "ALLOWED_ORIGINS must be set in production (comma-separated origins). " +
+        "Example: ALLOWED_ORIGINS=https://knowmint.shop,https://www.knowmint.shop"
+    );
+  }
+
+  return list;
+}
+
+/**
+ * RP1 (B-4): Origin ヘッダを allowlist と照合して echo 先を決定する。
+ * - allowlist に一致 → そのまま echo (safe)
+ * - 不一致 + production → null (Access-Control-Allow-Origin ヘッダを出さない)
+ * - 不一致 + development → "*" (開発利便性を残す)
+ *
+ * 呼び出し側は戻り値を Access-Control-Allow-Origin にセットし、
+ * 常に `Vary: Origin` を付与してキャッシュ汚染を防ぐ。
+ */
+function resolveAllowedOrigin(
+  requestOrigin: string | null,
+  allowedOrigins: string[]
+): string | null {
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    return requestOrigin;
+  }
+  if (process.env.NODE_ENV !== "production") {
+    return "*";
+  }
+  return null;
+}
+
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV === "development";
   return [
@@ -44,9 +93,11 @@ export async function middleware(request: NextRequest) {
 
   // 1. API routes — CORS only, skip i18n and auth
   if (rawPathname.startsWith("/api/")) {
-    const allowedOrigin = process.env.ALLOWED_ORIGIN || (
-      process.env.NODE_ENV === "production" ? undefined : "*"
-    );
+    // RP1 (B-4): production で ALLOWED_ORIGINS 未設定なら getAllowedOrigins() が throw。
+    // Worker 初回リクエストで即死するので deploy 直後に検知される。
+    const allowedOrigins = getAllowedOrigins();
+    const requestOrigin = request.headers.get("Origin");
+    const allowedOrigin = resolveAllowedOrigin(requestOrigin, allowedOrigins);
 
     // Preflight
     if (request.method === "OPTIONS") {
@@ -55,6 +106,8 @@ export async function middleware(request: NextRequest) {
         "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT, X-API-Key",
         "Access-Control-Expose-Headers": "WWW-Authenticate, Payment-Receipt",
         "Access-Control-Max-Age": "86400",
+        // RP1 (B-4): Origin-based レスポンスには Vary: Origin 必須 (CDN/Worker キャッシュ汚染防止)
+        Vary: "Origin",
       };
       if (allowedOrigin) {
         headers["Access-Control-Allow-Origin"] = allowedOrigin;
@@ -68,6 +121,8 @@ export async function middleware(request: NextRequest) {
     apiResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     apiResponse.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
     apiResponse.headers.set("Access-Control-Expose-Headers", "WWW-Authenticate, Payment-Receipt");
+    // RP1 (B-4): 非 preflight でも Origin echo の有無に関わらず必ず Vary: Origin を付与
+    apiResponse.headers.set("Vary", "Origin");
     apiResponse.headers.set("Content-Security-Policy", "default-src 'none'; script-src 'none'; frame-ancestors 'none'");
     return apiResponse;
   }

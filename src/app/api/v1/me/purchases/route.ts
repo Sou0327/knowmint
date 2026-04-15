@@ -1,6 +1,7 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiError, apiPaginated, API_ERRORS } from "@/lib/api/response";
+import { parsePagination } from "@/lib/api/validation";
 
 /**
  * GET /api/v1/me/purchases
@@ -8,10 +9,7 @@ import { apiError, apiPaginated, API_ERRORS } from "@/lib/api/response";
  */
 export const GET = withApiAuth(async (request, user) => {
   const { searchParams } = new URL(request.url);
-  const rawPage = parseInt(searchParams.get("page") ?? "1", 10);
-  const rawPerPage = parseInt(searchParams.get("per_page") ?? "20", 10);
-  const page = Math.min(1000, Math.max(1, Number.isFinite(rawPage) ? rawPage : 1));
-  const perPage = Math.min(100, Math.max(1, Number.isFinite(rawPerPage) ? rawPerPage : 20));
+  const { page, perPage } = parsePagination(searchParams);
 
   const from = (page - 1) * perPage;
   const to = from + perPage - 1;

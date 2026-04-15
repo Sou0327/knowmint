@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { fetchVersionHistory } from "@/app/[locale]/(main)/knowledge/actions";
+import { formatDate, formatDateTime } from "@/lib/i18n/date";
 
 interface VersionEntry {
   id: string;
@@ -137,9 +138,9 @@ export function VersionHistory({ knowledgeItemId }: VersionHistoryProps) {
             <time
               dateTime={v.created_at}
               className="flex-shrink-0 text-xs text-dq-text-muted"
-              title={new Date(v.created_at).toLocaleString(locale)}
+              title={formatDateTime(v.created_at, locale)}
             >
-              {new Date(v.created_at).toLocaleDateString(locale)}
+              {formatDate(v.created_at, locale)}
             </time>
           </li>
         ))}

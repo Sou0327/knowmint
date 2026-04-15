@@ -1,6 +1,7 @@
 import { getAdminClient } from "@/lib/supabase/admin";
 import { withApiAuth } from "@/lib/api/middleware";
 import { apiPaginated, apiError, API_ERRORS } from "@/lib/api/response";
+import { parsePagination } from "@/lib/api/validation";
 
 const VALID_STATUSES = ["pending", "reviewing", "resolved", "dismissed"] as const;
 type ReportStatus = typeof VALID_STATUSES[number];
@@ -13,8 +14,7 @@ type ReportStatus = typeof VALID_STATUSES[number];
 export const GET = withApiAuth(async (request) => {
   const { searchParams } = new URL(request.url);
   const statusRaw = searchParams.get("status") ?? "pending";
-  const page = Math.min(1000, Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1));
-  const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") ?? "20", 10) || 20));
+  const { page, perPage } = parsePagination(searchParams);
 
   if (!(VALID_STATUSES as readonly string[]).includes(statusRaw)) {
     return apiError(API_ERRORS.BAD_REQUEST, `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`);

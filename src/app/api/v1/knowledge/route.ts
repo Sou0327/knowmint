@@ -6,6 +6,7 @@ import {
   apiPaginated,
   API_ERRORS,
 } from "@/lib/api/response";
+import { parsePagination } from "@/lib/api/validation";
 import type {
   ContentType,
   KnowledgeStatus,
@@ -57,11 +58,7 @@ export const GET = withApiAuth(async (request) => {
   const maxPrice = maxPriceRaw;
   const sortBy = (searchParams.get("sort_by") ??
     "newest") as KnowledgeSearchParams["sort_by"];
-  const page = Math.min(1000, Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1));
-  const perPage = Math.min(
-    100,
-    Math.max(1, parseInt(searchParams.get("per_page") ?? "20", 10) || 20)
-  );
+  const { page, perPage } = parsePagination(searchParams);
   const metadataDomain = searchParams.get("metadata_domain") ?? undefined;
   const metadataExperienceType = searchParams.get("metadata_experience_type") ?? undefined;
   const metadataApplicableTo = searchParams.get("metadata_applicable_to") ?? undefined;

@@ -10,6 +10,7 @@ import {
 } from "@/lib/solana/verify-transaction";
 import { sendEmail } from "@/lib/email/send";
 import { purchaseCompletedEmailHtml } from "@/lib/email/templates";
+import { fireAndForget } from "@/lib/async/fire-and-forget";
 
 function isValidSolanaPublicKey(addr: string): boolean {
   try { new PublicKey(addr); return true; } catch { return false; }
@@ -254,8 +255,8 @@ export async function recordPurchase(
 
   // 売り手へ購入完了メール送信 (fire-and-forget)
   const sellerProfile = walletProfiles.find((p) => p.id === item.seller_id);
-  admin.auth.admin.getUserById(item.seller_id).then(
-    ({ data: sellerAuth }) => {
+  fireAndForget(
+    admin.auth.admin.getUserById(item.seller_id).then(({ data: sellerAuth }) => {
       const sellerEmail = sellerAuth?.user?.email;
       if (!sellerEmail) return;
       const content = purchaseCompletedEmailHtml({
@@ -265,9 +266,9 @@ export async function recordPurchase(
         token,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://knowmint.shop",
       });
-      sendEmail({ to: sellerEmail, ...content }).catch(() => {});
-    },
-    () => {}
+      return sendEmail({ to: sellerEmail, ...content });
+    }),
+    "purchase.seller_email"
   );
 
   return { success: true };

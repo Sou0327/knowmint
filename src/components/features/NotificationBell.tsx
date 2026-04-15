@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useNotifications } from "@/hooks/useNotifications";
+import { formatDate } from "@/lib/i18n/date";
 
 export default function NotificationBell() {
   const t = useTranslations("Notifications");
@@ -95,7 +96,7 @@ export default function NotificationBell() {
                       )}
                       <p className="mt-0.5 text-xs text-dq-text-muted line-clamp-2">{n.message}</p>
                       <p className="mt-1 text-[10px] text-dq-text-muted">
-                        {new Date(n.created_at).toLocaleDateString(locale === "ja" ? "ja-JP" : "en-US")}
+                        {formatDate(n.created_at, locale)}
                       </p>
                     </div>
                     {!n.read && (

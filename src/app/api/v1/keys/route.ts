@@ -5,12 +5,9 @@ import { apiSuccess, apiError, API_ERRORS } from "@/lib/api/response";
 import { createClient as createSessionClient } from "@/lib/supabase/server";
 import { ALLOWED_PERMISSIONS } from "@/lib/api/permissions";
 import { logAuditEvent } from "@/lib/audit/log";
-import { validateExpiresAt } from "@/lib/api/validation";
+import { UUID_RE, validateExpiresAt } from "@/lib/api/validation";
 import { checkPreAuthRateLimit } from "@/lib/api/rate-limit";
-import { sendEmail } from "@/lib/email/send";
-import { apiKeyCreatedEmailHtml, apiKeyDeletedEmailHtml } from "@/lib/email/templates";
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { sendApiKeyEventEmail } from "@/lib/email/key-events";
 
 interface ResolvedAuth {
   userId: string;
@@ -198,18 +195,15 @@ export const POST = async (request: Request) => {
 
     // APIキー作成メール送信 (fire-and-forget)
     // セッション認証時は auth.email が既に取得済みのため getUserById を省略
-    const sendCreatedEmail = (email: string) => {
-      const content = apiKeyCreatedEmailHtml({ keyName: newKey.name, permissions: newKey.permissions as string[] });
-      sendEmail({ to: email, ...content }).catch(() => {});
-    };
-    if (auth.email) {
-      sendCreatedEmail(auth.email);
-    } else {
-      admin.auth.admin.getUserById(auth.userId).then(
-        ({ data: authData }) => { if (authData?.user?.email) sendCreatedEmail(authData.user.email); },
-        () => {}
-      );
-    }
+    sendApiKeyEventEmail(
+      admin,
+      { userId: auth.userId, email: auth.email },
+      {
+        kind: "created",
+        keyName: newKey.name,
+        permissions: newKey.permissions as string[],
+      },
+    );
 
     return apiSuccess({
       id: newKey.id,
@@ -291,18 +285,11 @@ export const DELETE = async (request: Request) => {
 
     // APIキー削除メール送信 (fire-and-forget)
     const deletedKeyName = (deleted[0] as { name?: string } | undefined)?.name ?? keyId;
-    const sendDeletedEmail = (email: string) => {
-      const content = apiKeyDeletedEmailHtml({ keyName: deletedKeyName });
-      sendEmail({ to: email, ...content }).catch(() => {});
-    };
-    if (auth.email) {
-      sendDeletedEmail(auth.email);
-    } else {
-      admin.auth.admin.getUserById(auth.userId).then(
-        ({ data: authData }) => { if (authData?.user?.email) sendDeletedEmail(authData.user.email); },
-        () => {}
-      );
-    }
+    sendApiKeyEventEmail(
+      admin,
+      { userId: auth.userId, email: auth.email },
+      { kind: "deleted", keyName: deletedKeyName },
+    );
 
     return apiSuccess({ deleted: true });
   } catch (error) {

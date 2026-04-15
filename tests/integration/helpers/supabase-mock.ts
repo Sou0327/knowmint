@@ -7,6 +7,26 @@
  *   2. その後 require() でルートモジュールをロードする
  */
 
+// ── Supabase クエリビルダーの noop メソッド一覧 ────────────────────────────
+// createChain / createQueuedChain 両方から参照する単一ソース。
+// Supabase に `or` / `ilike` 等を追加する場合はここだけ更新すれば良い。
+const NOOP_QUERY_METHODS = [
+  "select",
+  "insert",
+  "update",
+  "delete",
+  "eq",
+  "neq",
+  "gte",
+  "lte",
+  "in",
+  "order",
+  "limit",
+  "range",
+  "textSearch",
+  "contains",
+] as const;
+
 // ── モック状態（テストから書き換え可） ────────────────────────────────────
 
 /** DB insert/select の返却値。テスト毎に上書きする。 */
@@ -59,24 +79,7 @@ export function resetMockDb(opts?: {
 function createChain(): Record<string, unknown> {
   const chain: Record<string, unknown> = {};
 
-  const noopMethods = [
-    "select",
-    "insert",
-    "update",
-    "delete",
-    "eq",
-    "neq",
-    "gte",
-    "lte",
-    "in",
-    "order",
-    "limit",
-    "range",
-    "textSearch",
-    "contains",
-  ];
-
-  for (const m of noopMethods) {
+  for (const m of NOOP_QUERY_METHODS) {
     chain[m] = () => chain;
   }
 
@@ -436,24 +439,7 @@ function createQueuedChain(entry: QueueEntry): Record<string, unknown> {
     }
   }
 
-  const noopMethods = [
-    "select",
-    "insert",
-    "update",
-    "delete",
-    "eq",
-    "neq",
-    "gte",
-    "lte",
-    "in",
-    "order",
-    "limit",
-    "range",
-    "textSearch",
-    "contains",
-  ];
-
-  for (const m of noopMethods) {
+  for (const m of NOOP_QUERY_METHODS) {
     chain[m] = (...args: unknown[]) => {
       recordedCalls.push({ method: m, args });
       return chain;

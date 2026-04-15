@@ -1,6 +1,7 @@
 import Card from "@/components/ui/Card";
 import UserAvatar from "@/components/ui/UserAvatar";
 import { getTranslations, getLocale } from "next-intl/server";
+import { formatDate } from "@/lib/i18n/date";
 
 interface ReviewItem {
   id: string;
@@ -43,7 +44,6 @@ export default async function ReviewList({ reviews }: Props) {
     getTranslations("Common"),
     getLocale(),
   ]);
-  const dateLocale = locale === "ja" ? "ja-JP" : "en-US";
 
   if (reviews.length === 0) {
     return (
@@ -65,7 +65,7 @@ export default async function ReviewList({ reviews }: Props) {
                   {review.reviewer.display_name || tCommon("anonymous")}
                 </p>
                 <p className="text-xs text-dq-text-muted">
-                  {new Date(review.created_at).toLocaleDateString(dateLocale)}
+                  {formatDate(review.created_at, locale)}
                 </p>
               </div>
             </div>

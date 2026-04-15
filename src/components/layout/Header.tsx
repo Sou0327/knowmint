@@ -92,7 +92,7 @@ export function Header() {
               onSubmit={(e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
-                const query = formData.get('q') as string;
+                const query = String(formData.get('q') ?? '').trim();
                 if (query) {
                   router.push(`/search?q=${encodeURIComponent(query)}`);
                 }
@@ -260,7 +260,7 @@ export function Header() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
-                  const query = formData.get('q') as string;
+                  const query = String(formData.get('q') ?? '').trim();
                   if (query) {
                     router.push(`/search?q=${encodeURIComponent(query)}`);
                     setMobileMenuOpen(false);

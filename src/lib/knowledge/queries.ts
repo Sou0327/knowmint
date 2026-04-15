@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { KnowledgeSearchParams } from "@/types/knowledge.types";
+import type { KnowledgeSearchParams, PaginatedResult } from "@/types/knowledge.types";
 import type { ContentType, ListingType, KnowledgeStatus, UserType, Database } from "@/types/database.types";
 
 // ── 戻り値型定義 ──────────────────────────────────
@@ -56,13 +56,7 @@ import { toSingle } from "@/lib/supabase/utils";
 export async function getPublishedKnowledge(
   params: KnowledgeSearchParams = {},
   client?: SupabaseClient<Database>
-): Promise<{
-  data: KnowledgeCardRow[];
-  total: number;
-  page: number;
-  per_page: number;
-  total_pages: number;
-}> {
+): Promise<PaginatedResult<KnowledgeCardRow>> {
   const supabase = client ?? (await createClient());
   const {
     query,

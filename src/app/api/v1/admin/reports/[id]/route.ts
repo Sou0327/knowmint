@@ -52,12 +52,11 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
   const newStatus = action === "resolve" ? "resolved" : action === "dismiss" ? "dismissed" : "reviewing";
 
   // admin_review_report RPC で報告更新とアイテム変更を同一トランザクションで実施
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase typed RPC: custom function not in generated Database.Functions
-  const { error: rpcError } = await (admin.rpc as any)("admin_review_report", {
+  const { error: rpcError } = await admin.rpc("admin_review_report", {
     p_report_id:    id,
     p_new_status:   newStatus,
     p_reviewer_id:  user.userId,
-    p_reviewer_note: reviewer_note ?? null,
+    p_reviewer_note: reviewer_note ?? "",
     p_remove_item:  action === "resolve" && remove_item === true,
   });
 

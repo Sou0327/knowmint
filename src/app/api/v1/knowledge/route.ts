@@ -183,10 +183,11 @@ export const GET = withApiAuth(async (request) => {
   let resultData = data ?? [];
 
   if (isTrustScoreSort) {
+    type RowWithSeller = { seller?: { trust_score?: number | null } | null };
     // seller.trust_score 降順でソート (null は末尾)
     resultData = [...resultData].sort((a, b) => {
-      const scoreA = (a as { seller?: { trust_score?: number | null } }).seller?.trust_score ?? -1;
-      const scoreB = (b as { seller?: { trust_score?: number | null } }).seller?.trust_score ?? -1;
+      const scoreA = (a as RowWithSeller).seller?.trust_score ?? -1;
+      const scoreB = (b as RowWithSeller).seller?.trust_score ?? -1;
       return scoreB - scoreA;
     });
     // アプリ側でページング

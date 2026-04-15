@@ -1,7 +1,9 @@
 /**
  * 手書きドメイン型 — フラット named import の後方互換レイヤー。
  * truth source は database.generated.ts (supabase gen types --local)。
- * 将来的にこのファイルは generated.ts の re-export + カスタム型のみに縮小予定。
+ * Database 型は generated.ts と乖離があるため、このファイルで定義を維持する。
+ * generated.ts を最新スキーマで再生成した後、このファイルの Database 定義を削除して
+ * re-export に切り替えること (L-15 TODO)。
  */
 
 // Content type enum
@@ -287,7 +289,7 @@ export type AuthChallenge = {
   created_at: string;
 };
 
-// Supabase Database 型定義
+// Supabase Database 型定義 (generated.ts と乖離あり — L-15 TODO: generated 再生成後に re-export へ切り替え)
 export type Database = {
   public: {
     Tables: {
@@ -443,6 +445,12 @@ export type Database = {
         Update: Partial<Omit<AuthChallenge, "id" | "created_at">>;
         Relationships: [];
       };
+      email_subscribers: {
+        Row: { id: string; email: string; source: string; created_at: string };
+        Insert: { id?: string; email: string; source?: string; created_at?: string };
+        Update: { id?: string; email?: string; source?: string; created_at?: string };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -512,6 +520,22 @@ export type Database = {
       consume_auth_challenge: {
         Args: { p_wallet: string; p_nonce: string; p_purpose: string };
         Returns: string;
+      };
+      get_revenue_by_token: {
+        Args: Record<PropertyKey, never>;
+        Returns: { token: string; total: number }[];
+      };
+      get_top_sellers: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          follower_count: number;
+          total_sales: number;
+          total_items: number;
+          trust_score: number | null;
+        }[];
       };
     };
     Enums: {

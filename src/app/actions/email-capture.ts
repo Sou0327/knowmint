@@ -31,9 +31,7 @@ export async function subscribeEmail(
   }
 
   const admin = getAdminClient();
-  // email_subscribers は MKT-NOW migration で追加。database.types.ts 再生成前は型未登録。
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (admin as any)
+  const { error } = await admin
     .from("email_subscribers")
     .insert({ email: parsed.data.email.toLowerCase(), source: parsed.data.source });
 

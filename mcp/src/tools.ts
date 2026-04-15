@@ -283,11 +283,13 @@ export function registerTools(server: McpServer, config: KmConfig): void {
       price_sol: z
         .number()
         .positive()
+        .finite()
         .optional()
         .describe("Price in SOL (specify price_sol or price_usdc)"),
       price_usdc: z
         .number()
         .positive()
+        .finite()
         .optional()
         .describe("Price in USDC (specify price_sol or price_usdc)"),
       tags: z

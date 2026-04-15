@@ -65,10 +65,7 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
         .from("transactions")
         .select("id", { count: "exact", head: true })
         .eq("status", "confirmed"),
-      admin.rpc("get_revenue_by_token" as never) as unknown as {
-        data: { token: string; total: number }[] | null;
-        error: unknown;
-      },
+      admin.rpc("get_revenue_by_token"),
       admin
         .from("knowledge_item_reports")
         .select("id", { count: "exact", head: true })
@@ -77,7 +74,7 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
 
   // Fallback: if RPC not yet deployed, aggregate in JS
   const totalRevenue: Record<string, number> = { SOL: 0, USDC: 0, ETH: 0 };
-  if (Array.isArray(revenueResult.data) && revenueResult.data.length > 0 && "total" in revenueResult.data[0]) {
+  if (!revenueResult.error && Array.isArray(revenueResult.data) && revenueResult.data.length > 0) {
     for (const row of revenueResult.data) {
       totalRevenue[row.token] = Number(row.total);
     }

@@ -328,10 +328,17 @@ export async function apiRequest<T>(
   }
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
 export async function apiRequestPaginated<T>(
   config: KmConfig,
   apiPath: string
-): Promise<{ data: T[]; pagination: unknown }> {
+): Promise<{ data: T[]; pagination: PaginationMeta }> {
   requireApiKey(config);
   const url = `${config.baseUrl}${apiPath.startsWith("/") ? apiPath : `/${apiPath}`}`;
   const headers = buildHeaders(config);
@@ -352,7 +359,7 @@ export async function apiRequestPaginated<T>(
       throw new KmApiError(sanitizeServerError(response.status, json), response.status);
     }
 
-    const result = json as { success: boolean; data: T[]; pagination: unknown } | null;
+    const result = json as { success: boolean; data: T[]; pagination: PaginationMeta } | null;
     if (!result || result.success !== true) {
       throw new KmApiError("Unexpected API response shape");
     }

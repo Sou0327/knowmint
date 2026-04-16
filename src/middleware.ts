@@ -87,9 +87,19 @@ export async function middleware(request: NextRequest) {
 
   // 1. API routes — CORS only, skip i18n and auth
   if (rawPathname.startsWith("/api/")) {
-    const allowedOrigins = getAllowedOrigins();
-    const requestOrigin = request.headers.get("Origin");
-    const allowedOrigin = resolveAllowedOrigin(requestOrigin, allowedOrigins);
+    // production で ALLOWED_ORIGINS 未設定なら throw するが、ここで catch
+    // して API レスポンス自体は続行する。Origin echo が無いだけで API は
+    // 通常どおり動く (CORS を必要とする cross-origin はブロックされるが、
+    // 単一オリジン利用は影響なし)。deploy ミスで全 API が 500 になる事故
+    // を避けるための fail-soft。
+    let allowedOrigin: string | null = null;
+    try {
+      const allowedOrigins = getAllowedOrigins();
+      const requestOrigin = request.headers.get("Origin");
+      allowedOrigin = resolveAllowedOrigin(requestOrigin, allowedOrigins);
+    } catch (err) {
+      console.error("[cors] getAllowedOrigins failed", err);
+    }
 
     if (request.method === "OPTIONS") {
       const headers: Record<string, string> = {

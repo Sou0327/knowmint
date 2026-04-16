@@ -152,6 +152,14 @@ export async function middleware(request: NextRequest) {
   carryOverResponseState(i18nResponse, supabaseResponse);
   supabaseResponse.headers.set("Content-Security-Policy", buildCsp(nonce));
 
+  // Cloudflare Workers の subrequest / CPU 制限を圧迫しないため、
+  // 認証チェックが不要な public route では auth.getUser() を呼ばずに早期 return。
+  // token refresh は protected/auth route アクセス時に発生する。
+  // ローカル開発 (Node.js runtime) と本番 (CF Workers) のリソース制限の違いに対応。
+  if (!isProtected && !isAuthPage) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

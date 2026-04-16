@@ -36,17 +36,39 @@ function buildCsp(nonce: string): string {
 
 /**
  * `supabaseResponse` 再作成時に carry over すべき headers/cookies を引き継ぐ。
- * Next.js が生成する request override 系 (x-middleware-override-headers /
- * x-middleware-request-*) は**コピーしない**。新しい NextResponse.next() が
- * 更新済み request.cookies と x-nonce を含む fresh な override を自動生成する
- * ため、古い override で上書きしてはならない (RSC が古い cookie を見る原因)。
+ *
+ * - `x-middleware-request-cookie` は除外 — 新しい NextResponse.next() が
+ *   更新済み request.cookies の fresh な値を自動生成している (古い値を
+ *   上書きすると RSC が stale cookie を見てログアウト誘発)。
+ * - `x-middleware-override-headers` は**マージ** — i18n (next-intl) が
+ *   設定した `x-next-intl-locale` 等の override list と、新 response が
+ *   生成した cookie/nonce の override list の両方を保持する必要がある。
+ * - その他の `x-middleware-request-*` (locale 等) は保持 — next-intl は
+ *   この経路で locale を RSC に伝播するため、除外すると defaultLocale に
+ *   フォールバックして i18n が壊れる。
  */
 function carryOverResponseState(prev: NextResponse, next: NextResponse) {
+  // Merge x-middleware-override-headers (i18n override + next の fresh override)
+  const prevOverrides = prev.headers.get("x-middleware-override-headers");
+  if (prevOverrides) {
+    const nextOverrides = next.headers.get("x-middleware-override-headers");
+    const merged = new Set<string>();
+    for (const h of (nextOverrides ?? "").split(",")) {
+      const trimmed = h.trim();
+      if (trimmed) merged.add(trimmed);
+    }
+    for (const h of prevOverrides.split(",")) {
+      const trimmed = h.trim();
+      if (trimmed) merged.add(trimmed);
+    }
+    next.headers.set("x-middleware-override-headers", Array.from(merged).join(","));
+  }
+
   prev.headers.forEach((value, key) => {
     const lower = key.toLowerCase();
     if (lower === "set-cookie") return;
-    if (lower === "x-middleware-override-headers") return;
-    if (lower.startsWith("x-middleware-request-")) return;
+    if (lower === "x-middleware-override-headers") return; // already merged above
+    if (lower === "x-middleware-request-cookie") return; // fresh value in `next`
     next.headers.set(key, value);
   });
   for (const cookie of prev.cookies.getAll()) {

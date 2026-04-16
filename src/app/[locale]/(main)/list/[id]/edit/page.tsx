@@ -72,7 +72,11 @@ export default function EditListingPage() {
 
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const listingId = Array.isArray(params.id) ? params.id[0] : params.id;
+  // Next.js 16 では useParams() が initial render 等で null を返すことがあり、
+  // params.id への直接アクセスは TypeError を起こして 'use client' component の
+  // SSR/hydration が失敗する。null-safe にアクセスし、未定義時は空文字に fall back。
+  const rawId = params?.id;
+  const listingId = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialForm);

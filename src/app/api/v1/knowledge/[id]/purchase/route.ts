@@ -135,12 +135,15 @@ export const POST = withApiAuth(async (request, user, _rateLimit, context) => {
       { id: result.item.id, title: result.item.title ?? "" },
       amount,
       result.transaction.token as Token,
-    ).catch((err: unknown) =>
-      console.error("[purchase] send notification failed:", {
-        userId: result.item.seller_id,
-        itemId: id,
-        error: err,
-      }),
+    ).then(
+      () => {},
+      (err: unknown) => {
+        console.error("[purchase] send notification failed:", {
+          userId: result.item.seller_id,
+          itemId: id,
+          error: err,
+        });
+      },
     );
   }
 

@@ -2,7 +2,7 @@
  * Advanced / low-level entry point. Exposes the primitives that `mcp/`,
  * `packages/eliza-plugin/`, `packages/agentkit-plugin/`, and `cli/` reuse to
  * avoid duplicating HTTP plumbing. Public SDK consumers should prefer the
- * top-level `@knowledge-market/sdk` export.
+ * top-level `@knowmint/sdk` export.
  */
 export {
   apiRequest,

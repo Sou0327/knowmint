@@ -18,7 +18,7 @@ import {
 import {
   formatSearchResults as sdkFormatSearchResults,
   type SearchResultsPayload,
-} from "@knowledge-market/sdk/formatters";
+} from "@knowmint/sdk/formatters";
 
 /**
  * AgentKit は英語ラベル + sanitize を有効化して表示する

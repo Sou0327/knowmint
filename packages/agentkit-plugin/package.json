@@ -36,7 +36,7 @@
     "zod": "^3.22.0"
   },
   "dependencies": {
-    "@knowledge-market/sdk": "^0.2.0"
+    "@knowmint/sdk": "^0.2.0"
   },
   "devDependencies": {
     "@coinbase/agentkit": "^0.2.0",

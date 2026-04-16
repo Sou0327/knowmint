@@ -6,12 +6,12 @@ import {
   apiRequestWithPayment as sdkApiRequestWithPayment,
   type PaginationMeta as SdkPaginationMeta,
   type PaymentRequiredResponse as SdkPaymentRequiredResponse,
-} from "@knowledge-market/sdk/internal";
+} from "@knowmint/sdk/internal";
 import {
   validateBaseUrl as sdkValidateBaseUrl,
   validateApiKey as sdkValidateApiKey,
-} from "@knowledge-market/sdk/validate";
-import { KmApiError } from "@knowledge-market/sdk";
+} from "@knowmint/sdk/validate";
+import { KmApiError } from "@knowmint/sdk";
 
 const DEFAULT_BASE_URL = "https://knowmint.shop";
 

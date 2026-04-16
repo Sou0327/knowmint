@@ -3,12 +3,12 @@ import {
   apiRequestPaginated as sdkApiRequestPaginated,
   apiRequestWithPayment as sdkApiRequestWithPayment,
   type PaginationMeta as SdkPaginationMeta,
-} from "@knowledge-market/sdk/internal";
+} from "@knowmint/sdk/internal";
 import {
   validateBaseUrl as sdkValidateBaseUrl,
   validateApiKey as sdkValidateApiKey,
-} from "@knowledge-market/sdk/validate";
-import { KmApiError } from "@knowledge-market/sdk";
+} from "@knowmint/sdk/validate";
+import { KmApiError } from "@knowmint/sdk";
 
 import type { KnowMintConfig, PaymentRequiredResponse, X402Accept } from "./types.js";
 

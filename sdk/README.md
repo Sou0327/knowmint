@@ -1,4 +1,4 @@
-# @knowledge-market/sdk
+# @knowmint/sdk
 
 TypeScript SDK for the KnowMint API.
 
@@ -14,19 +14,19 @@ TypeScript SDK for the KnowMint API.
 
 ```bash
 # npm
-npm install @knowledge-market/sdk
+npm install @knowmint/sdk
 
 # pnpm
-pnpm add @knowledge-market/sdk
+pnpm add @knowmint/sdk
 
 # bun
-bun add @knowledge-market/sdk
+bun add @knowmint/sdk
 ```
 
 ## クイックスタート
 
 ```typescript
-import { KnowledgeMarketClient } from "@knowledge-market/sdk";
+import { KnowledgeMarketClient } from "@knowmint/sdk";
 
 const client = new KnowledgeMarketClient({
   apiKey: process.env.KM_API_KEY!,
@@ -147,7 +147,7 @@ const item = await client.publish({
 ## エラーハンドリング
 
 ```typescript
-import { KnowledgeMarketClient, KmApiError } from "@knowledge-market/sdk";
+import { KnowledgeMarketClient, KmApiError } from "@knowmint/sdk";
 
 try {
   const item = await client.getItem("nonexistent-id");
@@ -165,7 +165,7 @@ try {
 OpenClaw AI エージェントが KnowMint SDK を使ってナレッジを自律的に検索・購入するサンプルは [`examples/openclaw-integration.ts`](./examples/openclaw-integration.ts) を参照してください。
 
 ```typescript
-import { KnowledgeMarketClient } from "@knowledge-market/sdk";
+import { KnowledgeMarketClient } from "@knowmint/sdk";
 
 const client = new KnowledgeMarketClient({ apiKey: process.env.KM_API_KEY! });
 

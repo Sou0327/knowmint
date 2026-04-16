@@ -16,9 +16,9 @@ import type { KmConfig } from "./api.ts";
 import {
   formatSearchResults as sdkFormatSearchResults,
   type SearchResultsPayload,
-} from "@knowledge-market/sdk/formatters";
-import { validateChallengeMessage as sdkValidateChallengeMessage } from "@knowledge-market/sdk/siws";
-import { validateBaseUrl as sdkValidateBaseUrl } from "@knowledge-market/sdk/validate";
+} from "@knowmint/sdk/formatters";
+import { validateChallengeMessage as sdkValidateChallengeMessage } from "@knowmint/sdk/siws";
+import { validateBaseUrl as sdkValidateBaseUrl } from "@knowmint/sdk/validate";
 import { PublicKey } from "@solana/web3.js";
 
 type ToolResult = {

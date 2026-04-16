@@ -9,7 +9,7 @@ import type {
 } from "@elizaos/core";
 import { apiRequestPaginated, KmApiError, loadConfigFromRuntime } from "../api.js";
 import type { SearchItem } from "../types.js";
-import { formatSearchResults as sdkFormatSearchResults } from "@knowledge-market/sdk/formatters";
+import { formatSearchResults as sdkFormatSearchResults } from "@knowmint/sdk/formatters";
 
 const MAX_QUERY_LEN = 200;
 const VALID_CONTENT_TYPES = new Set(["prompt", "tool_def", "dataset", "api", "general"]);

@@ -183,8 +183,13 @@ export async function middleware(request: NextRequest) {
 
   const redirectWithCookies = (url: URL) => {
     const redirectResponse = NextResponse.redirect(url, 303);
+    // RequestCookie オブジェクトを spread して set すると、Next.js の
+    // cookies API 仕様では options (httpOnly/sameSite/secure/path/domain
+    // /maxAge/expires) の伝播が暗黙的になる。Supabase auth cookie の
+    // セキュリティ属性脱落を防ぐため、name/value/options を明示的に分離する。
     for (const cookie of supabaseResponse.cookies.getAll()) {
-      redirectResponse.cookies.set(cookie);
+      const { name, value, ...options } = cookie;
+      redirectResponse.cookies.set(name, value, options);
     }
     return redirectResponse;
   };

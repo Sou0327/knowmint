@@ -11,15 +11,30 @@ export default function EmailCaptureSection() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [isVisible, setIsVisible] = useState(false);
+  // Progressive enhancement: SSR / hydrate 初期は mode="initial" で style 無し
+  // (= visible)。viewport 外で mount した時だけ hidden → observer で visible へ。
+  // JS 失敗時も initial のまま表示されるため Subscribe フォームが空白にならない。
+  const [mode, setMode] = useState<"initial" | "hidden" | "visible">("initial");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
 
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      // 既に viewport 内 — animation 不要
+      return;
+    }
+
+    setMode("hidden");
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); } },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setMode("visible");
+          observer.unobserve(el);
+        }
+      },
       { threshold: 0.15 },
     );
     observer.observe(el);
@@ -54,7 +69,13 @@ export default function EmailCaptureSection() {
       ref={sectionRef}
       className="my-8"
       data-animate
-      style={isVisible ? { animation: "animate-fade-up 0.6s cubic-bezier(0.22,1,0.36,1) forwards" } : { opacity: 0 }}
+      style={
+        mode === "hidden"
+          ? { opacity: 0 }
+          : mode === "visible"
+            ? { animation: "animate-fade-up 0.6s cubic-bezier(0.22,1,0.36,1) forwards" }
+            : undefined
+      }
     >
       <div className="dq-window p-6 sm:p-8 text-center">
         <h2 className="font-display text-xl font-bold text-dq-gold mb-2">

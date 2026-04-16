@@ -32,12 +32,15 @@ export function HomeHeroSection({ translations: t }: HomeHeroSectionProps) {
     requestAnimationFrame(() => setMounted(true));
   }, []);
 
-  // Animation style helper — CSS [data-animate] handles reduced motion override
+  // Progressive enhancement: SSR / hydrate 初期は style 無し (= visible) で、
+  // JS hydrate 後にのみ animation を適用する。JS が動かなくても Hero 本体
+  // (title / CTA / search / seller link) は即座に見える。
+  // CSS keyframe の `from { opacity: 0 } to { opacity: 1 }` により、mounted 後
+  // animation 開始時に一瞬 opacity 0 になるが forwards で visible に落ち着く。
   const entrance = (delay: number, animation = "hero-title-reveal") => {
-    if (!mounted) return { opacity: 0 };
+    if (!mounted) return undefined;
     return {
       animation: `${animation} 0.7s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms forwards`,
-      opacity: 0,
     };
   };
 

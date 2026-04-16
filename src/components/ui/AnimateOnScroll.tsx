@@ -35,19 +35,33 @@ export default function AnimateOnScroll({
   as: Tag = "div",
 }: AnimateOnScrollProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  // Progressive enhancement:
+  //   "initial" — SSR / hydration 初期: style 無し = visible。JS 未実行でも見える。
+  //   "hidden"  — viewport 外で mount したときだけ JS hydrate 後に設定。opacity 0 で scroll 待ち。
+  //   "visible" — IntersectionObserver 発火後: scroll-in animation 再生。
+  // IntersectionObserver が発火しない環境 (古いブラウザ / JS 失敗) でも "initial" のまま = visible。
+  const [mode, setMode] = useState<"initial" | "hidden" | "visible">("initial");
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    const rect = el.getBoundingClientRect();
+    const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+
+    if (inViewport) {
+      // 既に viewport 内 — scroll-in animation 不要。visible のまま維持。
+      return;
+    }
+
+    setMode("hidden");
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true);
+          setMode("visible");
           if (once) observer.unobserve(el);
         } else if (!once) {
-          setIsVisible(false);
+          setMode("hidden");
         }
       },
       { threshold, rootMargin: "0px 0px -40px 0px" },
@@ -59,14 +73,16 @@ export default function AnimateOnScroll({
 
   const animationName = ANIMATION_MAP[animation];
 
-  // prefers-reduced-motion is handled by CSS [data-animate] rule in globals.css
-  const style: React.CSSProperties = isVisible
-    ? {
-        animation: `${animationName} 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards`,
-        animationDelay: `${delay}ms`,
-        opacity: delay > 0 ? 0 : undefined,
-      }
-    : { opacity: 0 };
+  // prefers-reduced-motion は globals.css の [data-animate] rule で処理。
+  const style: React.CSSProperties | undefined =
+    mode === "hidden"
+      ? { opacity: 0 }
+      : mode === "visible"
+        ? {
+            animation: `${animationName} 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards`,
+            animationDelay: `${delay}ms`,
+          }
+        : undefined;
 
   return (
     // @ts-expect-error -- dynamic tag

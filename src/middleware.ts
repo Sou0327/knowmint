@@ -34,6 +34,26 @@ function buildCsp(nonce: string): string {
   ].join("; ");
 }
 
+/**
+ * `supabaseResponse` 再作成時に carry over すべき headers/cookies を引き継ぐ。
+ * Next.js が生成する request override 系 (x-middleware-override-headers /
+ * x-middleware-request-*) は**コピーしない**。新しい NextResponse.next() が
+ * 更新済み request.cookies と x-nonce を含む fresh な override を自動生成する
+ * ため、古い override で上書きしてはならない (RSC が古い cookie を見る原因)。
+ */
+function carryOverResponseState(prev: NextResponse, next: NextResponse) {
+  prev.headers.forEach((value, key) => {
+    const lower = key.toLowerCase();
+    if (lower === "set-cookie") return;
+    if (lower === "x-middleware-override-headers") return;
+    if (lower.startsWith("x-middleware-request-")) return;
+    next.headers.set(key, value);
+  });
+  for (const cookie of prev.cookies.getAll()) {
+    next.cookies.set(cookie);
+  }
+}
+
 export async function middleware(request: NextRequest) {
   // 0. Canonical path redirect — normalize encoded separators and duplicate slashes
   const rawPathname = request.nextUrl.pathname;
@@ -45,20 +65,16 @@ export async function middleware(request: NextRequest) {
 
   // 1. API routes — CORS only, skip i18n and auth
   if (rawPathname.startsWith("/api/")) {
-    // RP1 (B-4): production で ALLOWED_ORIGINS 未設定なら getAllowedOrigins() が throw。
-    // Worker 初回リクエストで即死するので deploy 直後に検知される。
     const allowedOrigins = getAllowedOrigins();
     const requestOrigin = request.headers.get("Origin");
     const allowedOrigin = resolveAllowedOrigin(requestOrigin, allowedOrigins);
 
-    // Preflight
     if (request.method === "OPTIONS") {
       const headers: Record<string, string> = {
         "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Authorization, Content-Type, X-PAYMENT, X-API-Key",
         "Access-Control-Expose-Headers": "WWW-Authenticate, Payment-Receipt",
         "Access-Control-Max-Age": "86400",
-        // RP1 (B-4): Origin-based レスポンスには Vary: Origin 必須 (CDN/Worker キャッシュ汚染防止)
         Vary: "Origin",
       };
       if (allowedOrigin) {
@@ -73,7 +89,6 @@ export async function middleware(request: NextRequest) {
     apiResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     apiResponse.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-PAYMENT");
     apiResponse.headers.set("Access-Control-Expose-Headers", "WWW-Authenticate, Payment-Receipt");
-    // RP1 (B-4): 非 preflight でも Origin echo の有無に関わらず必ず Vary: Origin を付与
     apiResponse.headers.set("Vary", "Origin");
     apiResponse.headers.set("Content-Security-Policy", "default-src 'none'; script-src 'none'; frame-ancestors 'none'");
     return apiResponse;
@@ -83,22 +98,12 @@ export async function middleware(request: NextRequest) {
   const nonce = crypto.randomUUID();
 
   // 3. i18n routing (locale detection, rewrites, redirects)
-  const response = handleI18nRouting(request);
+  const i18nResponse = handleI18nRouting(request);
 
   // Redirects don't need CSP — browser will re-enter middleware on follow-up
-  if (response.status >= 300 && response.status < 400) {
-    return response;
+  if (i18nResponse.status >= 300 && i18nResponse.status < 400) {
+    return i18nResponse;
   }
-
-  // Propagate x-nonce to RSC via internal middleware request headers
-  const overrides = response.headers.get("x-middleware-override-headers");
-  const overrideList = overrides ? overrides.split(",").map(h => h.trim()) : [];
-  if (!overrideList.includes("x-nonce")) {
-    overrideList.push("x-nonce");
-  }
-  response.headers.set("x-middleware-override-headers", overrideList.join(","));
-  response.headers.set("x-middleware-request-x-nonce", nonce);
-  response.headers.set("Content-Security-Policy", buildCsp(nonce));
 
   // 4. Decode and strip locale prefix for route matching
   // decodeURI to match next-intl's internal decoding (e.g. /%64ashboard → /dashboard)
@@ -117,12 +122,36 @@ export async function middleware(request: NextRequest) {
   const isAuthPage =
     strippedPath === "/login" || strippedPath === "/signup";
 
-  // 5. Skip auth for public, non-auth routes (performance)
-  if (!isProtected && !isAuthPage) {
-    return response;
-  }
+  const localeMatch = decodedPathname.match(localePattern);
+  const matchedLocale = localeMatch?.[1];
+  const localePrefix = matchedLocale && matchedLocale !== routing.defaultLocale
+    ? `/${matchedLocale}`
+    : "";
 
-  // 6. Supabase auth session refresh (only for protected/auth routes)
+  // 5. Build request headers with x-nonce for RSC propagation.
+  //    NextResponse.next({ request: { headers } }) を呼ぶと、Next.js が
+  //    x-middleware-override-headers と x-middleware-request-x-nonce を
+  //    自動生成し、この request 内の RSC から x-nonce を読めるようになる。
+  //    `new Headers(request.headers)` は snapshot なので、setAll で cookie
+  //    が更新された後は毎回 fresh な headers を組み立てる必要がある。
+  const buildRequestHeaders = () => {
+    const headers = new Headers(request.headers);
+    headers.set("x-nonce", nonce);
+    return headers;
+  };
+
+  // 6. Supabase auth — 全 route で getUser を呼ぶ (セッションリフレッシュのため)。
+  //    Supabase 公式パターン: setAll 内で supabaseResponse を再作成し、
+  //    更新済み request.cookies を Next.js の fresh override 経由で RSC に同期する。
+  //    「Do not run code between createServerClient and supabase.auth.getUser().
+  //     A simple mistake could make it very hard to debug issues with users
+  //     being randomly logged out.」 (Supabase 公式 nextjs-supabase-auth ガイド)
+  let supabaseResponse = NextResponse.next({
+    request: { headers: buildRequestHeaders() },
+  });
+  carryOverResponseState(i18nResponse, supabaseResponse);
+  supabaseResponse.headers.set("Content-Security-Policy", buildCsp(nonce));
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -135,8 +164,13 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
+          const prev = supabaseResponse;
+          supabaseResponse = NextResponse.next({
+            request: { headers: buildRequestHeaders() },
+          });
+          carryOverResponseState(prev, supabaseResponse);
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options)
           );
         },
       },
@@ -147,54 +181,59 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 7. Detect locale prefix for locale-aware redirects (skip for default locale under as-needed)
-  const localeMatch = decodedPathname.match(localePattern);
-  const matchedLocale = localeMatch?.[1];
-  const localePrefix = matchedLocale && matchedLocale !== routing.defaultLocale
-    ? `/${matchedLocale}`
-    : "";
+  const redirectWithCookies = (url: URL) => {
+    const redirectResponse = NextResponse.redirect(url, 303);
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      redirectResponse.cookies.set(cookie);
+    }
+    return redirectResponse;
+  };
 
-  // 8. Protected route → redirect to login (preserve cookies with attributes)
+  // 7. Protected route → redirect to login
   if (isProtected && !user) {
     const loginUrl = new URL(`${localePrefix}/login`, request.url);
     const redirectTarget = strippedPath + request.nextUrl.search;
     loginUrl.searchParams.set("redirect", redirectTarget);
-    const redirectResponse = NextResponse.redirect(loginUrl, 303);
-    for (const cookie of response.cookies.getAll()) {
-      redirectResponse.cookies.set(cookie);
-    }
-    return redirectResponse;
+    return redirectWithCookies(loginUrl);
   }
 
-  // 8b. Banned user → sign out and redirect to login (fail-closed)
+  // 7b. Banned user check (fail-closed に対する三分岐)
+  //     - profileError: transient。cookie は消さず /login へ (次のリトライで復帰)
+  //     - profile 欠損: データ不整合。cookie は消さず /login へ (ban の代替認可)
+  //     - banned_at: 明示的 ban。signOut して /login へ
   if (isProtected && user) {
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("banned_at")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profile || profile.banned_at) {
+    if (profileError) {
+      console.error("[auth] profile fetch failed", {
+        userId: user.id,
+        code: profileError.code,
+        message: profileError.message,
+      });
+      return redirectWithCookies(new URL(`${localePrefix}/login`, request.url));
+    }
+
+    if (!profile) {
+      console.error("[auth] profile missing", { userId: user.id });
+      return redirectWithCookies(new URL(`${localePrefix}/login`, request.url));
+    }
+
+    if (profile.banned_at) {
       await supabase.auth.signOut();
-      const loginUrl = new URL(`${localePrefix}/login`, request.url);
-      const redirectResponse = NextResponse.redirect(loginUrl, 303);
-      for (const cookie of response.cookies.getAll()) {
-        redirectResponse.cookies.set(cookie);
-      }
-      return redirectResponse;
+      return redirectWithCookies(new URL(`${localePrefix}/login`, request.url));
     }
   }
 
-  // 9. Auth page + logged in → redirect to home (preserve cookies with attributes)
+  // 8. Auth page + logged in → redirect to home
   if (isAuthPage && user) {
-    const redirectResponse = NextResponse.redirect(new URL(`${localePrefix}/`, request.url), 303);
-    for (const cookie of response.cookies.getAll()) {
-      redirectResponse.cookies.set(cookie);
-    }
-    return redirectResponse;
+    return redirectWithCookies(new URL(`${localePrefix}/`, request.url));
   }
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {

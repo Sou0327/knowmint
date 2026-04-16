@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { Link } from "@/i18n/navigation";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -17,7 +18,11 @@ interface Props {
   title: string;
   priceSol: number | null;
   sellerWallet: string;
-  onPurchaseComplete: (txHash: string) => Promise<void>;
+  onPurchaseComplete: (
+    txHash: string,
+    chain: "solana",
+    token: "SOL" | "USDC",
+  ) => Promise<void>;
 }
 
 export default function PurchaseModal({
@@ -68,7 +73,8 @@ export default function PurchaseModal({
         transaction = await buildSolTransfer(publicKey, sellerWallet, amount);
       }
       const signature = await sendTransaction(transaction, connection);
-      await onPurchaseComplete(signature);
+      // 現状はSOLのみサポート。USDC/EVM 対応時は引数を token state から伝播する。
+      await onPurchaseComplete(signature, "solana", "SOL");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("paymentFailed"));
     } finally {
@@ -121,15 +127,15 @@ export default function PurchaseModal({
             onChange={(e) => setAgreed(e.target.checked)}
           />
           <span>
-            <a
+            <Link
               href="/terms"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Terms (opens in new tab)"
+              aria-label={t("termsAriaLabel")}
               className="text-dq-cyan underline underline-offset-2 hover:text-dq-gold"
             >
               {t("termsLink")}
-            </a>
+            </Link>
             {t("agreeTermsSuffix")}
           </span>
         </label>

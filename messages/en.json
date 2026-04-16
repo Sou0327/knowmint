@@ -439,6 +439,7 @@
     "agreeToTerms": "Please agree to the terms of service",
     "evmNotReady": "Purchases on EVM chains are coming soon (please use Solana)",
     "termsLink": "Terms of Service",
+    "termsAriaLabel": "Terms of Service (opens in new tab)",
     "agreeTermsSuffix": "I agree to the"
   },
   "Wallet": {

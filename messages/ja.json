@@ -439,6 +439,7 @@
     "agreeToTerms": "利用規約に同意してください",
     "evmNotReady": "EVM チェーンでの購入は現在準備中です（Solana をご利用ください）",
     "termsLink": "利用規約",
+    "termsAriaLabel": "利用規約 (新しいタブで開きます)",
     "agreeTermsSuffix": "に同意します"
   },
   "Wallet": {

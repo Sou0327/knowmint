@@ -26,8 +26,12 @@ export function PurchaseSection({
   const [isOpen, setIsOpen] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
 
-  const handlePurchaseComplete = async (txHash: string): Promise<void> => {
-    const result = await recordPurchase(knowledgeId, txHash, "solana", "SOL", true);
+  const handlePurchaseComplete = async (
+    txHash: string,
+    chain: "solana",
+    token: "SOL" | "USDC",
+  ): Promise<void> => {
+    const result = await recordPurchase(knowledgeId, txHash, chain, token, true);
     if (!result.success) {
       throw new Error(result.error ?? "Purchase failed");
     }
@@ -35,7 +39,11 @@ export function PurchaseSection({
     setShowShareCard(true);
   };
 
-  if (isRequest || !sellerWallet) {
+  // USDC 送金 UI は未実装なので、SOL 価格が無い (= USDC-only) listing は
+  // 購入不可として disabled 表示にする。core/API は USDC 検証を持つが、
+  // PurchaseModal が USDC 送金 transaction を構築できないため、modal を開いても
+  // priceMissing エラーになるだけで意味がない。
+  if (isRequest || !sellerWallet || priceSol === null) {
     return (
       <Button variant="secondary" size="lg" className="w-full" disabled>
         {isRequest ? t("recruitmentListing") : t("buy")}

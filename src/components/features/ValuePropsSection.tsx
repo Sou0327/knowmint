@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import LucideIcon from "@/components/ui/LucideIcon";
+import AnimateOnScroll from "@/components/ui/AnimateOnScroll";
 
 const PROP_ICONS = ["Settings", "Zap", "Shield"] as const;
 
@@ -14,19 +15,23 @@ export default async function ValuePropsSection() {
 
   return (
     <section>
-      <div className="mb-6 flex items-center gap-4">
-        <h2 className="shrink-0 font-display text-xl font-bold text-dq-gold">
-          {t("valuePropTitle")}
-        </h2>
-        <div className="h-px flex-1 bg-gradient-to-r from-dq-border to-transparent" />
-      </div>
+      <AnimateOnScroll animation="fade-up">
+        <div className="mb-6 flex items-center gap-4">
+          <h2 className="shrink-0 font-display text-xl font-bold text-dq-gold">
+            {t("valuePropTitle")}
+          </h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-dq-border to-transparent" />
+        </div>
+      </AnimateOnScroll>
       <div className="grid gap-4 sm:grid-cols-3">
-        {props.map((prop) => (
-          <div key={prop.icon} className="dq-window-sm dq-window-hover p-6">
-            <LucideIcon name={prop.icon} className="mb-4 text-dq-gold" size={32} />
-            <h3 className="mb-2 font-display text-base font-bold text-dq-gold">{prop.title}</h3>
-            <p className="text-sm leading-relaxed text-dq-text-sub">{prop.desc}</p>
-          </div>
+        {props.map((prop, i) => (
+          <AnimateOnScroll key={prop.icon} animation="fade-up" delay={i * 120}>
+            <div className="dq-window-sm dq-window-hover p-6">
+              <LucideIcon name={prop.icon} className="mb-4 text-dq-gold" size={32} />
+              <h3 className="mb-2 font-display text-base font-bold text-dq-gold">{prop.title}</h3>
+              <p className="text-sm leading-relaxed text-dq-text-sub">{prop.desc}</p>
+            </div>
+          </AnimateOnScroll>
         ))}
       </div>
     </section>

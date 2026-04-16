@@ -167,6 +167,57 @@
   50% { opacity: 0; }
 }
 
+/* ===== Scroll-triggered Entrance Animations ===== */
+@keyframes animate-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes animate-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes animate-fade-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes animate-fade-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes animate-scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ===== Hero Animations ===== */
+@keyframes hero-title-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes hero-glow-pulse {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.18; }
+}
+
+@keyframes hero-badge-drop {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
 @utility dq-cursor {
   animation: dq-blink 1s step-end infinite;
 }
@@ -236,6 +287,13 @@
   }
   .dq-cursor {
     animation: none;
+  }
+  /* Disable all entrance animations for reduced motion */
+  [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
   }
 }
 

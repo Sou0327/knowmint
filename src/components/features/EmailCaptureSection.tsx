@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -11,6 +11,20 @@ export default function EmailCaptureSection() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); } },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +50,12 @@ export default function EmailCaptureSection() {
   }
 
   return (
-    <section className="my-8">
+    <section
+      ref={sectionRef}
+      className="my-8"
+      data-animate
+      style={isVisible ? { animation: "animate-fade-up 0.6s cubic-bezier(0.22,1,0.36,1) forwards" } : { opacity: 0 }}
+    >
       <div className="dq-window p-6 sm:p-8 text-center">
         <h2 className="font-display text-xl font-bold text-dq-gold mb-2">
           {t("title")}

@@ -16,6 +16,7 @@ import EmailCaptureSection from "@/components/features/EmailCaptureSection";
 import { HomeHeroSection } from "@/components/features/HomeHeroSection";
 import { HomeCategoriesSection } from "@/components/features/HomeCategoriesSection";
 import { HomeKnowledgeGrid } from "@/components/features/HomeKnowledgeGrid";
+import AnimateOnScroll from "@/components/ui/AnimateOnScroll";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { buildAlternates, ogDefaults } from "@/lib/seo/alternates";
@@ -141,23 +142,34 @@ export default async function HomePage() {
       <JsonLd data={organizationJsonLd} />
 
       {/* Hero */}
-      <HomeHeroSection tHome={tHome} />
+      <HomeHeroSection
+        translations={{
+          heroCatchphrase: tHome("heroCatchphrase"),
+          heroTagline: tHome("heroTagline"),
+          exploreMarket: tHome("exploreMarket"),
+          heroSubCtaLabel: tHome("heroSubCtaLabel"),
+          heroSellerCta: tHome("heroSellerCta"),
+          heroSellerCtaLink: tHome("heroSellerCtaLink"),
+        }}
+      />
 
       {/* AI-citable definition */}
-      <section className="mx-auto max-w-3xl rounded-sm dq-window p-6 text-center sm:p-8">
-        <h2 className="mb-4 font-display text-xl font-bold text-dq-gold">
-          {tHome("definitionHeading")}
-        </h2>
-        <p className="mb-3 text-sm leading-relaxed text-dq-text-sub">
-          {tHome("definitionLine1")}
-        </p>
-        <p className="mb-3 text-sm leading-relaxed text-dq-text-sub">
-          {tHome("definitionLine2")}
-        </p>
-        <p className="text-sm leading-relaxed text-dq-text-sub">
-          {tHome("definitionLine3")}
-        </p>
-      </section>
+      <AnimateOnScroll animation="scale-in">
+        <section className="mx-auto max-w-3xl rounded-sm dq-window p-6 text-center sm:p-8">
+          <h2 className="mb-4 font-display text-xl font-bold text-dq-gold">
+            {tHome("definitionHeading")}
+          </h2>
+          <p className="mb-3 text-sm leading-relaxed text-dq-text-sub">
+            {tHome("definitionLine1")}
+          </p>
+          <p className="mb-3 text-sm leading-relaxed text-dq-text-sub">
+            {tHome("definitionLine2")}
+          </p>
+          <p className="text-sm leading-relaxed text-dq-text-sub">
+            {tHome("definitionLine3")}
+          </p>
+        </section>
+      </AnimateOnScroll>
 
       <p className="text-center text-xs text-dq-text-muted">{tHome("lastUpdated")}</p>
 
@@ -213,26 +225,30 @@ export default async function HomePage() {
       {/* Top Sellers */}
       {topSellers.length > 0 && (
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex flex-1 items-center gap-4">
-              <h2 className="shrink-0 font-display text-xl font-bold text-dq-gold">
-                {tHome("topSellers")}
-              </h2>
-              <div className="h-px flex-1 bg-gradient-to-r from-dq-border to-transparent" />
+          <AnimateOnScroll animation="fade-up">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex flex-1 items-center gap-4">
+                <h2 className="shrink-0 font-display text-xl font-bold text-dq-gold">
+                  {tHome("topSellers")}
+                </h2>
+                <div className="h-px flex-1 bg-gradient-to-r from-dq-border to-transparent" />
+              </div>
+              <Link
+                href="/rankings"
+                className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
+              >
+                {tHome("viewRankings")}{" "}
+                <span className="inline-block transition-transform group-hover:translate-x-0.5">
+                  →
+                </span>
+              </Link>
             </div>
-            <Link
-              href="/rankings"
-              className="group ml-4 text-sm text-dq-cyan hover:text-dq-gold"
-            >
-              {tHome("viewRankings")}{" "}
-              <span className="inline-block transition-transform group-hover:translate-x-0.5">
-                →
-              </span>
-            </Link>
-          </div>
+          </AnimateOnScroll>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {topSellers.slice(0, 3).map((seller, i) => (
-              <SellerRankingCard key={seller.id} seller={seller} rank={i + 1} />
+              <AnimateOnScroll key={seller.id} animation="fade-up" delay={i * 100}>
+                <SellerRankingCard seller={seller} rank={i + 1} />
+              </AnimateOnScroll>
             ))}
           </div>
         </section>

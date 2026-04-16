@@ -1,69 +1,128 @@
-// F-9: Home page 分割 — Hero セクション
+"use client";
+
+import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import SearchBar from "@/components/features/SearchBar";
-import type { useTranslations } from "next-intl";
-
-type Translations = ReturnType<typeof useTranslations<"Home">>;
+import HeroParticles from "@/components/features/HeroParticles";
 
 interface HomeHeroSectionProps {
-  tHome: Translations;
+  translations: {
+    heroCatchphrase: string;
+    heroTagline: string;
+    exploreMarket: string;
+    heroSubCtaLabel: string;
+    heroSellerCta: string;
+    heroSellerCtaLink: string;
+  };
 }
 
-export function HomeHeroSection({ tHome }: HomeHeroSectionProps) {
+const BADGES = [
+  { label: "x402 Protocol", color: "text-dq-cyan" },
+  { label: "Solana", color: "text-dq-gold" },
+  { label: "MCP", color: "text-dq-text-sub" },
+] as const;
+
+const SEARCH_TAGS = ["MCP", "prompt", "Claude Code", "dataset", "Solana"];
+
+export function HomeHeroSection({ translations: t }: HomeHeroSectionProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // Trigger mount animation on next frame for smooth paint
+    requestAnimationFrame(() => setMounted(true));
+  }, []);
+
+  // Animation style helper — CSS [data-animate] handles reduced motion override
+  const entrance = (delay: number, animation = "hero-title-reveal") => {
+    if (!mounted) return { opacity: 0 };
+    return {
+      animation: `${animation} 0.7s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms forwards`,
+      opacity: 0,
+    };
+  };
+
   return (
-    <section className="relative overflow-hidden rounded-sm py-20 text-center sm:py-24">
-      {/* Atmospheric background */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,197,66,0.08),transparent_60%)]" />
+    <section className="relative overflow-hidden rounded-sm py-20 text-center sm:py-24" data-animate>
+      {/* Atmospheric background with glow pulse */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,197,66,0.08),transparent_60%)]"
+        style={mounted ? { animation: "hero-glow-pulse 4s ease-in-out infinite" } : {}}
+        data-animate
+      />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(64,192,224,0.05),transparent_50%)]" />
 
+      {/* Floating particles — HeroParticles handles reduced-motion internally */}
+      {mounted && <HeroParticles />}
+
       <div className="relative">
-        {/* Eco badges */}
+        {/* Eco badges — stagger drop-in */}
         <div className="mb-6 flex flex-wrap justify-center gap-2 sm:gap-3">
-          <span className="dq-window-sm px-3 py-1 text-xs font-medium text-dq-cyan">
-            x402 Protocol
-          </span>
-          <span className="self-center text-dq-text-muted" aria-hidden="true">·</span>
-          <span className="dq-window-sm px-3 py-1 text-xs font-medium text-dq-gold">
-            Solana
-          </span>
-          <span className="self-center text-dq-text-muted" aria-hidden="true">·</span>
-          <span className="dq-window-sm px-3 py-1 text-xs font-medium text-dq-text-sub">
-            MCP
-          </span>
+          {BADGES.map((badge, i) => (
+            <span
+              key={badge.label}
+              className={`dq-window-sm px-3 py-1 text-xs font-medium ${badge.color}`}
+              style={entrance(100 + i * 100, "hero-badge-drop")}
+              data-animate
+            >
+              {badge.label}
+            </span>
+          ))}
         </div>
 
-        <h1 className="font-display text-5xl font-bold leading-tight tracking-wide text-dq-gold text-glow-gold sm:text-7xl">
+        {/* Title — blur-to-sharp reveal */}
+        <h1
+          className="font-display text-5xl font-bold leading-tight tracking-wide text-dq-gold text-glow-gold sm:text-7xl"
+          style={entrance(300)}
+          data-animate
+        >
           Know<span className="tracking-normal">Mint</span>
         </h1>
 
-        <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-dq-text-sub sm:text-xl">
-          {tHome("heroCatchphrase")}
+        {/* Catchphrase — fade-up */}
+        <p
+          className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-dq-text-sub sm:text-xl"
+          style={entrance(500, "animate-fade-up")}
+          data-animate
+        >
+          {t.heroCatchphrase}
         </p>
-        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-dq-text-muted">
-          {tHome("heroTagline")}
+        <p
+          className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-dq-text-muted"
+          style={entrance(600, "animate-fade-up")}
+          data-animate
+        >
+          {t.heroTagline}
         </p>
 
-        {/* CTAs */}
+        {/* CTAs — stagger fade-up */}
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
             href="/search"
             className="rounded-sm bg-dq-gold px-9 py-4 text-sm font-bold text-dq-bg shadow-[0_0_30px_rgba(245,197,66,0.3)] motion-safe:transition-all hover:brightness-110 hover:shadow-[0_0_40px_rgba(245,197,66,0.4)]"
+            style={entrance(700, "animate-fade-up")}
+            data-animate
           >
-            {tHome("exploreMarket")}
+            {t.exploreMarket}
           </Link>
           <Link
             href="#how-it-works"
             className="rounded-sm border-2 border-dq-cyan/50 px-9 py-4 text-sm font-semibold text-dq-cyan motion-safe:transition-all hover:border-dq-cyan hover:bg-dq-cyan/5"
+            style={entrance(800, "animate-fade-up")}
+            data-animate
           >
-            {tHome("heroSubCtaLabel")}
+            {t.heroSubCtaLabel}
           </Link>
         </div>
 
-        {/* Hero Search */}
-        <div className="mx-auto mt-10 max-w-lg">
+        {/* Hero Search — fade-up */}
+        <div
+          className="mx-auto mt-10 max-w-lg"
+          style={entrance(900, "animate-fade-up")}
+          data-animate
+        >
           <SearchBar className="w-full" />
           <div className="mt-3 flex flex-wrap justify-center gap-2">
-            {["MCP", "prompt", "Claude Code", "dataset", "Solana"].map((tag) => (
+            {SEARCH_TAGS.map((tag) => (
               <Link
                 key={tag}
                 href={`/search?q=${encodeURIComponent(tag)}`}
@@ -76,13 +135,17 @@ export function HomeHeroSection({ tHome }: HomeHeroSectionProps) {
         </div>
 
         {/* Seller CTA */}
-        <p className="mt-4 text-center text-sm text-dq-text-muted">
-          {tHome("heroSellerCta")}{" "}
+        <p
+          className="mt-4 text-center text-sm text-dq-text-muted"
+          style={entrance(1000, "animate-fade-in")}
+          data-animate
+        >
+          {t.heroSellerCta}{" "}
           <Link
             href="/list"
             className="font-semibold text-dq-cyan transition-colors hover:text-dq-gold"
           >
-            {tHome("heroSellerCtaLink")}
+            {t.heroSellerCtaLink}
           </Link>
         </p>
       </div>
